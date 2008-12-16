@@ -1,0 +1,6 @@
+content firediff content/firediff/ contentaccessible=yes 
+content firediff content/firediff/ 
+skin	firediff	classic/1.0	skin/classic/
+skin	firediff-os	classic/1.0	skin/classic/win/
+
+overlay chrome://firebug/content/firebugOverlay.xul         chrome://firediff/content/firediff.xul
