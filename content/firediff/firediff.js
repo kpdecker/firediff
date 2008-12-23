@@ -8,7 +8,8 @@ Firebug.DiffModule = extend(ListeningModule,
 	showContext: function(browser, context)
 	{
 		// after a showContext the user may edit, so we need to prepare for it.
-		var panel = context.getPanel("diff");  //initialize panel for this context
+		if (context)
+			var panel = context.getPanel("diff");  //initialize panel for this context
 	}
 });
 	
