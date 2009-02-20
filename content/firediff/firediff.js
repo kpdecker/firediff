@@ -195,9 +195,22 @@ DiffPanel.prototype = extend(DiffPanelCommon,
     	FBTrace.sysout("diff.updateLocation "+this.name+" key:"+change.getKey(), change);
     },
     
-    supportObject: function(object)
+    supportsObject: function(object)
+    { 
+    	if ( (object instanceof Change) || (object instanceof Firebug.StringCompare) )
+    	    return 10;
+    	return 0;
+    },
+    
+    updateSelection: function(object)
     {
-    	return (object instanceof Change);
+      if (object instanceof Firebug.StringCompare)
+          this.showStringCompare(object);
+    },
+    
+    showStringCompare: function(compare)
+    {
+        this.panelNode.innerHTML = diffString(compare.left, compare.right);
     },
 });
 
@@ -241,6 +254,11 @@ PreviousPanel.prototype = extend(DiffPanelCommon,
 
 });
 
+Firebug.StringCompare = function(left, right)
+{
+    this.left = left;
+    this.right = right;
+}
 
 function Change(xpath, panel, editor, target, value, previousValue)
 {
