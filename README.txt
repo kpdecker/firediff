@@ -33,6 +33,10 @@ to implement.
   Diff Snapshot:
   Displays a snapshot of the page's markup or CSS as a result of a given change.
   
+  Initial implementation of this feature has been implemented in the form of the
+  "All Modules" panel. The intent is to extend this implementation to support the
+  snapshot in time functionality.
+  
   Unified Diff:
   Generates a unified diff for the changes made within the page. As much of a files
   formatting data is lost in rendering process, the file base content for this view
@@ -42,11 +46,9 @@ to implement.
 
 Data Model:
 Firediff maintains an internal model of the changes that have occurred within the
-page. This model will be able to combine related changes into single element as
-appropriate.
-
-Currently the data model allows for simple leaf nodes to be combined, but does not
-allow for more complicated merges on entire subtrees.
+page. This model is able to combine related changes into single change as
+appropriate. Each event implemented in the model supports apply and revert
+functionality on arbitrary trees.
 
 Open Issues:
 See TODO.txt

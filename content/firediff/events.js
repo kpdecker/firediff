@@ -3,6 +3,11 @@ FBL.ns(function() { with (FBL) {
 var i18n = document.getElementById("strings_firediff");
 var Path = FireDiff.Path;
 
+const CHANGES = "firebug-firediff-changes";
+const ATTR_CHANGES = "firebug-firediff-attrChanges";
+const REMOVE_CHANGES = "firebug-firediff-removeChanges";
+const HAS_CHILD_CHANGES = "firebug-firediff-childChanges";
+
 var ChangeSource = {
     APP_CHANGE: "APP_CHANGE",
     FIREBUG_CHANGE: "FIREBUG_CHANGE"
@@ -42,7 +47,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     isElementAdded: function() { return false; },
     isElementRemoved: function() { return false; },
     
-    getActionNode: function(target, xpath) {
+    getActionNode: function(target, xpath, doc) {
       try {
         xpath = xpath || Path.getElementPath(target);
         if (xpath == this.xpath) {
@@ -51,7 +56,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         }
         
         var components = Path.getRelativeComponents(this.xpath, xpath);
-        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
+        var iterate = (doc || target.ownerDocument).evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
         return iterate.iterateNext();
       } catch (err) {
         if (FBTrace.DBG_ERRORS) {
@@ -61,7 +66,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         throw err;
       }
     },
-    getInsertActionNode: function(target, xpath) {
+    getInsertActionNode: function(target, xpath, doc) {
       xpath = xpath || Path.getElementPath(target);
       
       var parentPath = Path.getParentPath(this.xpath);
@@ -70,13 +75,13 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       var components = Path.getRelativeComponents(parentPath, xpath);
       var parentEl;
       if (components.left) {
-        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
+        var iterate = (doc || target.ownerDocument).evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
         parentEl = iterate.iterateNext() ;
       } else {
         parentEl = target;
       }
       
-      iterate = target.ownerDocument.evaluate(
+      iterate = (doc || target.ownerDocument).evaluate(
           selfId.tag + "[" + selfId.index + "]", parentEl, null, XPathResult.ANY_TYPE, null);
       var siblingEl = iterate.iterateNext();
       
@@ -88,7 +93,20 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     
     /* Merge Helper Routines */
     getMergedXPath: function(prior) {},
-    overridesChange: function(prior) {}
+    overridesChange: function(prior) {},
+    
+    annotateTree: function(tree, root, doc) {
+      var actionNode = this.getActionNode(tree, root, doc);
+      if (!actionNode) {
+        FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
+        FBTrace.sysout("ERROR: annotateTree: actionNode is undefined doc: ", doc);
+      }
+      actionNode[CHANGES] = this;
+      
+      while (actionNode = actionNode.parentNode) {
+        actionNode[HAS_CHILD_CHANGES] = true;
+      }
+    }
 });
 
 function DOMInsertedEvent(target, clone, xpath, changeSource) {
@@ -270,6 +288,17 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     },
     overridesChange: function(prior) {
       return Path.isChildOrSelf(this.xpath, prior.xpath);
+    },
+    
+    annotateTree: function(tree, root, doc) {
+      var actionNode = this.getInsertActionNode(tree, root, doc).parent;
+      var list = actionNode[REMOVE_CHANGES] || [];
+      list.push(this);
+      actionNode[REMOVE_CHANGES] = list;
+      
+      while (actionNode = actionNode.parentNode) {
+        actionNode[HAS_CHILD_CHANGES] = true;
+      }
     }
 });
 
@@ -407,6 +436,17 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
               actionNode.setAttribute(this.attrName, this.previousValue);
             }
           }, this));
+    },
+    
+    annotateTree: function(tree, root, doc) {
+      var actionNode = this.getActionNode(tree, root, doc);
+      var list = actionNode[ATTR_CHANGES] || {};
+      list[this.attrName] = this;
+      actionNode[ATTR_CHANGES] = list;
+      
+      while (actionNode = actionNode.parentNode) {
+        actionNode[HAS_CHILD_CHANGES] = true;
+      }
     }
 });
 
@@ -585,6 +625,12 @@ CSSRemovePropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
 // Global API
 FireDiff.events = {
     ChangeSource: ChangeSource,
+    AnnotateAttrs: {
+      CHANGES: CHANGES,
+      ATTR_CHANGES: ATTR_CHANGES,
+      REMOVE_CHANGES: REMOVE_CHANGES,
+      HAS_CHILD_CHANGES: HAS_CHILD_CHANGES
+    },
     
     ChangeEvent: ChangeEvent,
     
@@ -620,7 +666,7 @@ FireDiff.events = {
         
         var ret = [];
         
-        FBTrace.sysout("Merge prior", changes);
+        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge prior", changes);
         changes = changes.slice();
         
         for (var innerIter = 0; innerIter < changes.length; innerIter++) {
@@ -634,6 +680,7 @@ FireDiff.events = {
                 if (changes[outerIter]) {
                     var mergeValue = curTest.merge(changes[outerIter]);
                     if (mergeValue) {
+                        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge change " + innerIter + " " + outerIter, mergeValue);
                         curTest = mergeValue[0];
                         changes[outerIter] = mergeValue[1];
                     }
@@ -645,7 +692,7 @@ FireDiff.events = {
             }
         }
 
-        FBTrace.sysout("Merge result", ret);
+        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge result", ret);
         return ret;
     }
 };

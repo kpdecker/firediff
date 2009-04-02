@@ -123,7 +123,15 @@ Firebug.DiffModule = extend(ListeningModule,
     },
     dispatchChange: function(change, context) {
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.dispatchChange", change);
+      
+      var diffContext = this.getDiffContext(context);
+      diffContext.changes.push(change);
+      
       dispatch(this.fbListeners, "onDiffChange", [change, context || FirebugContext]);
+    },
+    
+    getChanges: function(context) {
+      return this.getDiffContext(context).changes;
     },
     
     getDiffContext: function(context) {
@@ -132,7 +140,7 @@ Firebug.DiffModule = extend(ListeningModule,
         return null;
       }
       
-      context.diffContext = context.diffContext || {};
+      context.diffContext = context.diffContext || { changes: [] };
       return context.diffContext;
     }
 });
