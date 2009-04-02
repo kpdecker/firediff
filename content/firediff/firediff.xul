@@ -1,11 +1,31 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="chrome://firediff/skin/firediff.css"?>
+
+<!DOCTYPE window SYSTEM "chrome://firebug/locale/firebug.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-    <stringbundleset id="stringbundleset">
-        <stringbundle id="strings_firediff" src="chrome://firediff/locale/firediff.properties"/>
-    </stringbundleset>
-    
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="strings_firediff" src="chrome://firediff/locale/firediff.properties"/>
+  </stringbundleset>
+  
   <script src="chrome://firediff/content/jsdiff.js" type="application/x-javascript"/>
-  <script src="chrome://firediff/content/firediff.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/domplate.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/events.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/diffModule.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/diffMonitor.js" type="application/x-javascript"/>
+  
+  <commandset id="mainCommandSet">
+    <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(FirebugContext)"/>
+  </commandset>
+  
+  <toolbar id="fbToolbar" align="center">
+    <hbox id="fbToolbarInner" insertbefore="fbDetachButton" flex="1" align="center">
+      <hbox id="fbDiffMonitorButtons" insertafter="fbNetButtons" collapsed="true">
+        <toolbarseparator/>
+        <toolbarbutton label="&firebug.Clear;" class="toolbar-text-button"
+                       tooltiptext="&firebug.ClearTooltip;" command="cmd_clearDiffMonitor"/>
+      </hbox>
+    </hbox>
+  </toolbar>
 </overlay>

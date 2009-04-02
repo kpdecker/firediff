@@ -1,0 +1,49 @@
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Firediff: Apply RevertTest</title>
+    <link rel="stylesheet" type="text/css" href="applyRevertTest.css" />
+    <!-- TODO : Test embedded style sheet modification as well -->
+    <style type="text/css">
+        p { background-color: red; }
+    </style>
+</head>
+<body>
+    <div id="insertTest">
+        <div>Test</div>
+        <p>Existing Data</p>
+        <p>Existing Data2</p>
+    </div>
+    <div id="insertVerify">
+        <div>Test</div>
+        <p>Existing Data</p>
+        <p align="left">insertData</p><p>Existing Data2</p>
+    </div>
+    
+    <div id="removeTest">
+        <p>Other1</p>
+        <div id="removeEl">Test</div>
+        <div style="display: inline">Other2</div>
+    </div>
+    <div id="removeVerify">
+        <p>Other1</p>
+        
+        <div style="display: inline">Other2</div>
+    </div>
+    
+    <div id="charDataTest">Test<br/>Test</div>
+    <div id="charDataVerify">Test<br/>Tested</div>
+    
+    <div id="attrInsertTest"><div></div></div>
+    <div id="attrInsertVerify"><div align="left"></div></div>
+    
+    <div id="attrRemoveTest"><div align="right"></div></div>
+    <div id="attrRemoveVerify"><div></div></div>
+    
+    <div id="attrChangeTest"><div style="display: block"></div></div>
+    <div id="attrChangeVerify"><div style="display: inline"></div></div>
+</body>
+</html>

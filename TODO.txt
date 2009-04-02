@@ -1,0 +1,14 @@
+The following are items that need further work:
+- Integration with the Firebug Activation model
+- Data Model:
+ - Handle diffs for the Firebug free edit modes
+- Filter all background changes made by Firebug (i.e. insertion of highlight element styles)
+- Diff Monitor
+ - Search
+ - CSS Links
+- Snapshot Panel
+- Unified Diff Panel
+- Testing
+ - Automated Tests
+ - CSS Tests
+ - Firebug DOM Change Tests

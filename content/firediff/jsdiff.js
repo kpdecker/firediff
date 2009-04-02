@@ -17,6 +17,49 @@ function escape(s) {
     return n;
 }
 
+function diffStringObj( o, n ) {
+  var out = diff(o == "" ? [] : o.split(/\s+/), n == "" ? [] : n.split(/\s+/) );
+  var str = [];
+
+  var oSpace = o.match(/\s+/g);
+  if (oSpace == null) {
+    oSpace = [""];
+  } else {
+    oSpace.push("");
+  }
+  var nSpace = n.match(/\s+/g);
+  if (nSpace == null) {
+    nSpace = [""];
+  } else {
+    nSpace.push("");
+  }
+
+  if (out.n.length == 0) {
+      for (var i = 0; i < out.o.length; i++) {
+        str.push({ value: escape(out.o[i]) + oSpace[i], removed: true });
+      }
+  } else {
+    if (out.n[0].text == null) {
+      for (n = 0; n < out.o.length && out.o[n].text == null; n++) {
+          str.push({ value: escape(out.o[n]) + oSpace[n], removed: true });
+      }
+    }
+
+    for ( var i = 0; i < out.n.length; i++ ) {
+      if (out.n[i].text == null) {
+        str.push({ value: escape(out.n[i]) + nSpace[i], added: true });
+      } else {
+        str.push({ value: out.n[i].text + nSpace[i] });
+        for (n = out.n[i].row + 1; n < out.o.length && out.o[n].text == null; n++ ) {
+          str.push({ value: escape(out.o[n]) + oSpace[n], removed: true });
+        }
+      }
+    }
+  }
+  
+  return str;
+}
+
 function diffString( o, n ) {
   o = o.replace(/\s+$/, '');
   n = n.replace(/\s+$/, '');

@@ -1,0 +1,31 @@
+.setTest {
+  padding-left: 10px;
+  padding-top: 5px;
+}
+
+.setTestVerify {
+  padding-left: 10px;
+  padding-top: 5px;
+  overflow: hidden;
+}
+
+.resetTest {
+  padding-left: 10px;
+  padding-top: 5px;
+}
+
+.resetTestVerify {
+  padding-left: 10px;
+  padding-top: 16px !important;
+}
+
+.removeTest {
+  margin-left: 10px;
+  display: block;
+  margin-right: 40px;
+}
+
+.removeTestVerify {
+  margin-left: 10px;
+  display: block;
+}

@@ -1,0 +1,197 @@
+function runTest() {
+  var Events = FBTest.FirebugWindow.FireDiff.events,
+      Path = FBTest.FirebugWindow.FireDiff.Path;
+  
+  FBTest.loadScript("FBTestFireDiff.js", this);
+  
+  var root = document.createElement("div");
+  var prevText = document.createTextNode("prevText");
+  var prevSibling = document.createElement("div");
+  var target = document.createElement("div");
+  var childText = document.createTextNode("childText");
+  var insertChild = document.createElement("div");
+  var sibling = document.createElement("div");
+  root.appendChild(prevText);
+  root.appendChild(prevSibling);
+  root.appendChild(target);
+  target.appendChild(childText);
+  target.appendChild(insertChild);
+  root.appendChild(sibling);
+  
+  var insertEvent = new Events.DOMInsertedEvent(target);
+  
+  // Next events
+  // Attribute Change
+  // - Self
+  var verifyTarget = document.createElement("div");
+  verifyTarget.setAttribute("align", "right");
+  var verifyText = document.createTextNode("childText");
+  var verifyChild = document.createElement("div");
+  verifyTarget.appendChild(verifyText);
+  verifyTarget.appendChild(verifyChild);
+  
+  var eventSecond = new Events.DOMAttrChangedEvent(
+      target,
+      MutationEvent.ADDITION,
+      "align",
+      "right",
+      "");
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, verifyTarget, insertEvent.xpath) ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert attr self");
+  
+  // - Child
+  verifyTarget = document.createElement("div");
+  verifyText = document.createTextNode("childText");
+  verifyChild = document.createElement("div");
+  verifyChild.setAttribute("align", "right");
+  verifyTarget.appendChild(verifyText);
+  verifyTarget.appendChild(verifyChild);
+  
+  eventSecond = new Events.DOMAttrChangedEvent(
+      insertChild,
+      MutationEvent.ADDITION,
+      "align",
+      "right",
+      "");
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, verifyTarget, insertEvent.xpath) ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert attr child");
+  
+  // - Parent
+  var eventSecond = new Events.DOMAttrChangedEvent(
+      root,
+      MutationEvent.REMOVAL,
+      "align",
+      "",
+      "right");
+  FBTestFireDiff.compareChangeList(
+      [insertEvent, eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert attr parent");
+  
+  // - Sibling
+  var eventSecond = new Events.DOMAttrChangedEvent(
+      prevSibling,
+      MutationEvent.REMOVAL,
+      "align",
+      "",
+      "right");
+  FBTestFireDiff.compareChangeList(
+      [insertEvent, eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert attr sibling");
+  
+  // Char Data changed
+  // - Child
+  verifyTarget = document.createElement("div");
+  verifyText = document.createTextNode("tested");
+  verifyChild = document.createElement("div");
+  verifyTarget.appendChild(verifyText);
+  verifyTarget.appendChild(verifyChild);
+  
+  eventSecond = new Events.DOMCharDataModifiedEvent(
+      childText,
+      "tested",
+      "childText");
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, verifyTarget, insertEvent.xpath) ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert char data child");
+  
+  // - Other
+  eventSecond = new Events.DOMCharDataModifiedEvent(
+      prevText,
+      "",
+      "tested");
+  FBTestFireDiff.compareChangeList(
+      [insertEvent, eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert char data other");
+  
+  // DOM Remove
+  // - Self
+  eventSecond = new Events.DOMRemovedEvent(target);
+  FBTestFireDiff.compareChangeList(
+      [],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert remove target");
+  
+  // - Parent
+  eventSecond = new Events.DOMRemovedEvent(root);
+  FBTestFireDiff.compareChangeList(
+      [eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert remove parent");
+  
+  // - Child
+  verifyTarget = document.createElement("div");
+  verifyText = document.createTextNode("childText");
+  verifyTarget.appendChild(verifyText);
+  
+  eventSecond = new Events.DOMRemovedEvent(insertChild);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, verifyTarget, insertEvent.xpath) ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert remove child");
+  
+  // - Self not child
+  //  - XPath update case
+  eventSecond = new Events.DOMRemovedEvent(prevSibling);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, insertEvent.clone, "/node()[1]/node()[2]"), eventSecond ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert remove xpath update");
+  
+  //  - Non XPath update case
+  eventSecond = new Events.DOMRemovedEvent(sibling);
+  FBTestFireDiff.compareChangeList(
+      [insertEvent, eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert remove no xpath update");
+  
+  // DOM Insert
+  // - Self
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, insertEvent.clone, "/node()[1]/node()[4]"), insertEvent ],
+      Events.merge([insertEvent, insertEvent]),
+      "Insert insert self");
+  
+  // - Child
+  verifyTarget = document.createElement("div");
+  verifyTarget.appendChild(document.createTextNode("childText"));
+  verifyTarget.appendChild(document.createElement("div"));
+  verifyTarget.appendChild(document.createElement("div"));
+
+  eventSecond = new Events.DOMInsertedEvent(insertChild);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, verifyTarget, insertEvent.xpath) ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert insert child");
+  
+  // - Parent
+  eventSecond = new Events.DOMInsertedEvent(document.createElement("div"));
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, insertEvent.clone, "/node()[2]/node()[3]"), eventSecond ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert insert parent");
+  
+  // - Self not child
+  //  - XPath update case
+  eventSecond = new Events.DOMInsertedEvent(prevSibling);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, insertEvent.clone, "/node()[1]/node()[4]"), eventSecond ],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert insert xpath update");
+  
+  //  - Non XPath update case
+  eventSecond = new Events.DOMInsertedEvent(sibling);
+  FBTestFireDiff.compareChangeList(
+      [insertEvent, eventSecond],
+      Events.merge([insertEvent, eventSecond]),
+      "Insert insert xpath no update");
+  
+  FBTest.testDone();
+}

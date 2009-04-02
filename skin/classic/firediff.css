@@ -1,0 +1,38 @@
+.addedClass, .addedClass *,
+.addedClass:hover {
+    background: green;
+    color: white;
+}
+.removedClass, .removedClass *,
+.removedClass:hover {
+    background: red;
+    color: black;
+}
+
+.logEntry {
+    padding-left: 10px;
+}
+
+.diffMonitorElement {
+    display: none;
+    
+    position: relative;
+    margin: 0;
+    border-bottom: 1px solid #D7D7D7;
+    padding: 2px 4px 1px 6px;
+    background-color: #FFFFFF;
+}
+
+.showFirebugChanges .firebugDiff,
+.showAppChanges .appDiff {
+    display: block;
+}
+
+
+.diffSep {
+    margin: 0 .5em;
+}
+.diffDate {
+    position: absolute;
+    right: 0px;
+}

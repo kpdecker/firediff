@@ -1,0 +1,144 @@
+FBL.ns(function() { with (FBL) {
+
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const nsIPrefBranch2 = Ci.nsIPrefBranch2;
+const PrefService = Cc["@mozilla.org/preferences-service;1"];
+const prefs = PrefService.getService(nsIPrefBranch2);
+
+var Events = FireDiff.events;
+
+var i18n = document.getElementById("strings_firediff");
+
+function DiffMonitor() {}
+DiffMonitor.prototype = extend(Firebug.Panel,
+{
+    template: domplate({
+        tag: DIV(
+            {class: "diffMonitorElement", $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
+            SPAN({class: "diffType"}, "$change|getDiffSource"),
+            SPAN({class: "diffSep"}, ":"),
+            SPAN({class: "diffSummary"}, "$change|getSummary"),
+            SPAN({class: "diffDate"}, "$change.date"),
+            DIV({class: "diffXPath"}, "$change.xpath"),
+            DIV({class: "logEntry"}, TAG("$change|getChangeTag", {change: "$change", object: "$change.target"}))
+            ),
+        getChangeTag: function(change) {
+            if (change.changeType == "css") {
+                return FireDiff.domplate.CSSChanged.tag;
+            } else if (change.clone instanceof Text) {
+                return FireDiff.domplate.TextChanged.tag;
+            } else {
+                return FireDiff.domplate.ElementChanged.tag;
+            }
+        },
+        getSummary: function(change) {
+            return change.getSummary();
+        },
+        getDiffSource: function(change) {
+          if (this.isFirebugDiff(change)) {
+            return i18n.getString("source.firebug");
+          } else {
+            return i18n.getString("source.application");
+          }
+        },
+        isFirebugDiff: function(change) {
+            return change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
+        },
+        isAppDiff: function(change) {
+            return change.changeSource == Events.ChangeSource.APP_CHANGE;
+        }
+    }),
+    name: "diff_monitor",
+    title: i18n.getString("title.diffMonitor"),
+    
+    initializeNode: function(panelNode) {
+      Firebug.DiffModule.addListener(this);
+      
+      this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
+      this.applyDisplayPrefs();
+      
+      if (Firebug.DiffModule.supportsFirebugEdits) {
+        prefs.addObserver(Firebug.prefDomain, this, false);
+      }
+    },
+    
+    show: function(state) {
+       this.showToolbarButtons("fbDiffMonitorButtons", true);
+    },
+    hide: function(state) {
+      this.showToolbarButtons("fbDiffMonitorButtons", false);
+    },
+
+    addStyleSheet: function(doc, uri, id)
+    {
+        // Make sure the stylesheet isn't appended twice. 
+        if ($(id, doc))
+            return;
+
+        var styleSheet = createStyleSheet(doc, uri);
+        styleSheet.setAttribute("id", id);
+        addStyleSheet(doc, styleSheet);
+    },
+    getOptionsMenuItems: function(context) {
+      if (Firebug.DiffModule.supportsFirebugEdits) {
+        return [
+            this.optionsMenu("option.showAppChanges", "firediff.displayAppChanges"),
+            this.optionsMenu("option.showFirebugChanges", "firediff.displayFirebugChanges")
+          ];
+      }
+    },
+    optionsMenu: function(label, option) {
+      var value = Firebug.getPref(Firebug.prefDomain, option);
+      return {
+          label: i18n.getString(label),
+          nol10n: true,
+          type: "checkbox",
+          checked: value,
+          command: bindFixed(Firebug.setPref, this, Firebug.prefDomain, option, !value)
+      };
+    },
+
+    // nsIPrefObserver
+    observe: function(subject, topic, data)
+    {
+      // We're observing preferences only.
+      if (topic != "nsPref:changed")
+        return;
+
+      var prefName = data.substr(Firebug.prefDomain.length + 1);
+      if (prefName == "firediff.displayAppChanges"
+          || prefName == "firediff.displayFirebugChanges") {
+        this.applyDisplayPrefs();
+      }
+    },
+    
+    applyDisplayPrefs: function() {
+      this.applyDisplayPref("firediff.displayAppChanges", "showAppChanges", !Firebug.DiffModule.supportsFirebugEdits);
+      this.applyDisplayPref("firediff.displayFirebugChanges", "showFirebugChanges");
+    },
+    applyDisplayPref: function(prefName, cssName, force) {
+      if (force || Firebug.getPref(Firebug.prefDomain, prefName)) {
+        setClass(this.panelNode, cssName);
+      } else {
+        removeClass(this.panelNode, cssName);
+      }
+    },
+    
+    onDiffChange: function(change, context) {
+      if (this.context != context)    return;
+      
+      this.template.tag.append({change: change}, this.panelNode);
+    },
+    onClearChanges: function(context) {
+      if (this.context != context)    return;
+      
+      if (this.panelNode) {
+        clearNode(this.panelNode);
+      }
+    }
+});
+
+Firebug.registerPanel(DiffMonitor);
+
+}});
