@@ -131,7 +131,7 @@ function runTest() {
             timeout = setTimeout(cancelTest, 5000);
           }
         } catch (err) {
-          FBTrace.sysout("Error executing test: " + curTest + " " + err, err);
+          FBTest.sysout("Error executing test: " + curTest + " " + err, err);
           testDone();
         }
       }

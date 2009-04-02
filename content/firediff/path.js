@@ -51,7 +51,7 @@ FireDiff.Path.updateForMutate = function(pathUpdate, pathChanged, offset, destro
 FireDiff.Path.getIdentifier = function(path) {
   var match = path.match(/^.*\/(.+?)(?:\[(\d+)\])?$/);
   if (match) {
-    return { tag: match[1], index: match[2] };
+    return { tag: match[1], index: parseInt(match[2]) };
   }
 };
 FireDiff.Path.getParentPath = function(path) {
