@@ -19,7 +19,7 @@ DiffAllPanel.prototype = extend(Firebug.Panel, {
         changes = FireDiff.events.merge(changes);
         
         var doc = this.context.window.document;
-        var displayTree = doc.cloneNode(true);
+        var displayTree = doc.documentElement.cloneNode(true);
         for (var i = 0; i < changes.length; i++) {
           if (changes[i].changeType == "dom") {
             var elements = FBL.getElementsByXPath(displayTree, changes[i].xpath);
@@ -30,7 +30,8 @@ DiffAllPanel.prototype = extend(Firebug.Panel, {
         }
         
         this.panelNode.innerHTML = "";
-        var html = displayTree.getElementsByTagName("html")[0];
+        // xxxHonza: displayTree is already the <html> element.
+        var html = displayTree; //.getElementsByTagName("html")[0];
         FireDiff.domplate.allChanges.CompleteElement.tag.replace({change: html}, this.panelNode);
       } catch (err) {
         FBTrace.sysout("allChanges.show: err: " + err, err);
