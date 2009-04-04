@@ -1,4 +1,4 @@
-pref("extensions.firebug.firediff.displayAppChanges", false);
+pref("extensions.firebug.firediff.displayAppChanges", true);
 pref("extensions.firebug.firediff.displayFirebugChanges", true);
 
 //Support for tracing console
