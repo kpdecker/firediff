@@ -47,7 +47,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     isElementAdded: function() { return false; },
     isElementRemoved: function() { return false; },
     
-    getActionNode: function(target, xpath, doc) {
+    getActionNode: function(target, xpath) {
       try {
         xpath = xpath || Path.getElementPath(target);
         if (xpath == this.xpath) {
@@ -56,7 +56,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         }
         
         var components = Path.getRelativeComponents(this.xpath, xpath);
-        var iterate = (doc || target.ownerDocument).evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
+        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
         return iterate.iterateNext();
       } catch (err) {
         if (FBTrace.DBG_ERRORS) {
@@ -66,7 +66,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         throw err;
       }
     },
-    getInsertActionNode: function(target, xpath, doc) {
+    getInsertActionNode: function(target, xpath) {
       xpath = xpath || Path.getElementPath(target);
       
       var parentPath = Path.getParentPath(this.xpath);
@@ -75,13 +75,13 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       var components = Path.getRelativeComponents(parentPath, xpath);
       var parentEl;
       if (components.left) {
-        var iterate = (doc || target.ownerDocument).evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
+        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
         parentEl = iterate.iterateNext() ;
       } else {
         parentEl = target;
       }
       
-      iterate = (doc || target.ownerDocument).evaluate(
+      iterate = target.ownerDocument.evaluate(
           selfId.tag + "[" + selfId.index + "]", parentEl, null, XPathResult.ANY_TYPE, null);
       var siblingEl = iterate.iterateNext();
       
@@ -95,11 +95,10 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     getMergedXPath: function(prior) {},
     overridesChange: function(prior) {},
     
-    annotateTree: function(tree, root, doc) {
-      var actionNode = this.getActionNode(tree, root, doc);
+    annotateTree: function(tree, root) {
+      var actionNode = this.getActionNode(tree, root);
       if (!actionNode) {
         FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
-        FBTrace.sysout("ERROR: annotateTree: actionNode is undefined doc: ", doc);
       }
       actionNode[CHANGES] = this;
       
@@ -290,8 +289,8 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       return Path.isChildOrSelf(this.xpath, prior.xpath);
     },
     
-    annotateTree: function(tree, root, doc) {
-      var actionNode = this.getInsertActionNode(tree, root, doc).parent;
+    annotateTree: function(tree, root) {
+      var actionNode = this.getInsertActionNode(tree, root).parent;
       var list = actionNode[REMOVE_CHANGES] || [];
       list.push(this);
       actionNode[REMOVE_CHANGES] = list;
@@ -438,8 +437,8 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           }, this));
     },
     
-    annotateTree: function(tree, root, doc) {
-      var actionNode = this.getActionNode(tree, root, doc);
+    annotateTree: function(tree, root) {
+      var actionNode = this.getActionNode(tree, root);
       var list = actionNode[ATTR_CHANGES] || {};
       list[this.attrName] = this;
       actionNode[ATTR_CHANGES] = list;

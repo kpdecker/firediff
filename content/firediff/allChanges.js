@@ -1,6 +1,7 @@
 FBL.ns(function() { with (FBL) {
 
 var i18n = document.getElementById("strings_firediff");
+var Path = FireDiff.Path;
 
 function DiffAllPanel() {}
 FireDiff.DiffAllPanel = DiffAllPanel;
@@ -25,7 +26,7 @@ DiffAllPanel.prototype = extend(Firebug.Panel, {
             var elements = FBL.getElementsByXPath(displayTree, changes[i].xpath);
             if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Change: " + changes[i], elements);
             
-            changes[i].annotateTree(displayTree, "/", displayTree);
+            changes[i].annotateTree(displayTree, Path.getElementPath(doc.documentElement));
           }
         }
         
