@@ -1,10 +1,8 @@
-.addedClass, .addedClass *,
-.addedClass:hover {
+.addedClass, .addedClass * {
     background: green;
     color: white;
 }
-.removedClass, .removedClass *,
-.removedClass:hover {
+.removedClass, .removedClass * {
     background: red;
     color: black;
 }
@@ -35,4 +33,24 @@
 .diffDate {
     position: absolute;
     right: 0px;
+}
+.diffSummary {
+    font-weight: bold;
+}
+.diffSource, .diffDate, .diffXPath {
+    color: gray;
+}
+.diffXPath {
+    padding-bottom: 1em;
+}
+
+
+/* Customized Rules for CSS Display. All others reuse the standard CSS styles */
+.cssRuleDiff {
+    position: relative;
+    font-family: Monaco, monospace;
+    color: #000000;
+}
+.cssPropDiff {
+    padding-left: 2em;
 }
