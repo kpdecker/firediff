@@ -26,10 +26,11 @@ ChangeEvent.prototype = {
     }
 };
 
-function DOMChangeEvent(target, xpath, changeSource) {
+function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
     ChangeEvent.call(this, changeSource);
     this.changeType = "dom";
     this.xpath = xpath || Path.getElementPath(target);
+    this.displayXPath = displayXPath || Path.getElementPath(target, true);
     
     // Store this just to create a mostly accurate repobject link. This shouldn't be used otherwise
     this.target = target;
@@ -91,8 +92,8 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     overridesChange: function(prior) {}
 });
 
-function DOMInsertedEvent(target, clone, xpath, changeSource) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMInsertedEvent(target, clone, xpath, displayXPath, changeSource) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     this.clone = clone || target.cloneNode(true);
 
     if (target instanceof Text) {
@@ -164,13 +165,13 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var clone = this.clone.cloneNode(true);   // Yeah..... <Clone, Clone, Clone, ...>
         candidate.apply(clone, this.xpath);
         
-        return [new DOMInsertedEvent(this.target, clone, this.xpath)];
+        return [new DOMInsertedEvent(this.target, clone, this.xpath, this.displayXPath)];
       }
       
       // XPath modification
       if (updateXPath) {
         return [
-                new DOMInsertedEvent(this.target, this.clone, updateXPath),
+                new DOMInsertedEvent(this.target, this.clone, updateXPath, this.displayXPath),
                 candidate
             ];
       }
@@ -186,8 +187,8 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
     }
 });
-function DOMRemovedEvent(target, clone, xpath, changeSource) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMRemovedEvent(target, clone, xpath, displayXPath, changeSource) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     this.clone = clone || target.cloneNode(true);
 
     if (target instanceof Text) {
@@ -274,8 +275,8 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
 });
 
 
-function DOMAttrChangedEvent(target, attrChange, attrName, newValue, prevValue, xpath, changeSource, clone) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMAttrChangedEvent(target, attrChange, attrName, newValue, prevValue, xpath, displayXPath, changeSource, clone) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     
     this.attrChange = attrChange;
     this.attrName = attrName;
@@ -320,7 +321,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     this.attrChange, this.attrName,
                     this.value, this.previousValue,
-                    updateXpath, undefined, this.clone),
+                    updateXpath, this.displayXPath, undefined, this.clone),
                 candidate
             ];
           }
@@ -338,7 +339,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     MutationEvent.REMOVAL, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, undefined, this.clone)
+                    this.xpath, this.displayXPath, undefined, this.clone)
                 ];
           }
         } else if (this.attrChange == MutationEvent.REMOVAL) {
@@ -352,7 +353,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       MutationEvent.MODIFICATION, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, undefined, this.clone)
+                      this.xpath, this.displayXPath, undefined, this.clone)
                   ];
             }
           } else {
@@ -365,7 +366,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       candidate.attrChange, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, undefined, this.clone)
+                      this.xpath, this.displayXPath, undefined, this.clone)
                   ];
             }
           }
@@ -379,7 +380,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     this.attrChange, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, undefined, this.clone)
+                    this.xpath, this.displayXPath, undefined, this.clone)
                 ];
           }
         }
@@ -410,8 +411,8 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
     }
 });
 
-function DOMCharDataModifiedEvent(target, newValue, prevValue, xpath, changeSource, clone) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMCharDataModifiedEvent(target, newValue, prevValue, xpath, displayXPath, changeSource, clone) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     
     this.previousValue = prevValue;
     this.value = newValue;
@@ -441,14 +442,14 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
           if (updateXpath) {
             return [
                 new DOMCharDataModifiedEvent(
-                    this.target, this.value, this.previousValue, updateXpath, undefined, this.clone),
+                    this.target, this.value, this.previousValue, updateXpath, this.displayXPath, undefined, this.clone),
                 candidate
             ];
           }
           return undefined;
         }
         
-        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, undefined, this.clone) ];
+        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, undefined, this.clone) ];
     },
     
     apply: function(target, xpath) {
