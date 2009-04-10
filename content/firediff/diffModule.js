@@ -1,6 +1,8 @@
 FBL.ns(function() { with (FBL) {
 
-var Events = FireDiff.events;
+var Events = FireDiff.events,
+    Path = FireDiff.Path;
+
   
 var ListeningModule = extend(Firebug.Module, new Firebug.Listener());
 Firebug.DiffModule = extend(ListeningModule,
@@ -44,6 +46,12 @@ Firebug.DiffModule = extend(ListeningModule,
         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.onBeginEditing", diffContext.editTarget);
         
         diffContext.editEvents = [];
+        diffContext.htmlEditPath = this.getHtmlEditorPaths(editor);
+    },
+    onSaveEdit: function(panel, editor, target, value, previousValue) {
+      // Update the data store used for the HTML editor monitoring
+      var diffContext = this.getDiffContext();
+      diffContext.htmlEditPath = this.getHtmlEditorPaths(editor);
     },
     onStopEdit: function(panel, editor, target) {
         var diffContext = this.getDiffContext();
@@ -59,8 +67,9 @@ Firebug.DiffModule = extend(ListeningModule,
           }
         }
         
-        diffContext.editTarget = undefined;
-        diffContext.editEvents = [];
+        delete diffContext.editTarget;
+        delete diffContext.editEvents;
+        delete diffContext.htmlEditPath;
     },
     
     //////////////////////////////////////////////
@@ -91,6 +100,25 @@ Firebug.DiffModule = extend(ListeningModule,
         }
     },
     
+    getHtmlEditorPaths: function(editor) {
+      // Select the xpath update range. This is from the first to after the
+      // last element in the range (or '}' if there is no sibling after that
+      // to simplify the match test)
+      //
+      // This is not 100%, erroring on the side marking app changes as Firebug changes
+      // To fully resolve this, deeper integration with Firebug will be required,
+      // most likely in the form of changes to the editors to use diff ignore
+      // blocks and generate custom events.
+      var elements = editor.editingElements;
+      if (elements) {
+        var nextEl = getNextElement((elements[1] || elements[0]).nextSibling);
+        return [
+                Path.getElementPath(elements[0]),
+                Path.getElementPath(nextEl) || '}'
+            ];
+      }
+    },
+    
     clearChanges: function(context) {
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.clearChanges", context);
       dispatch(this.fbListeners, "onClearChanges", [context || FirebugContext]);
@@ -115,6 +143,18 @@ Firebug.DiffModule = extend(ListeningModule,
         var diffContext = this.getDiffContext(context);
         if (diffContext.ignore)   return;
         
+        if (diffContext.htmlEditPath) {
+          // Special case for HTML free edit. It's not pretty but it gets the
+          // job done. In the future we may want to consider executing changes
+          // in the Firebug editors within ignore blocks, and generating events
+          // for the final states, but for now we want to keep the coupling
+          // low
+          if (diffContext.htmlEditPath[0] <= change.xpath
+              && change.xpath <= diffContext.htmlEditPath[1]) {
+            diffContext.editEvents.push(change);
+            return;
+          }
+        }
         if (!change.appliesTo(diffContext.editTarget)) {
             this.dispatchChange(change, context);
         } else {
