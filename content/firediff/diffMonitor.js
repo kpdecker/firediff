@@ -77,9 +77,11 @@ DiffMonitor.prototype = extend(Firebug.Panel,
     
     show: function(state) {
        this.showToolbarButtons("fbDiffMonitorButtons", true);
+       $("cmd_copy").setAttribute("disabled", true);
     },
     hide: function(state) {
       this.showToolbarButtons("fbDiffMonitorButtons", false);
+      $("cmd_copy").removeAttribute("disabled");
     },
 
     addStyleSheet: function(doc, uri, id)
