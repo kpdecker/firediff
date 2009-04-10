@@ -15,8 +15,10 @@ function ChangeEvent(changeSource) {
 ChangeEvent.prototype = {
     getChangeType: function() {},
     getSummary: function() {},
-    merge: function() {},
-    appliesTo: function() {},
+    merge: function(candidate) {},
+    mergeCancellation: function(candidate) {},
+    cloneOnXPath: function(xpath) {},
+    appliesTo: function(target) {},
     
     apply: function() {},
     revert: function() {},
@@ -171,13 +173,22 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       // XPath modification
       if (updateXPath) {
         return [
-                new DOMInsertedEvent(this.target, this.clone, updateXPath, this.displayXPath),
+                this.cloneOnXPath(updateXPath),
                 candidate
             ];
       }
       
       // No mods to be made
       return undefined;
+    },
+    mergeCancellation: function(candidate) {
+      var updatedPath = Path.updateForRemove(candidate.xpath, this.xpath);
+      if (updatedPath != candidate.xpath) {
+        return updatedPath;
+      }
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMInsertedEvent(this.target, this.clone, xpath, this.displayXPath);
     },
 
     getMergedXPath: function(prior) {
@@ -256,11 +267,20 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
           return [
-              new DOMRemovedEvent(this.target, this.clone, updateXpath, this.displayXPath),
+              this.cloneOnXPath(updateXpath),
               candidate
           ];
         }
       }
+    },
+    mergeCancellation: function(candidate) {
+      var updatedPath = Path.updateForInsert(candidate.xpath, this.xpath);
+      if (updatedPath != candidate.xpath) {
+        return updatedPath;
+      }
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMRemovedEvent(this.target, this.clone, xpath, this.displayXPath);
     },
 
     getMergedXPath: function(prior) {
@@ -317,11 +337,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           var updateXpath = candidate.getMergedXPath(this);
           if (updateXpath) {
             return [
-                new DOMAttrChangedEvent(
-                    this.target,
-                    this.attrChange, this.attrName,
-                    this.value, this.previousValue,
-                    updateXpath, this.displayXPath, undefined, this.clone),
+                this.cloneOnXPath(updateXpath),
                 candidate
             ];
           }
@@ -385,6 +401,14 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           }
         }
     },
+    cloneOnXPath: function(xpath) {
+      return new DOMAttrChangedEvent(
+          this.target,
+          this.attrChange, this.attrName,
+          this.value, this.previousValue,
+          xpath, this.displayXPath, undefined, this.clone)
+    },
+    
     apply: function(target, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
@@ -441,8 +465,7 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
           var updateXpath = candidate.getMergedXPath(this);
           if (updateXpath) {
             return [
-                new DOMCharDataModifiedEvent(
-                    this.target, this.value, this.previousValue, updateXpath, this.displayXPath, undefined, this.clone),
+                this.cloneOnXPath(updateXpath),
                 candidate
             ];
           }
@@ -450,6 +473,10 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
         }
         
         return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, undefined, this.clone) ];
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMCharDataModifiedEvent(
+          this.target, this.value, this.previousValue, xpath, this.displayXPath, undefined, this.clone);
     },
     
     apply: function(target, xpath) {
@@ -635,6 +662,17 @@ FireDiff.events = {
                 if (changes[outerIter]) {
                     var mergeValue = curTest.merge(changes[outerIter]);
                     if (mergeValue) {
+                        if (!mergeValue[0]) {
+                            // Cancellation special case
+                            for (var cancelIter = innerIter + 1; cancelIter < outerIter; cancelIter++) {
+                              if (changes[cancelIter]) {
+                                var updatedXPath = curTest.mergeCancellation(changes[cancelIter]);
+                                if (updatedXPath) {
+                                  changes[cancelIter] = changes[cancelIter].cloneOnXPath(updatedXPath);
+                                }
+                              }
+                            }
+                        }
                         curTest = mergeValue[0];
                         changes[outerIter] = mergeValue[1];
                     }
