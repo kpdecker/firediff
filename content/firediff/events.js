@@ -256,7 +256,7 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
           return [
-              new DOMRemovedEvent(this.target, this.clone, updateXpath),
+              new DOMRemovedEvent(this.target, this.clone, updateXpath, this.displayXPath),
               candidate
           ];
         }
