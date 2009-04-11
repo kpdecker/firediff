@@ -34,7 +34,7 @@ Firebug.DiffModule = extend(ListeningModule,
         context.window.addEventListener("DOMNodeRemovedFromDocument", bind(this.domEventLogger, this, context), true);
         context.window.addEventListener("DOMNodeInsertedIntoDocument", bind(this.domEventLogger, this, context), true);
         context.window.addEventListener("DOMAttrModified", bind(this.attributeChangedEventLogger, this, context), true);
-        context.window.addEventListener("DOMCharacterDataModified", bind(this.domEventLogger, this, context), true);
+        context.window.addEventListener("DOMCharacterDataModified", bind(this.charDataChangedEventLogger, this, context), true);
     },
     
     //////////////////////////////////////////////
@@ -87,10 +87,19 @@ Firebug.DiffModule = extend(ListeningModule,
     //////////////////////////////////////////////
     // Self
     domEventLogger: function(ev, context) {
-        if ((ev.target.className || "").indexOf("firebug") == -1
-                && (ev.target.id || "").indexOf("firebug") == -1) {
-            this.recordChange(Events.createDOMChange(ev), context);
-        }
+      if (!this.ignoreNode(ev.target)) {
+        var diffContext = this.getDiffContext(context);
+        this.recordChange(
+            Events.createDOMChange(ev, diffContext.changeSource),
+            context);
+      }
+    },
+    charDataChangedEventLogger: function(ev, context) {
+      // Filter out char data events whose parents are a firebug object
+      var filterNode = ev.target.parentNode;
+      if (!this.ignoreNode(ev.target.parentNode)) {
+        this.domEventLogger(ev, context);
+      }
     },
     attributeChangedEventLogger: function(ev, context) {
         // We only care about attributes that actually change or are created or deleted
@@ -98,6 +107,12 @@ Firebug.DiffModule = extend(ListeningModule,
                 || ev.newValue != ev.prevValue) {
             this.domEventLogger(ev, context);
         }
+    },
+    
+    ignoreNode: function(node) {
+      return node.firebugIgnore
+          || (node.className || "").indexOf("firebug") > -1
+          ||        (node.id || "").indexOf("firebug") > -1;
     },
     
     getHtmlEditorPaths: function(editor) {
