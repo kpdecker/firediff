@@ -626,14 +626,14 @@ FireDiff.events = {
         switch (ev.type) {
         case "DOMNodeInserted":
         case "DOMNodeInsertedInfoDocument":
-            return new DOMInsertedEvent(ev.target, undefined, undefined, changeSource);
+            return new DOMInsertedEvent(ev.target, undefined, undefined, undefined, changeSource);
         case "DOMNodeRemoved":
         case "DOMNodeRemovedFromDocument":
-            return new DOMRemovedEvent(ev.target, undefined, undefined, changeSource);
+            return new DOMRemovedEvent(ev.target, undefined, undefined, undefined, changeSource);
         case "DOMAttrModified":
-            return new DOMAttrChangedEvent(ev.target, ev.attrChange, ev.attrName, ev.newValue, ev.prevValue, undefined, changeSource);
+            return new DOMAttrChangedEvent(ev.target, ev.attrChange, ev.attrName, ev.newValue, ev.prevValue, undefined, undefined, changeSource);
         case "DOMCharacterDataModified":
-            return new DOMCharDataModifiedEvent(ev.target, ev.newValue, ev.prevValue, undefined, changeSource);
+            return new DOMCharDataModifiedEvent(ev.target, ev.newValue, ev.prevValue, undefined, undefined, changeSource);
         }
     },
     

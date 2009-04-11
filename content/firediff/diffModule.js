@@ -152,6 +152,19 @@ Firebug.DiffModule = extend(ListeningModule,
         diffContext.ignore = false;
       }
     },
+    firebugChanges: function(worker, context) {
+      // If no context is available failover. This failover is mostly for testing merges.
+      var diffContext = this.getDiffContext(context) || {};
+      try {
+        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule: Set firebug changes", context);
+        diffContext.changeSource = Events.ChangeSource.FIREBUG_CHANGE;
+        
+        worker();
+      } finally {
+        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule: Reset firebug changes", context);
+        delete diffContext.changeSource;
+      }
+    },
     
     recordChange: function(change, context) {
         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.recordChange", change);
