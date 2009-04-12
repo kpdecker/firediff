@@ -4,10 +4,8 @@ allows developers to examine the changes made in their debugging as well as thos
 made by the page itself.
 
 Dependencies:
-Firediff has been tested under Firebug 1.4, but may support prior versions.
-It works best with customizations to Firebug that allow for improved tracking
-of changes made by firebug as well as CSS tracking. These changes are included
-in the 1.4 branch of firebug as of revision 2378.
+Firediff requires Firebug 1.4. The recommended version is 1.4a17 or higher. Prior
+1.4 versions might work, but functionality such as CSS change tracking will not work.
 
 Method of operation:
 To track changes to the DOM, Firediff uses the DOM MutationEvents
