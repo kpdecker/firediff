@@ -95,12 +95,14 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     // CSSModule Listener
     onCSSSetProperty: function(style, propName, propValue, propPriority, prevValue, prevPriority) {
         this.recordChange(
-            new Events.CSSSetPropertyEvent(style, propName, propValue, propPriority, prevValue, prevPriority));
+            new Events.CSSSetPropertyEvent(
+                style, propName, propValue, propPriority, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
     },
     
     onCSSRemoveProperty: function(style, propName, prevValue, prevPriority) {
         this.recordChange(
-            new Events.CSSRemovePropertyEvent(style, propName, prevValue, prevPriority));
+            new Events.CSSRemovePropertyEvent(
+                style, propName, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
     },
     
     //////////////////////////////////////////////
