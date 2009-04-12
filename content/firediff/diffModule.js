@@ -40,11 +40,6 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         this.monitorContext(context);
       }
     },
-    onResumeFirebug: function(context) {
-      if (this.isAlwaysEnabled()) {
-        this.monitorContext(context);
-      }
-    },
     onSuspendFirebug: function(context) {
       if (this.isAlwaysEnabled()) {
         this.unmonitorContext(context);
