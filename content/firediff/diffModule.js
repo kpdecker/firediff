@@ -30,39 +30,35 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
             var panel = context.getPanel("firediff");  //initialize panel for this context
     },
 
+    initContext: function(context, persistedState) {
+      if (this.isAlwaysEnabled()) {
+        this.monitorContext(context);
+      }
+    },
+    onResumeFirebug: function(context) {
+      if (this.isAlwaysEnabled()) {
+        this.monitorContext(context);
+      }
+    },
+    onResumeFirebug: function(context) {
+      if (this.isAlwaysEnabled()) {
+        this.monitorContext(context);
+      }
+    },
+    onSuspendFirebug: function(context) {
+      if (this.isAlwaysEnabled()) {
+        this.unmonitorContext(context);
+      }
+    },
     onPanelEnable: function(context, panelName) {
       if (panelName != this.panelName)    return;
       
-      var diffContext = this.getDiffContext(context);
-
-      diffContext.eventLogger = bind(this.domEventLogger, this, context);
-      diffContext.attrEventLogger = bind(this.attributeChangedEventLogger, this, context);
-      diffContext.charDataEventLogger = bind(this.charDataChangedEventLogger, this, context);
-      
-      context.window.addEventListener("DOMNodeInserted", diffContext.eventLogger, true);
-      context.window.addEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
-      // TODO : Do we want to use the from document events? Need to verify what the distinction is
-      context.window.addEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
-      context.window.addEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
-      context.window.addEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
-      context.window.addEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
+      this.monitorContext(context);
     },
     onPanelDisable: function(context, panelName) {
         if (panelName != this.panelName)      return;
         
-        var diffContext = this.getDiffContext(context);
-        
-        context.window.removeEventListener("DOMNodeInserted", diffContext.eventLogger, true);
-        context.window.removeEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
-        // TODO : Do we want to use the from document events? Need to verify what the distinction is
-        context.window.removeEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
-        context.window.removeEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
-        context.window.removeEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
-        context.window.removeEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
-        
-        delete diffContext.eventLogger;
-        delete diffContext.attrEventLogger;
-        delete diffContext.charDataEventLogger;
+        this.unmonitorContext(context);
     },
     
     //////////////////////////////////////////////
@@ -135,6 +131,39 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
                 || ev.newValue != ev.prevValue) {
             this.domEventLogger(ev, context);
         }
+    },
+    
+    monitorContext: function(context) {
+      var diffContext = this.getDiffContext(context);
+      if (diffContext.eventLogger)    return;
+
+      diffContext.eventLogger = bind(this.domEventLogger, this, context);
+      diffContext.attrEventLogger = bind(this.attributeChangedEventLogger, this, context);
+      diffContext.charDataEventLogger = bind(this.charDataChangedEventLogger, this, context);
+      
+      context.window.addEventListener("DOMNodeInserted", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
+      // TODO : Do we want to use the from document events? Need to verify what the distinction is
+      context.window.addEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
+      context.window.addEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
+    },
+    unmonitorContext: function(context) {
+        var diffContext = this.getDiffContext(context);
+        if (!diffContext.eventLogger)    return;
+        
+        context.window.removeEventListener("DOMNodeInserted", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
+        // TODO : Do we want to use the from document events? Need to verify what the distinction is
+        context.window.removeEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
+        context.window.removeEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
+        
+        delete diffContext.eventLogger;
+        delete diffContext.attrEventLogger;
+        delete diffContext.charDataEventLogger;
     },
     
     ignoreNode: function(node) {
