@@ -102,7 +102,7 @@ function DOMInsertedEvent(target, clone, xpath, displayXPath, changeSource) {
 
     if (target instanceof Text) {
         this.previousValue = "";
-        this.value = target.wholeText;
+        this.value = target.data;
     }
 }
 DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
@@ -206,7 +206,7 @@ function DOMRemovedEvent(target, clone, xpath, displayXPath, changeSource) {
 
     if (target instanceof Text) {
         this.value = "";
-        this.previousValue = target.wholeText;
+        this.previousValue = target.data;
     }
 }
 DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
