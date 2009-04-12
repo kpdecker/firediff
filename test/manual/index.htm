@@ -3,8 +3,15 @@
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Firediff Test</title>
+    <style type="text/css">
+        #attrModified {
+            background-color: red;
+        }
+    </style>
 </head>
 <body>
+    <h1>Firediff Manual Test</h1>
+    <h2>Test Area</h2>
     <div id="insertNode"></div>
     <div id="insertNode_innerHTML"></div>
     <div id="attrModified">
@@ -45,6 +52,195 @@
                var removeNode = document.getElementById("removeNode");
                removeNode.removeChild(removeNode.getElementsByTagName("p")[0]);
            },
-           3000);
+           1000);
     </script>
+    
+    <h2>Instructions</h2>
+    <h3>Application Changes</h3>
+    <p>
+        This page should generate the following application changes 1 second 
+        after load.
+        
+        <ul>
+            <li>DOM Node Removed: /html[1]/body[1]/div[4]/text()[1]</li>
+            <li>DOM Node Inserted: /html[1]/body[1]/div[4]/text()[1]</li>
+            <li>DOM Character Data Changed: /html[1]/body[1]/div[4]/text()[1]</li>
+            <li>Attribute Added: /html[1]/body[1]/div[3] align</li>
+            <li>Attribute Removed: /html[1]/body[1]/div[3] align</li>
+            <li>DOM Node Inserted: /html[1]/body[1]/div[1]/p[1]</li>
+            <li>DOM Node Inserted: /html[1]/body[1]/div[2]/p[1]</li>
+            <li>DOM Node Removed: /html[1]/body[1]/div[5]/p[1]</li>
+            <li>DOM Node Removed: /html[1]/body[1]/div[6]/p[1]</li>
+        </ul>
+    </p>
+    
+    <h3>Firebug Tests</h3>
+    <p>
+        All of the following tests should produce results that are marked
+        as firebug changes.
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Test</th>
+                    <th>Name</th>
+                    <th>Steps</th>
+                    <th>Expected Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>1</th>
+                    <td>Create DOM Attribute</td>
+                    <td>
+                        <ol>
+                            <li>In HTML panel, insert align attribute on element w/ ID "insertNode".</li>
+                            <li>Set attribute value to left</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>Attribute Added: /html[1]/body[1]/div[1]</li>
+                            <li>Attribute Changed: /html[1]/body[1]/div[1]</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>2</th>
+                    <td>Edit DOM Attribute</td>
+                    <td>
+                        <ol>
+                            <li>In HTML panel, edit align attribute on element w/ ID "insertNode".</li>
+                            <li>Set attribute value to right</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>Attribute Changed: /html[1]/body[1]/div[1]</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>3</th>
+                    <td>Remove DOM Attribute</td>
+                    <td>
+                        <ol>
+                            <li>In HTML panel, remove align attribute on element w/ ID "insertNode".</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>Attribute Removed: /html[1]/body[1]/div[1]</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>4</th>
+                    <td>Delete DOM Node</td>
+                    <td>
+                        <ol>
+                            <li>In HTML panel, delete element with ID "removeNode".</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>DOM Node Removed: /html[1]/body[1]/div[6]</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>5</th>
+                    <td>Edit DOM Node</td>
+                    <td>
+                        <ol>
+                            <li>In HTML panel, edit element with ID "textModified".</li>
+                            <li>Change the text content.</li>
+                            <li>Add an additional &gt;p&lt;edit&gt;/p&lt; element to the end of the editor.</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>DOM Node Removed: /html[1]/body[1]/div[4]</li>
+                            <li>DOM Node Inserted: /html[1]/body[1]/div[4]</li>
+                            <li>DOM Node Inserted: /html[1]/body[1]/text()[7]</li>
+                            <li>DOM Node Inserted: /html[1]/body[1]/p[1]</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>6</th>
+                    <td>Create CSS Property</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, insert property on #attrModified class.</li>
+                            <li>Name: float</li>
+                            <li>Value: left</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Set Property</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>7</th>
+                    <td>Edit CSS Property</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, edit background-color property on #attrModified class.</li>
+                            <li>Value: green</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Set Property</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>8</th>
+                    <td>Disable CSS Property</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, disable background-color property on #attrModified class.</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Remove Property</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>9</th>
+                    <td>Enable CSS Property</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, enable background-color property on #attrModified class.</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Set Property</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>10</th>
+                    <td>Delete CSS Property</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, delete background-color property on #attrModified class.</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Remove Property</li>
+                        </ol>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </p>
 </body>
