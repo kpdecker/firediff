@@ -3,13 +3,14 @@ FBL.ns(function() { with (FBL) {
 var Events = FireDiff.events,
     Path = FireDiff.Path;
 
-  
-var ListeningModule = extend(Firebug.Module, new Firebug.Listener());
-Firebug.DiffModule = extend(ListeningModule,
-{
+Firebug.DiffModule = extend(Firebug.ActivableModule, {
+    panelName: "firediff",
+    
     supportsFirebugEdits: Firebug.Editor.supportsStopEvent,
     
     initialize: function() {
+        Firebug.ActivableModule.initialize.apply(this, arguments);
+        
         if (Firebug.CSSModule) {
             // Maintain support for older versions of firebug that do not
             // have the CSS change event implementation
@@ -24,17 +25,42 @@ Firebug.DiffModule = extend(ListeningModule,
     {
         // after a showContext the user may edit, so we need to prepare for it.
         if (context)
-            var panel = context.getPanel("diff_monitor");  //initialize panel for this context
+            var panel = context.getPanel("firediff");  //initialize panel for this context
     },
-    loadedContext: function(context)
-    {
-        context.window.addEventListener("DOMNodeInserted", bind(this.domEventLogger, this, context), true);
-        context.window.addEventListener("DOMNodeRemoved", bind(this.domEventLogger, this, context), true);
+
+    onPanelEnable: function(context, panelName) {
+      if (panelName != this.panelName)    return;
+      
+      var diffContext = this.getDiffContext(context);
+
+      diffContext.eventLogger = bind(this.domEventLogger, this, context);
+      diffContext.attrEventLogger = bind(this.attributeChangedEventLogger, this, context);
+      diffContext.charDataEventLogger = bind(this.charDataChangedEventLogger, this, context);
+      
+      context.window.addEventListener("DOMNodeInserted", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
+      // TODO : Do we want to use the from document events? Need to verify what the distinction is
+      context.window.addEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
+      context.window.addEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
+      context.window.addEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
+    },
+    onPanelDisable: function(context, panelName) {
+        if (panelName != this.panelName)      return;
+        
+        var diffContext = this.getDiffContext(context);
+        
+        context.window.removeEventListener("DOMNodeInserted", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
         // TODO : Do we want to use the from document events? Need to verify what the distinction is
-        context.window.addEventListener("DOMNodeRemovedFromDocument", bind(this.domEventLogger, this, context), true);
-        context.window.addEventListener("DOMNodeInsertedIntoDocument", bind(this.domEventLogger, this, context), true);
-        context.window.addEventListener("DOMAttrModified", bind(this.attributeChangedEventLogger, this, context), true);
-        context.window.addEventListener("DOMCharacterDataModified", bind(this.charDataChangedEventLogger, this, context), true);
+        context.window.removeEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
+        context.window.removeEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
+        context.window.removeEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
+        
+        delete diffContext.eventLogger;
+        delete diffContext.attrEventLogger;
+        delete diffContext.charDataEventLogger;
     },
     
     //////////////////////////////////////////////
@@ -205,6 +231,6 @@ Firebug.DiffModule = extend(ListeningModule,
     }
 });
 
-Firebug.registerModule(Firebug.DiffModule);
+Firebug.registerActivableModule(Firebug.DiffModule);
 
 }});

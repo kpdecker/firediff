@@ -13,8 +13,7 @@ var Events = FireDiff.events;
 var i18n = document.getElementById("strings_firediff");
 
 function DiffMonitor() {}
-DiffMonitor.prototype = extend(Firebug.Panel,
-{
+DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
     template: domplate({
         tag: DIV(
             {class: "diffMonitorElement", $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
@@ -61,7 +60,7 @@ DiffMonitor.prototype = extend(Firebug.Panel,
             return change.changeSource == Events.ChangeSource.APP_CHANGE;
         }
     }),
-    name: "diff_monitor",
+    name: "firediff",
     title: i18n.getString("title.diffMonitor"),
     
     initializeNode: function(panelNode) {
@@ -76,8 +75,24 @@ DiffMonitor.prototype = extend(Firebug.Panel,
     },
     
     show: function(state) {
-       this.showToolbarButtons("fbDiffMonitorButtons", true);
-       $("cmd_copy").setAttribute("disabled", true);
+      var enabled = Firebug.DiffModule.isAlwaysEnabled();
+      if (enabled) {
+           Firebug.DiffModule.disabledPanelPage.hide(this);
+
+           this.showToolbarButtons("fbDiffMonitorButtons", true);
+           $("cmd_copy").setAttribute("disabled", true);
+      } else {
+          this.hide();
+          Firebug.DiffModule.disabledPanelPage.show(this);
+      }
+    },
+    enablePanel: function(module) {
+      Firebug.ActivablePanel.enablePanel.apply(this, arguments);
+      this.show();
+    },
+    disablePanel: function(module) {
+      Firebug.ActivablePanel.disablePanel.apply(this, arguments);
+      this.hide();
     },
     hide: function(state) {
       this.showToolbarButtons("fbDiffMonitorButtons", false);
