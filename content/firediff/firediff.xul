@@ -1,4 +1,6 @@
 <?xml version="1.0"?>
+<!-- See license.txt for terms of usage -->
+
 <?xml-stylesheet href="chrome://firediff/skin/firediff.css"?>
 
 <!DOCTYPE window SYSTEM "chrome://firebug/locale/firebug.dtd">

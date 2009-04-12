@@ -1,3 +1,5 @@
+/* See license.txt for terms of usage */
+
 FBL.ns(function() { with (FBL) {
 
 var i18n = document.getElementById("strings_firediff");
