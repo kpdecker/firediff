@@ -213,10 +213,7 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     subType: "dom_removed",
     
     appliesTo: function(target) {
-      // TODO : Need to include some kind of test for this case in the module
-      // Test logic
-      // TODO : How to best handle this as it really only applies once
-      return false;
+      return this.target == target || isAncestor(target, this.target);
     },
     
     getSummary: function() {
