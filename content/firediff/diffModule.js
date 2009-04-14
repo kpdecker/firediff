@@ -18,6 +18,9 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
             // have the CSS change event implementation
             Firebug.CSSModule.addListener(this);
         }
+        if (Firebug.HTMLModule) {
+          Firebug.HTMLModule.addListener(this);
+        }
         if (Firebug.Editor.supportsStopEvent) {
           Firebug.Editor.addListener(this);
         }
@@ -59,13 +62,8 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     //////////////////////////////////////////////
     // Editor Listener
     onBeginEditing: function(panel, editor, target, value) {
-        var diffContext = this.getDiffContext();
-        
-        diffContext.editTarget = Firebug.getRepObject(target);
-        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.onBeginEditing", diffContext.editTarget);
-        
-        diffContext.editEvents = [];
-        diffContext.htmlEditPath = this.getHtmlEditorPaths(editor);
+      this.onBeginFirebugChange(Firebug.getRepObject(target));
+      this.onSaveEdit(panel, editor, target, value);
     },
     onSaveEdit: function(panel, editor, target, value, previousValue) {
       // Update the data store used for the HTML editor monitoring
@@ -73,22 +71,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       diffContext.htmlEditPath = this.getHtmlEditorPaths(editor);
     },
     onStopEdit: function(panel, editor, target) {
-        var diffContext = this.getDiffContext();
-        if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("stopEdit: " + target, diffContext.editEvents);
-        
-        var editEvents = diffContext.editEvents;
-        if (editEvents.length) {
-          editEvents = Events.merge(editEvents);
-          
-          for (var i = 0; i < editEvents.length; i++) {
-              editEvents[i].changeSource = Events.ChangeSource.FIREBUG_CHANGE;
-              this.dispatchChange(editEvents[i]);
-          }
-        }
-        
-        delete diffContext.editTarget;
-        delete diffContext.editEvents;
-        delete diffContext.htmlEditPath;
+      this.onEndFirebugChange(target);
     },
     
     //////////////////////////////////////////////
@@ -103,6 +86,36 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         this.recordChange(
             new Events.CSSRemovePropertyEvent(
                 style, propName, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
+    },
+    
+    //////////////////////////////////////////////
+    // HTMLModule Listener
+    onBeginFirebugChange: function(node, context) {
+      var diffContext = this.getDiffContext(context);
+      
+      diffContext.editTarget = node;
+      if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.onBeginFirebugChange", diffContext.editTarget);
+      
+      diffContext.editEvents = [];
+    },
+    
+    onEndFirebugChange: function(node, context) {
+      var diffContext = this.getDiffContext(context);
+      if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModile.onEndFirebugChange: " + node, diffContext.editEvents);
+      
+      var editEvents = diffContext.editEvents;
+      if (editEvents.length) {
+        editEvents = Events.merge(editEvents);
+        
+        for (var i = 0; i < editEvents.length; i++) {
+            editEvents[i].changeSource = Events.ChangeSource.FIREBUG_CHANGE;
+            this.dispatchChange(editEvents[i]);
+        }
+      }
+      
+      delete diffContext.editTarget;
+      delete diffContext.editEvents;
+      delete diffContext.htmlEditPath;
     },
     
     //////////////////////////////////////////////
