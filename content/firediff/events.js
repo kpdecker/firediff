@@ -1,4 +1,5 @@
 /* See license.txt for terms of usage */
+FireDiff  = FireDiff || {};
 
 FBL.ns(function() { with (FBL) {
 
@@ -20,7 +21,7 @@ function ChangeEvent(changeSource) {
   this.changeSource = changeSource || ChangeSource.APP_CHANGE;
 }
 ChangeEvent.prototype = {
-    getChangeType: function() {},
+    getChangeType: function() { return this.changeType; },
     getSummary: function() {},
     merge: function(candidate) {},
     mergeCancellation: function(candidate) {},
@@ -37,7 +38,7 @@ ChangeEvent.prototype = {
 
 function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
     ChangeEvent.call(this, changeSource);
-    this.changeType = "dom";
+    this.changeType = "DOM";
     this.xpath = xpath || Path.getElementPath(target);
     this.displayXPath = displayXPath || Path.getElementPath(target, true);
     
@@ -186,7 +187,7 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var clone = this.clone.cloneNode(true);   // Yeah..... <Clone, Clone, Clone, ...>
         candidate.apply(clone, this.xpath);
         
-        return [new DOMInsertedEvent(this.target, clone, this.xpath, this.displayXPath)];
+        return [new DOMInsertedEvent(this.target, clone, this.xpath, this.displayXPath, this.changeSource)];
       }
       
       // XPath modification
@@ -207,7 +208,7 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
     },
     cloneOnXPath: function(xpath) {
-      return new DOMInsertedEvent(this.target, this.clone, xpath, this.displayXPath);
+      return new DOMInsertedEvent(this.target, this.clone, xpath, this.displayXPath, this.changeSource);
     },
 
     getMergedXPath: function(prior) {
@@ -296,7 +297,7 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
     },
     cloneOnXPath: function(xpath) {
-      return new DOMRemovedEvent(this.target, this.clone, xpath, this.displayXPath);
+      return new DOMRemovedEvent(this.target, this.clone, xpath, this.displayXPath, this.changeSource);
     },
 
     getMergedXPath: function(prior) {
@@ -382,7 +383,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     MutationEvent.REMOVAL, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, this.displayXPath, undefined, this.clone)
+                    this.xpath, this.displayXPath, this.changeSource, this.clone)
                 ];
           }
         } else if (this.attrChange == MutationEvent.REMOVAL) {
@@ -396,7 +397,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       MutationEvent.MODIFICATION, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, this.displayXPath, undefined, this.clone)
+                      this.xpath, this.displayXPath, this.changeSource, this.clone)
                   ];
             }
           } else {
@@ -409,7 +410,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       candidate.attrChange, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, this.displayXPath, undefined, this.clone)
+                      this.xpath, this.displayXPath, this.changeSource, this.clone)
                   ];
             }
           }
@@ -423,7 +424,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     this.attrChange, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, this.displayXPath, undefined, this.clone)
+                    this.xpath, this.displayXPath, this.changeSource, this.clone)
                 ];
           }
         }
@@ -433,7 +434,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           this.target,
           this.attrChange, this.attrName,
           this.value, this.previousValue,
-          xpath, this.displayXPath, undefined, this.clone)
+          xpath, this.displayXPath, this.changeSource, this.clone)
     },
     
     apply: function(target, xpath) {
@@ -510,11 +511,11 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
           return undefined;
         }
         
-        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, undefined, this.clone) ];
+        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, this.changeSource, this.clone) ];
     },
     cloneOnXPath: function(xpath) {
       return new DOMCharDataModifiedEvent(
-          this.target, this.value, this.previousValue, xpath, this.displayXPath, undefined, this.clone);
+          this.target, this.value, this.previousValue, xpath, this.displayXPath, this.changeSource, this.clone);
     },
     
     apply: function(target, xpath) {
@@ -540,7 +541,7 @@ function CSSChangeEvent(style, propName, changeSource) {
     this.propName = propName;
 }
 CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
-    changeType: "css",
+    changeType: "CSS",
     
     appliesTo: function(target) {
         return this.style === target;
@@ -578,7 +579,7 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
               new CSSSetPropertyEvent(
                       this.style, this.propName,
                       candidate.propValue, candidate.propPriority,
-                      this.prevValue, this.prevPriority)
+                      this.prevValue, this.prevPriority, this.changeSource)
               ];
         } else {
           return [];
@@ -630,7 +631,7 @@ CSSRemovePropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
                 new CSSSetPropertyEvent(
                         this.style, this.propName,
                         candidate.propValue, candidate.propPriority,
-                        this.prevValue, this.prevPriority)
+                        this.prevValue, this.prevPriority, this.changeSource)
                 ];
       }
     },
