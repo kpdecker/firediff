@@ -193,5 +193,39 @@ function runTest() {
       Events.merge([insertEvent, eventSecond]),
       "Insert insert xpath no update");
   
+
+  var root = document.createElement("div");
+  var prevText = document.createTextNode("prevText");
+  var prevSibling = document.createElement("div");
+  var target = document.createElement("div");
+  var childText = document.createTextNode("childText");
+  var insertChild = document.createElement("div");
+  var sibling = document.createElement("div");
+  root.appendChild(prevText);
+  root.appendChild(prevSibling);
+  root.appendChild(target);
+  target.appendChild(childText);
+  target.appendChild(insertChild);
+  root.appendChild(sibling);
+  
+  // Cancellation
+  // - Update
+  var insertCancel = new Events.DOMInsertedEvent(prevSibling);
+  var removeCancel = new Events.DOMRemovedEvent(prevSibling);
+  eventSecond = new Events.DOMInsertedEvent(target);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, insertEvent.clone, "/node()[1]/node()[2]")],
+      Events.merge([insertCancel, eventSecond, removeCancel]),
+      "Insert cancellation update");
+  
+  // - No Update
+  insertCancel = new Events.DOMInsertedEvent(target);
+  removeCancel = new Events.DOMRemovedEvent(sibling);   // This will cancel the first insert after the first step
+  eventSecond = new Events.DOMInsertedEvent(prevSibling);
+  FBTestFireDiff.compareChangeList(
+      [eventSecond],
+      Events.merge([insertCancel, eventSecond, removeCancel]),
+      "Insert cancellation no update");
+  
   FBTest.testDone();
 }

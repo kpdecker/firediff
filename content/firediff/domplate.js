@@ -1,3 +1,5 @@
+/* See license.txt for terms of usage */
+
 var FireDiff = {};
 FireDiff.domplate = {};
 
@@ -154,21 +156,22 @@ this.ElementChanged = domplate(FirebugReps.Element, {
 });
 
 this.CSSChanged = domplate({
-    tag: DIV({class: "cssRule"},
+    tag: DIV({class: "cssRuleDiff"},
             DIV({class: "cssHead"},
                     SPAN({class: "cssSelector"}, "$change.style.parentRule.selectorText"), " {"
                 ),
-                DIV({class: "cssProp", $removedClass: "$change|isPropRemoved", $addedClass: "$change|isPropAdded"},
+                DIV({class: "cssPropDiff"},
+                  SPAN({$removedClass: "$change|isPropRemoved", $addedClass: "$change|isPropAdded"},
                     SPAN({class: "cssPropName"}, "$change.propName"),
                     SPAN({class: "cssColon"}, ":"),
                     SPAN({class: "cssPropValue"},
                         FOR("block", "$change|diffProp",
                                 SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value")),
                         SPAN({$removedClass: "$change|isPriorityRemoved", $addedClass: "$change|isPriorityAdded"},
-                                "$change.prevPriority $change.propPriority")
+                                "$change|getPriorityText")
                     ),
                     SPAN({class: "cssSemi"}, ";")
-                ),
+                )),
                 DIV("}")
             ),
     diffProp: function(change) {
@@ -180,11 +183,15 @@ this.CSSChanged = domplate({
     isPropRemoved: function(change) {
         return !change.propValue;
     },
+    getPriorityText: function(change) {
+      var important = change.propPriority || change.prevPriority;
+      return important ? (" !" + important) : "";
+    },
     isPriorityAdded: function(change) {
         return !change.prevPriority;
     },
     isPriorityRemoved: function(change) {
-        return !change.propPrority;
+        return !change.propPriority;
     }
 });
 

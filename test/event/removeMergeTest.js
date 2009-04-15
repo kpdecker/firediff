@@ -171,6 +171,26 @@ function runTest() {
       [removeEvent, eventSecond],
       Events.merge([removeEvent, eventSecond]),
       "Remove insert no xpath update");
+
+  
+  // Cancellation
+  // - Update
+  var removeCancel = new Events.DOMRemovedEvent(prevSibling);
+  var insertCancel = new Events.DOMInsertedEvent(prevSibling);
+  eventSecond = new Events.DOMInsertedEvent(target);
+  FBTestFireDiff.compareChangeList(
+      [new Events.DOMInsertedEvent(target, eventSecond.clone, "/node()[1]/node()[4]")],
+      Events.merge([removeCancel, eventSecond, insertCancel]),
+      "Remove cancellation update");
+  
+  // - No Update
+  removeCancel = new Events.DOMRemovedEvent(target);
+  insertCancel = new Events.DOMInsertedEvent(target, target, "/node()[1]/node()[4]");
+  eventSecond = new Events.DOMInsertedEvent(prevSibling);
+  FBTestFireDiff.compareChangeList(
+      [eventSecond],
+      Events.merge([removeCancel, eventSecond, insertCancel]),
+      "Remove cancellation no update");
   
   FBTest.testDone();
 }

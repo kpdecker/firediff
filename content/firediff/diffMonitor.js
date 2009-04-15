@@ -1,3 +1,5 @@
+/* See license.txt for terms of usage */
+
 FBL.ns(function() { with (FBL) {
 
 const Cc = Components.classes;
@@ -6,21 +8,22 @@ const nsIPrefBranch2 = Ci.nsIPrefBranch2;
 const PrefService = Cc["@mozilla.org/preferences-service;1"];
 const prefs = PrefService.getService(nsIPrefBranch2);
 
+const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptableDateFormat");
+
 var Events = FireDiff.events;
 
 var i18n = document.getElementById("strings_firediff");
 
 function DiffMonitor() {}
-DiffMonitor.prototype = extend(Firebug.Panel,
-{
+DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
     template: domplate({
         tag: DIV(
             {class: "diffMonitorElement", $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
-            SPAN({class: "diffType"}, "$change|getDiffSource"),
-            SPAN({class: "diffSep"}, ":"),
             SPAN({class: "diffSummary"}, "$change|getSummary"),
-            SPAN({class: "diffDate"}, "$change.date"),
-            DIV({class: "diffXPath"}, "$change.xpath"),
+            SPAN({class: "diffSep"}, ":"),
+            SPAN({class: "diffSource"}, "$change|getDiffSource"),
+            SPAN({class: "diffDate"}, "$change|getDate"),
+            DIV({class: "diffXPath"}, "$change|getXPath"),
             DIV({class: "logEntry"}, TAG("$change|getChangeTag", {change: "$change", object: "$change.target"}))
             ),
         getChangeTag: function(change) {
@@ -42,6 +45,16 @@ DiffMonitor.prototype = extend(Firebug.Panel,
             return i18n.getString("source.application");
           }
         },
+        getDate: function(change) {
+          var date = change.date;
+          return dateFormat.FormatDateTime(
+              "", dateFormat.dateFormatLong, dateFormat.timeFormatSeconds,
+              date.getFullYear(), date.getMonth() + 1, date.getDate(),
+              date.getHours(), date.getMinutes(), date.getSeconds()); 
+        },
+        getXPath: function(change) {
+          return change.displayXPath || "";
+        },
         isFirebugDiff: function(change) {
             return change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
         },
@@ -49,7 +62,7 @@ DiffMonitor.prototype = extend(Firebug.Panel,
             return change.changeSource == Events.ChangeSource.APP_CHANGE;
         }
     }),
-    name: "diff_monitor",
+    name: "firediff",
     title: i18n.getString("title.diffMonitor"),
     
     initializeNode: function(panelNode) {
@@ -64,10 +77,28 @@ DiffMonitor.prototype = extend(Firebug.Panel,
     },
     
     show: function(state) {
-       this.showToolbarButtons("fbDiffMonitorButtons", true);
+      var enabled = Firebug.DiffModule.isAlwaysEnabled();
+      if (enabled) {
+           Firebug.DiffModule.disabledPanelPage.hide(this);
+
+           this.showToolbarButtons("fbDiffMonitorButtons", true);
+           $("cmd_copy").setAttribute("disabled", true);
+      } else {
+          this.hide();
+          Firebug.DiffModule.disabledPanelPage.show(this);
+      }
+    },
+    enablePanel: function(module) {
+      Firebug.ActivablePanel.enablePanel.apply(this, arguments);
+      this.show();
+    },
+    disablePanel: function(module) {
+      Firebug.ActivablePanel.disablePanel.apply(this, arguments);
+      this.hide();
     },
     hide: function(state) {
       this.showToolbarButtons("fbDiffMonitorButtons", false);
+      $("cmd_copy").removeAttribute("disabled");
     },
 
     addStyleSheet: function(doc, uri, id)

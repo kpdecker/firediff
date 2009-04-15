@@ -1,3 +1,5 @@
+/* See license.txt for terms of usage */
+
 FBL.ns(function() { with (FBL) {
 FireDiff.Path = {};
 
@@ -51,7 +53,7 @@ FireDiff.Path.updateForMutate = function(pathUpdate, pathChanged, offset, destro
 FireDiff.Path.getIdentifier = function(path) {
   var match = path.match(/^.*\/(.+?)(?:\[(\d+)\])?$/);
   if (match) {
-    return { tag: match[1], index: parseInt(match[2]) };
+    return { tag: match[1], index: (match[2] || match[2] === "0") ? parseInt(match[2]) : undefined };
   }
 };
 FireDiff.Path.getParentPath = function(path) {

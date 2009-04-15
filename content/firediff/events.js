@@ -1,3 +1,5 @@
+/* See license.txt for terms of usage */
+
 FBL.ns(function() { with (FBL) {
 
 var i18n = document.getElementById("strings_firediff");
@@ -20,8 +22,10 @@ function ChangeEvent(changeSource) {
 ChangeEvent.prototype = {
     getChangeType: function() {},
     getSummary: function() {},
-    merge: function() {},
-    appliesTo: function() {},
+    merge: function(candidate) {},
+    mergeCancellation: function(candidate) {},
+    cloneOnXPath: function(xpath) {},
+    appliesTo: function(target) {},
     
     apply: function() {},
     revert: function() {},
@@ -31,10 +35,11 @@ ChangeEvent.prototype = {
     }
 };
 
-function DOMChangeEvent(target, xpath, changeSource) {
+function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
     ChangeEvent.call(this, changeSource);
     this.changeType = "dom";
     this.xpath = xpath || Path.getElementPath(target);
+    this.displayXPath = displayXPath || Path.getElementPath(target, true);
     
     // Store this just to create a mostly accurate repobject link. This shouldn't be used otherwise
     this.target = target;
@@ -108,13 +113,13 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     }
 });
 
-function DOMInsertedEvent(target, clone, xpath, changeSource) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMInsertedEvent(target, clone, xpath, displayXPath, changeSource) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     this.clone = clone || target.cloneNode(true);
 
     if (target instanceof Text) {
         this.previousValue = "";
-        this.value = target.wholeText;
+        this.value = target.data;
     }
 }
 DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
@@ -181,19 +186,28 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var clone = this.clone.cloneNode(true);   // Yeah..... <Clone, Clone, Clone, ...>
         candidate.apply(clone, this.xpath);
         
-        return [new DOMInsertedEvent(this.target, clone, this.xpath)];
+        return [new DOMInsertedEvent(this.target, clone, this.xpath, this.displayXPath)];
       }
       
       // XPath modification
       if (updateXPath) {
         return [
-                new DOMInsertedEvent(this.target, this.clone, updateXPath),
+                this.cloneOnXPath(updateXPath),
                 candidate
             ];
       }
       
       // No mods to be made
       return undefined;
+    },
+    mergeCancellation: function(candidate) {
+      var updatedPath = Path.updateForRemove(candidate.xpath, this.xpath);
+      if (updatedPath != candidate.xpath) {
+        return updatedPath;
+      }
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMInsertedEvent(this.target, this.clone, xpath, this.displayXPath);
     },
 
     getMergedXPath: function(prior) {
@@ -203,23 +217,20 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
     }
 });
-function DOMRemovedEvent(target, clone, xpath, changeSource) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMRemovedEvent(target, clone, xpath, displayXPath, changeSource) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     this.clone = clone || target.cloneNode(true);
 
     if (target instanceof Text) {
         this.value = "";
-        this.previousValue = target.wholeText;
+        this.previousValue = target.data;
     }
 }
 DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     subType: "dom_removed",
     
     appliesTo: function(target) {
-      // TODO : Need to include some kind of test for this case in the module
-      // Test logic
-      // TODO : How to best handle this as it really only applies once
-      return false;
+      return this.target == target || isAncestor(target, this.target);
     },
     
     getSummary: function() {
@@ -272,11 +283,20 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
           return [
-              new DOMRemovedEvent(this.target, this.clone, updateXpath),
+              this.cloneOnXPath(updateXpath),
               candidate
           ];
         }
       }
+    },
+    mergeCancellation: function(candidate) {
+      var updatedPath = Path.updateForInsert(candidate.xpath, this.xpath);
+      if (updatedPath != candidate.xpath) {
+        return updatedPath;
+      }
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMRemovedEvent(this.target, this.clone, xpath, this.displayXPath);
     },
 
     getMergedXPath: function(prior) {
@@ -302,8 +322,8 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
 });
 
 
-function DOMAttrChangedEvent(target, attrChange, attrName, newValue, prevValue, xpath, changeSource, clone) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMAttrChangedEvent(target, attrChange, attrName, newValue, prevValue, xpath, displayXPath, changeSource, clone) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     
     this.attrChange = attrChange;
     this.attrName = attrName;
@@ -344,11 +364,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           var updateXpath = candidate.getMergedXPath(this);
           if (updateXpath) {
             return [
-                new DOMAttrChangedEvent(
-                    this.target,
-                    this.attrChange, this.attrName,
-                    this.value, this.previousValue,
-                    updateXpath, undefined, this.clone),
+                this.cloneOnXPath(updateXpath),
                 candidate
             ];
           }
@@ -366,7 +382,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     MutationEvent.REMOVAL, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, undefined, this.clone)
+                    this.xpath, this.displayXPath, undefined, this.clone)
                 ];
           }
         } else if (this.attrChange == MutationEvent.REMOVAL) {
@@ -380,7 +396,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       MutationEvent.MODIFICATION, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, undefined, this.clone)
+                      this.xpath, this.displayXPath, undefined, this.clone)
                   ];
             }
           } else {
@@ -393,7 +409,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                       this.target,
                       candidate.attrChange, this.attrName,
                       candidate.value, this.previousValue,
-                      this.xpath, undefined, this.clone)
+                      this.xpath, this.displayXPath, undefined, this.clone)
                   ];
             }
           }
@@ -407,11 +423,19 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
                     this.target,
                     this.attrChange, this.attrName,
                     candidate.value, this.previousValue,
-                    this.xpath, undefined, this.clone)
+                    this.xpath, this.displayXPath, undefined, this.clone)
                 ];
           }
         }
     },
+    cloneOnXPath: function(xpath) {
+      return new DOMAttrChangedEvent(
+          this.target,
+          this.attrChange, this.attrName,
+          this.value, this.previousValue,
+          xpath, this.displayXPath, undefined, this.clone)
+    },
+    
     apply: function(target, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
@@ -449,8 +473,8 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
     }
 });
 
-function DOMCharDataModifiedEvent(target, newValue, prevValue, xpath, changeSource, clone) {
-    DOMChangeEvent.call(this, target, xpath, changeSource);
+function DOMCharDataModifiedEvent(target, newValue, prevValue, xpath, displayXPath, changeSource, clone) {
+    DOMChangeEvent.call(this, target, xpath, displayXPath, changeSource);
     
     this.previousValue = prevValue;
     this.value = newValue;
@@ -479,15 +503,18 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
           var updateXpath = candidate.getMergedXPath(this);
           if (updateXpath) {
             return [
-                new DOMCharDataModifiedEvent(
-                    this.target, this.value, this.previousValue, updateXpath, undefined, this.clone),
+                this.cloneOnXPath(updateXpath),
                 candidate
             ];
           }
           return undefined;
         }
         
-        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, undefined, this.clone) ];
+        return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, undefined, this.clone) ];
+    },
+    cloneOnXPath: function(xpath) {
+      return new DOMCharDataModifiedEvent(
+          this.target, this.value, this.previousValue, xpath, this.displayXPath, undefined, this.clone);
     },
     
     apply: function(target, xpath) {
@@ -643,14 +670,14 @@ FireDiff.events = {
         switch (ev.type) {
         case "DOMNodeInserted":
         case "DOMNodeInsertedInfoDocument":
-            return new DOMInsertedEvent(ev.target, undefined, undefined, changeSource);
+            return new DOMInsertedEvent(ev.target, undefined, undefined, undefined, changeSource);
         case "DOMNodeRemoved":
         case "DOMNodeRemovedFromDocument":
-            return new DOMRemovedEvent(ev.target, undefined, undefined, changeSource);
+            return new DOMRemovedEvent(ev.target, undefined, undefined, undefined, changeSource);
         case "DOMAttrModified":
-            return new DOMAttrChangedEvent(ev.target, ev.attrChange, ev.attrName, ev.newValue, ev.prevValue, undefined, changeSource);
+            return new DOMAttrChangedEvent(ev.target, ev.attrChange, ev.attrName, ev.newValue, ev.prevValue, undefined, undefined, changeSource);
         case "DOMCharacterDataModified":
-            return new DOMCharDataModifiedEvent(ev.target, ev.newValue, ev.prevValue, undefined, changeSource);
+            return new DOMCharDataModifiedEvent(ev.target, ev.newValue, ev.prevValue, undefined, undefined, changeSource);
         }
     },
     
@@ -680,6 +707,19 @@ FireDiff.events = {
                     var mergeValue = curTest.merge(changes[outerIter]);
                     if (mergeValue) {
                         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge change " + innerIter + " " + outerIter, mergeValue);
+                        
+                        if (!mergeValue[0]) {
+                            // Cancellation special case
+                            for (var cancelIter = innerIter + 1; cancelIter < outerIter; cancelIter++) {
+                              if (changes[cancelIter]) {
+                                var updatedXPath = curTest.mergeCancellation(changes[cancelIter]);
+                                if (updatedXPath) {
+                                  changes[cancelIter] = changes[cancelIter].cloneOnXPath(updatedXPath);
+                                }
+                              }
+                            }
+                        }
+                        
                         curTest = mergeValue[0];
                         changes[outerIter] = mergeValue[1];
                     }

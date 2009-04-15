@@ -1,3 +1,4 @@
+pref("extensions.firebug.firediff.enableSites", false);
 pref("extensions.firebug.firediff.displayAppChanges", true);
 pref("extensions.firebug.firediff.displayFirebugChanges", true);
 

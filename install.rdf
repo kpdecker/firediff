@@ -13,13 +13,16 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>1.5</em:minVersion>
-        <em:maxVersion>3.1.*</em:maxVersion>
+        <em:maxVersion>3.5.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 
     <em:name>FireDiff</em:name>
     <em:description>Track Changes in Firebug</em:description>
     <em:creator>John J. Barton</em:creator>
+    <em:developer>Kevin Decker</em:developer>
+    <em:contributor>Jan Odvarko</em:contributor>
+    <em:homepageURL>http://www.incaseofstairs.com/firediff</em:homepageURL>
  
   </Description>
 </RDF>
