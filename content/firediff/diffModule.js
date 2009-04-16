@@ -25,13 +25,6 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
           Firebug.Editor.addListener(this);
         }
     },
-    
-    showContext: function(browser, context)
-    {
-        // after a showContext the user may edit, so we need to prepare for it.
-        if (context)
-            var panel = context.getPanel("firediff");  //initialize panel for this context
-    },
 
     initContext: function(context, persistedState) {
       if (this.isAlwaysEnabled()) {
@@ -203,6 +196,10 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     
     clearChanges: function(context) {
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.clearChanges", context);
+      
+      var diffContext = this.getDiffContext(context);
+      diffContext.changes = [];
+      
       dispatch(this.fbListeners, "onClearChanges", [context || FirebugContext]);
     },
     
