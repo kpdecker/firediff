@@ -42,6 +42,62 @@
           }
         }
       }
+    },
+    
+    executeModuleTests: function(tests, win) {
+      var running = true;
+      var curTest = -1;
+      var changeNum = 0;
+      var timeout;
+      
+      var listener = {
+        onDiffChange: function(change) {
+          if (timeout) {
+            clearTimeout(timeout);  timeout = undefined;
+          }
+          if (!running) {
+            return;
+          }
+          
+          tests[curTest].verify(win, changeNum, change);
+          
+          changeNum++;
+          if (tests[curTest].eventCount == changeNum) {
+            tests[curTest].verified = true;
+            setTimeout(executeTest, 0);
+          } else {
+            timeout = setTimeout(cancelTest, 5000);
+          }
+        }
+      };
+      FBTest.FirebugWindow.Firebug.DiffModule.addListener(listener);
+      function testDone() {
+        FBTest.progress("Module tests done");
+        FBTest.FirebugWindow.Firebug.DiffModule.removeListener(listener);
+        FBTestFirebug.testDone();
+      }
+      
+      function cancelTest() {
+        running = false;
+        FBTest.ok(false, "Did not recieve all expected events for " + tests[curTest].name);
+        testDone();
+      }
+      
+      function executeTest() {
+        changeNum = 0;
+        curTest++;
+        FBTest.progress("Execute Test: " + (tests[curTest] || {name:""}).name);
+        if (curTest < tests.length) {
+          tests[curTest].execute(win);
+          if (!tests[curTest].verified) {
+            timeout = setTimeout(cancelTest, 5000);
+          }
+        } else {
+          testDone();
+        }
+      }
+      
+      executeTest();
     }
   };
 })();
