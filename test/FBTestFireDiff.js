@@ -45,7 +45,7 @@
     },
     
     executeModuleTests: function(tests, win) {
-      var running = true;
+      var running = true, setup = false;
       var curTest = -1;
       var changeNum = 0;
       var timeout;
@@ -55,7 +55,7 @@
           if (timeout) {
             clearTimeout(timeout);  timeout = undefined;
           }
-          if (!running) {
+          if (!running || setup) {
             return;
           }
           
@@ -65,6 +65,8 @@
           if (tests[curTest].eventCount == changeNum) {
             tests[curTest].verified = true;
             setTimeout(executeTest, 0);
+          } else if (tests[curTest].eventCount < changeNum) {
+            FBTest.compare(changeNum, tests[curTest].eventCount, "Unexpected number of events");
           } else {
             timeout = setTimeout(cancelTest, 5000);
           }
@@ -87,7 +89,14 @@
         changeNum = 0;
         curTest++;
         FBTest.progress("Execute Test: " + (tests[curTest] || {name:""}).name);
+        FBTest.FirebugWindow.FBTrace.sysout("Execute Test: " + (tests[curTest] || {name:""}).name);
         if (curTest < tests.length) {
+          if (tests[curTest].setup) {
+            setup = true;
+            tests[curTest].setup(win);
+            setup = false;
+          }
+          
           tests[curTest].execute(win);
           if (!tests[curTest].verified) {
             timeout = setTimeout(cancelTest, 5000);
