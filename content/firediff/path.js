@@ -98,13 +98,13 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
     var index = 0;
     for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling) {
       var siblingTagName = sibling.localName || nameLookup[sibling.nodeType];
-      if (!useTagNames || tagName == siblingTagName) {
+      if (!useTagNames || tagName == siblingTagName || !tagName) {
         ++index;
       }
     }
 
     var pathIndex = "[" + (index+1) + "]";
-    paths.splice(0, 0, (useTagNames ? tagName.toLowerCase() : "node()") + pathIndex);
+    paths.splice(0, 0, (useTagNames && tagName ? tagName.toLowerCase() : "node()") + pathIndex);
   }
 
   return paths.length ? "/" + paths.join("/") : null;
