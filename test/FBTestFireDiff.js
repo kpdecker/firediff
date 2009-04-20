@@ -12,7 +12,6 @@
     },
     
     compareObjects: function(expected, actual, msg, excluded) {
-      // TODO : Update to use compareNode for any node elements
       var tested = {};
       excluded = excluded || {};
       

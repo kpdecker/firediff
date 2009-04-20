@@ -1,5 +1,4 @@
 function runTest() {
-  // TODO : Implement these tests
   var Events = FBTest.FirebugWindow.FireDiff.events,
     Firebug = FBTest.FirebugWindow.Firebug,
     FBTrace = FBTest.FirebugWindow.FBTrace;
