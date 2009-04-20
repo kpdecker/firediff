@@ -538,7 +538,16 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
           return [];
         }
       } else if (candidate.subType == "removeProp"){
-        return [];
+        if (this.prevValue != candidate.propValue
+            || this.prevPriority != candidate.propPriority) {
+          return [
+              new CSSRemovePropertyEvent(
+                      this.style, this.propName,
+                      this.prevValue, this.prevPriority)
+              ];
+        } else {
+          return [];
+        }
       }
     },
     apply: function(style) {
