@@ -8,7 +8,7 @@ function runTest() {
   
   function verifyAppChange(change) {
     FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-    FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+    FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
     FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
     FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
     FBTest.compare(change.value, "left", "Value: " + change.value);
@@ -54,7 +54,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
         FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
         FBTest.compare(change.value, number==2 ? "right" : "", "Value: " + change.value);
@@ -95,7 +95,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
         FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
         FBTest.compare(change.value, "center", "Value: " + change.value);
@@ -136,7 +136,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
         FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
         FBTest.compare(change.value, "", "Value: " + change.value);
@@ -177,7 +177,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
         FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
         FBTest.compare(change.value, "", "Value: " + change.value);
@@ -200,7 +200,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
         FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
         FBTest.compare(change.value, "", "Value: " + change.value);
@@ -219,7 +219,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.isElementAdded(), false, "Is Addition: " + change.isElementAdded());
         FBTest.compare(change.isElementRemoved(), true, "Is Removal: " + change.isElementRemoved());
@@ -259,7 +259,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.value, number>1 ? "test2" : "", "Value: " + change.value);
         FBTest.compare(change.previousValue, number>1 ? "" : "Text Value", "Prev Value: " + change.previousValue);
@@ -301,7 +301,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.value, "", "Value: " + change.value);
         FBTest.compare(change.previousValue, "Text Value", "Prev Value: " + change.previousValue);
@@ -340,7 +340,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
         FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
@@ -377,7 +377,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
         FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
@@ -414,7 +414,7 @@ function runTest() {
         }
         
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "dom", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
         FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());

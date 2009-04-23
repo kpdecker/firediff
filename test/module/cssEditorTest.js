@@ -42,7 +42,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "setProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "display", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, "block", "Prop Value: " + change.propValue);
@@ -68,7 +68,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "setProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, "blue", "Prop Value: " + change.propValue);
@@ -94,7 +94,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number ? "setProp" : "removeProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, number ? "color" : "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, number ? "green" : "", "Prop Value: " + change.propValue);
@@ -120,7 +120,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "removeProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, "", "Prop Value: " + change.propValue);
@@ -146,7 +146,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "removeProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, "", "Prop Value: " + change.propValue);
@@ -167,7 +167,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "removeProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, "", "Prop Value: " + change.propValue);
@@ -189,7 +189,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "css", "Change type: " + change.changeType);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number ? "setProp" : "removeProp", "Sub type: " + change.subType);
         FBTest.compare(change.propName, "background-color", "Prop Name: " + change.propName);
         FBTest.compare(change.propValue, number ? "green" : "", "Prop Value: " + change.propValue);

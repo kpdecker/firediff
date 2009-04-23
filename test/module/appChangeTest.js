@@ -11,7 +11,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == change ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
       },
       eventCount: 2
@@ -24,7 +24,7 @@ function runTest() {
       },
       verify: function(win, number,change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "char_data_modified", "Sub type: " + change.subType);
       },
       eventCount: 1
@@ -37,7 +37,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(change.isAddition(), "change.isAddition");
         FBTest.ok(!change.isRemoval(), "!change.isRemoval");
@@ -52,7 +52,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
         FBTest.ok(!change.isRemoval(), "!change.isRemoval");
@@ -67,7 +67,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
         FBTest.ok(change.isRemoval(), "change.isRemoval");
@@ -84,7 +84,7 @@ function runTest() {
       },
       verify: function(win, number, change) {
         FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
+        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "dom_inserted", "Sub type: " + change.subType);
       },
       eventCount: 1
