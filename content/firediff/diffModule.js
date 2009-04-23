@@ -170,9 +170,12 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     },
     
     ignoreNode: function(node) {
+      // Ignore firebug elements and any top level elements that are not the doc element
       return node.firebugIgnore
           || (node.className || "").indexOf("firebug") > -1
-          ||        (node.id || "").indexOf("firebug") > -1;
+          ||        (node.id || "").indexOf("firebug") > -1
+          || (node.parentNode == node.ownerDocument
+              && node != node.ownerDocument.documentElement);
     },
     
     getHtmlEditorPaths: function(editor) {
