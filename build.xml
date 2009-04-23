@@ -1,10 +1,9 @@
 <?xml version="1.0" ?>
 <project name="firediff" default="dist">
-  <property name="version" value="0.1" />
+  <property name="version" value="0.2a1" />
 
   <property name="src_dir" location="${basedir}" />
   <property name="dist_dir" location="${basedir}/dist" />
-  <property name="excludes" value="**/.*,.*,test" />
 
   <target name="clean">
     <delete dir="${dist_dir}" />
@@ -15,6 +14,7 @@
     <zip destfile="${dist_dir}/${ant.project.name}${version}.xpi" update="true">
       <zipfileset dir="${src_dir}">
         <exclude name="build.xml" />
+        <exclude name="update.rdf" />
         <exclude name="**/.*/**"/>
         <exclude name="test/**"/>
         <exclude name="dist/**"/>

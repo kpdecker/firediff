@@ -13,9 +13,10 @@ const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptab
 var Events = FireDiff.events;
 
 var i18n = document.getElementById("strings_firediff");
+var Panel = Firebug.ActivablePanel || Firebug.Panel;
 
 function DiffMonitor() {}
-DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
+DiffMonitor.prototype = extend(Panel, {
     template: domplate({
         tag: DIV(
             {class: "diffMonitorElement", $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
@@ -66,7 +67,9 @@ DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
     title: i18n.getString("title.diffMonitor"),
     
     initializeNode: function(panelNode) {
-      Firebug.DiffModule.addListener(this);
+      if (Firebug.DiffModule.addListener) {
+        Firebug.DiffModule.addListener(this);
+      }
       
       this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
       this.applyDisplayPrefs();
@@ -77,6 +80,11 @@ DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
     },
     
     show: function(state) {
+      if (Firebug.version < "1.4") {
+        this.panelNode.innerHTML = i18n.getString("warning.firebugVersion");
+        return;
+      }
+      
       var enabled = Firebug.DiffModule.isAlwaysEnabled();
       if (enabled) {
            Firebug.DiffModule.disabledPanelPage.hide(this);
@@ -89,11 +97,11 @@ DiffMonitor.prototype = extend(Firebug.ActivablePanel, {
       }
     },
     enablePanel: function(module) {
-      Firebug.ActivablePanel.enablePanel.apply(this, arguments);
+      Panel.enablePanel.apply(this, arguments);
       this.show();
     },
     disablePanel: function(module) {
-      Firebug.ActivablePanel.disablePanel.apply(this, arguments);
+      Panel.disablePanel.apply(this, arguments);
       this.hide();
     },
     hide: function(state) {

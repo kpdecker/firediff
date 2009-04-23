@@ -47,7 +47,8 @@ function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
 }
 DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     appliesTo: function(target) {
-        return this.xpath == Path.getElementPath(target);
+      // DOM appliesTo: Any change that is made to the target or a child
+      return target && Path.isChildOrSelf(Path.getElementPath(target), this.xpath);
     },
     
     isElementAdded: function() { return false; },
@@ -125,10 +126,6 @@ function DOMInsertedEvent(target, clone, xpath, displayXPath, changeSource) {
 }
 DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
     subType: "dom_inserted",
-    
-    appliesTo: function(target) {
-      return target && Path.isChildOrSelf(this.xpath, Path.getElementPath(target));
-    },
     
     getSummary: function() {
         return i18n.getString("summary.DOMInserted");
@@ -229,10 +226,6 @@ function DOMRemovedEvent(target, clone, xpath, displayXPath, changeSource) {
 }
 DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     subType: "dom_removed",
-    
-    appliesTo: function(target) {
-      return this.target == target || isAncestor(target, this.target);
-    },
     
     getSummary: function() {
         return i18n.getString("summary.DOMRemoved");
@@ -585,7 +578,16 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
           return [];
         }
       } else if (candidate.subType == "removeProp"){
-        return [];
+        if (this.prevValue != candidate.propValue
+            || this.prevPriority != candidate.propPriority) {
+          return [
+              new CSSRemovePropertyEvent(
+                      this.style, this.propName,
+                      this.prevValue, this.prevPriority)
+              ];
+        } else {
+          return [];
+        }
       }
     },
     apply: function(style) {

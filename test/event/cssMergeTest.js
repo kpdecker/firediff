@@ -36,11 +36,20 @@ function runTest() {
       "CSS set set different rule");
   
   // (Set, Remove) same property
+  var setProperty = new Events.CSSSetPropertyEvent(elOne, "display", "none", "", "block", "important");
+  var eventSecond = new Events.CSSRemovePropertyEvent(elOne, "display", "inline", "important");
+  FBTestFireDiff.compareChangeList(
+      [new Events.CSSRemovePropertyEvent(elOne, "display", "block", "important")],
+      Events.merge([setProperty, eventSecond]),
+      "CSS set remove same property");
+  
+  // (Set, Remove) same new property
+  var setNewProperty = new Events.CSSSetPropertyEvent(elOne, "display", "none", "", "", "");
   var eventSecond = new Events.CSSRemovePropertyEvent(elOne, "display", "inline", "important");
   FBTestFireDiff.compareChangeList(
       [],
-      Events.merge([setProperty, eventSecond]),
-      "CSS set remove same property");
+      Events.merge([setNewProperty, eventSecond]),
+      "CSS set remove same new property");
   
   // (Set, Remove) different property
   eventSecond = new Events.CSSSetPropertyEvent(elTwo, "margin", "inline", "important");

@@ -1,4 +1,7 @@
 function runTest() {
+  var Events = FBTest.FirebugWindow.FireDiff.events;
+  
+  FBTest.loadScript("FBTestFireDiff.js", this);
   var tests = [
     {
       name: "textModified_innerHTML",
@@ -7,6 +10,7 @@ function runTest() {
         textModified.innerHTML = "New Value";
       },
       verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == change ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
       },
@@ -19,6 +23,7 @@ function runTest() {
         textModified.firstChild.appendData("More Data");
       },
       verify: function(win, number,change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "char_data_modified", "Sub type: " + change.subType);
       },
@@ -31,6 +36,7 @@ function runTest() {
         attrModified.align = "right";
       },
       verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(change.isAddition(), "change.isAddition");
@@ -45,6 +51,7 @@ function runTest() {
         attrModified.setAttribute("align", "left");
       },
       verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
@@ -59,6 +66,7 @@ function runTest() {
         attrModified.removeAttribute("align");
       },
       verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
@@ -75,6 +83,7 @@ function runTest() {
         insertNode.appendChild(p);
       },
       verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
         FBTest.ok(change.changeType == "dom", "Change type: " + change.changeType);
         FBTest.ok(change.subType == "dom_inserted", "Sub type: " + change.subType);
       },
@@ -103,70 +112,7 @@ function runTest() {
   
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
-    var running = true;
-    var curTest = -1;
-    var changeNum = 0;
-    var timeout;
-    
     FBTestFirebug.openFirebug();
-    
-    var listener = {
-      onDiffChange: function(change) {
-        FBTest.progress("Recieved Event: " + change);
-        if (timeout) {
-          clearTimeout(timeout);  timeout = undefined;
-        }
-        if (!running) {
-          return;
-        }
-
-        try {
-          tests[curTest].verify(win, changeNum, change);
-          
-          changeNum++;
-          if (tests[curTest].eventCount == changeNum) {
-            tests[curTest].verified = true;
-            setTimeout(executeTest, 0);
-          } else {
-            timeout = setTimeout(cancelTest, 5000);
-          }
-        } catch (err) {
-          FBTest.sysout("Error executing test: " + curTest + " " + err, err);
-          testDone();
-        }
-      }
-    };
-    FBTest.FirebugWindow.Firebug.DiffModule.addListener(listener);
-    function testDone() {
-      FBTest.sysout("testDone");
-      FBTest.FirebugWindow.Firebug.DiffModule.removeListener(listener);
-      FBTestFirebug.testDone();
-    }
-    
-    function cancelTest() {
-      running = false;
-      FBTest.ok(false, "Did not recieve all expected events for " + tests[curTest].name);
-      testDone();
-    }
-    function executeTest() {
-      try {
-        changeNum = 0;
-        curTest++;
-        FBTest.progress("Execute Test: " + (tests[curTest] || {name:""}).name);
-        if (curTest < tests.length) {
-          tests[curTest].execute(win);
-          if (!tests[curTest].verified) {
-            timeout = setTimeout(cancelTest, 5000);
-          }
-        } else {
-          testDone();
-        }
-      } catch (err) {
-        FBTest.sysout("Error executing test: " + curTest + " " + err, err);
-        testDone();
-      }
-    }
-    
-    executeTest();
+    FBTestFireDiff.executeModuleTests(tests, win);
   });
 }
