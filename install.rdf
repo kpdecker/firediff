@@ -5,7 +5,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>firediff@johnjbarton.com</em:id>
-    <em:version>0.1a1</em:version>
+    <em:version>0.1a2</em:version>
     <em:type>2</em:type>
 
     <!-- Firefox -->
@@ -16,6 +16,13 @@
         <em:maxVersion>3.5.*</em:maxVersion>
       </Description>
     </em:targetApplication>
+
+    <em:updateURL>http://www.incaseofstairs.com/download/firediff/update.rdf</em:updateURL>
+    <em:updateKey>
+      MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDPArrdlc8zy+YshfxSW2s8XAcxAQU8m81/gi
+      UzYJBhNM4xYzzeN22pEqduC7LeLVcAQGPPedbhd4gClBBwaCS5HyHbbIqeMfRv565AJA29ZgV2
+      hm6wuowK1Uey3uNLOv2nFsAvAIofOg+qHrtwRi+UDBz+d1IqKXV3JAgINhUCZQIDAQAB
+    </em:updateKey>
 
     <em:name>FireDiff</em:name>
     <em:description>Track Changes in Firebug</em:description>

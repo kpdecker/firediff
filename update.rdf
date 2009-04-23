@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <RDF:Description about="urn:mozilla:extension:firediff@johnjbarton.com">
+    <em:updates>
+      <RDF:Seq>
+        <RDF:li>
+          <RDF:Description>
+            <em:version>0.1a1</em:version>
+
+            <!-- Firefox -->
+            <em:targetApplication>
+              <RDF:Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>1.5</em:minVersion>
+                <em:maxVersion>3.5.*</em:maxVersion>
+
+                <em:updateLink>http://www.incaseofstairs.com/download/firediff/firediff0.1a1.xpi</em:updateLink>
+                <em:updateHash>sha1:BAAA663273ED3D1E8487473DF2490FFC09BAE695</em:updateHash>
+              </RDF:Description>
+            </em:targetApplication>
+          </RDF:Description>
+        </RDF:li>
+        <RDF:li>
+          <RDF:Description>
+            <em:version>0.1a2</em:version>
+
+            <!-- Firefox -->
+            <em:targetApplication>
+              <RDF:Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>1.5</em:minVersion>
+                <em:maxVersion>3.5.*</em:maxVersion>
+
+                <em:updateLink>http://www.incaseofstairs.com/download/firediff/firediff0.1a2.xpi</em:updateLink>
+                <em:updateInfoURL>http://www.incaseofstairs.com/2009/04/firediff-01a2-releasedfirediff-01a2-released/</em:updateInfoURL>
+                <em:updateHash>sha1:714F5E445920D4A953CA7B257C851F9F0BF60C35</em:updateHash>
+              </RDF:Description>
+            </em:targetApplication>
+          </RDF:Description>
+        </RDF:li>
+      </RDF:Seq>
+    </em:updates>
+
+    <em:signature>
+      MIGTMA0GCSqGSIb3DQEBDQUAA4GBAFQkm5eXRlSDGuu27ZFXq6fX0u8jeZiLGurq2usI4Ntfld
+      0Fpy1qBkGZaPZPaiX3AC6Y1ubpDpCpuX3ee1ireRHbNWSdQcbm38N2kba/CTyNvsZU7RR0dQqL
+      536O52KmDdOXBtXc2bOrQfB8PRb6aq6mjY+ZqE01HBffSBtcRzm3
+    </em:signature>
+  </RDF:Description>
+</RDF:RDF>
