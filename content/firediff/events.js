@@ -27,6 +27,7 @@ ChangeEvent.prototype = {
     mergeCancellation: function(candidate) {},
     cloneOnXPath: function(xpath) {},
     appliesTo: function(target) {},
+    sameFile: function(otherChange) {},
     
     apply: function() {},
     revert: function() {},
@@ -50,6 +51,10 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       // DOM appliesTo: Any change that is made to the target or a child
       return target && Path.isChildOrSelf(Path.getElementPath(target), this.xpath);
     },
+    sameFile: function(otherChange) {
+      return this.getChangeType() == otherChange.getChangeType()
+          && this.target.ownerDocument == otherChange.target.ownerDocument;
+    },
     
     isElementAdded: function() { return false; },
     isElementRemoved: function() { return false; },
@@ -63,8 +68,11 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         }
         
         var components = Path.getRelativeComponents(this.xpath, xpath);
-        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
-        return iterate.iterateNext();
+        if (!components.right) {
+          // We can only have an action node if we are looking for a child
+          var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
+          return iterate.iterateNext();
+        }
       } catch (err) {
         if (FBTrace.DBG_ERRORS) {
           FBTrace.sysout("getActionNode Error: " + err, err);

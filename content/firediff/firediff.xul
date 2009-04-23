@@ -11,12 +11,12 @@
   </stringbundleset>
   
   <script src="chrome://firediff/content/jsdiff.js" type="application/x-javascript"/>
-  <script src="chrome://firediff/content/domplate.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/events.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/domplate.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/pages.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffModule.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffMonitor.js" type="application/x-javascript"/>
-  <script src="chrome://firediff/content/allChanges.js" type="application/x-javascript"/>
   
   <commandset id="mainCommandSet">
     <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(FirebugContext)"/>

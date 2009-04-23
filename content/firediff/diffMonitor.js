@@ -1,4 +1,5 @@
 /* See license.txt for terms of usage */
+var FireDiff = FireDiff || {};
 
 FBL.ns(function() { with (FBL) {
 
@@ -8,63 +9,18 @@ const nsIPrefBranch2 = Ci.nsIPrefBranch2;
 const PrefService = Cc["@mozilla.org/preferences-service;1"];
 const prefs = PrefService.getService(nsIPrefBranch2);
 
-const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptableDateFormat");
-
-var Events = FireDiff.events;
+var Events = FireDiff.events,
+    Path = FireDiff.Path,
+    Reps = FireDiff.reps;
 
 var i18n = document.getElementById("strings_firediff");
 var Panel = Firebug.ActivablePanel || Firebug.Panel;
 
 function DiffMonitor() {}
 DiffMonitor.prototype = extend(Panel, {
-    template: domplate({
-        tag: DIV(
-            {class: "diffMonitorElement", $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
-            SPAN({class: "diffSummary"}, "$change|getSummary"),
-            SPAN({class: "diffSep"}, ":"),
-            SPAN({class: "diffSource"}, "$change|getDiffSource"),
-            SPAN({class: "diffDate"}, "$change|getDate"),
-            DIV({class: "diffXPath"}, "$change|getXPath"),
-            DIV({class: "logEntry"}, TAG("$change|getChangeTag", {change: "$change", object: "$change.target"}))
-            ),
-        getChangeTag: function(change) {
-            if (change.changeType == "css") {
-                return FireDiff.domplate.CSSChanged.tag;
-            } else if (change.clone instanceof Text) {
-                return FireDiff.domplate.TextChanged.tag;
-            } else {
-                return FireDiff.domplate.ElementChanged.tag;
-            }
-        },
-        getSummary: function(change) {
-            return change.getSummary();
-        },
-        getDiffSource: function(change) {
-          if (this.isFirebugDiff(change)) {
-            return i18n.getString("source.firebug");
-          } else {
-            return i18n.getString("source.application");
-          }
-        },
-        getDate: function(change) {
-          var date = change.date;
-          return dateFormat.FormatDateTime(
-              "", dateFormat.dateFormatLong, dateFormat.timeFormatSeconds,
-              date.getFullYear(), date.getMonth() + 1, date.getDate(),
-              date.getHours(), date.getMinutes(), date.getSeconds()); 
-        },
-        getXPath: function(change) {
-          return change.displayXPath || "";
-        },
-        isFirebugDiff: function(change) {
-            return change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
-        },
-        isAppDiff: function(change) {
-            return change.changeSource == Events.ChangeSource.APP_CHANGE;
-        }
-    }),
     name: "firediff",
     title: i18n.getString("title.diffMonitor"),
+    statusSeparator: ">",
     
     initializeNode: function(panelNode) {
       if (Firebug.DiffModule.addListener) {
@@ -91,6 +47,10 @@ DiffMonitor.prototype = extend(Panel, {
 
            this.showToolbarButtons("fbDiffMonitorButtons", true);
            $("cmd_copy").setAttribute("disabled", true);
+
+           if (!this.selection) {
+             this.select(this.getDefaultSelection());
+           }
       } else {
           this.hide();
           Firebug.DiffModule.disabledPanelPage.show(this);
@@ -109,11 +69,9 @@ DiffMonitor.prototype = extend(Panel, {
       $("cmd_copy").removeAttribute("disabled");
     },
 
-    addStyleSheet: function(doc, uri, id)
-    {
+    addStyleSheet: function(doc, uri, id) {
         // Make sure the stylesheet isn't appended twice. 
-        if ($(id, doc))
-            return;
+        if ($(id, doc))   return;
 
         var styleSheet = createStyleSheet(doc, uri);
         styleSheet.setAttribute("id", id);
@@ -136,6 +94,44 @@ DiffMonitor.prototype = extend(Panel, {
           checked: value,
           command: bindFixed(Firebug.setPref, this, Firebug.prefDomain, option, !value)
       };
+    },
+    
+    selectSnapshot: function(change) {
+      try {
+        // We run this here to defer change processing
+        this.select(new Reps.Snapshot(change, this.context.window.document));
+      } catch (err) {
+        FBTrace.sysout(err,err);
+      }
+    },
+    
+    getContextMenuItems: function(object, target) {
+      return [
+          { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true }
+      ];
+    },
+    
+    getDefaultSelection: function(object) {
+      return Reps.Monitor;
+    },
+    updateSelection: function(object) {
+      clearNode(this.panelNode);
+      
+      object.show(this);
+    },
+    
+    getObjectPath: function(object) {
+      var ret = [ Reps.Monitor ];
+      if (Reps.SnapshotRep.supportsObject(object)) {
+        ret.push(object);
+      }
+      return ret;
+    },
+    supportsObject: function(object) {
+      if (Reps.MonitorRep.supportsObject(object)
+          || Reps.SnapshotRep.supportsObject(object))
+        return 1000;
+      return 0;
     },
 
     // nsIPrefObserver
@@ -165,9 +161,12 @@ DiffMonitor.prototype = extend(Panel, {
     },
     
     onDiffChange: function(change, context) {
-      if (this.context != context)    return;
+      if (this.context != context || !this.selection)    return;
       
-      this.template.tag.append({change: change}, this.panelNode);
+      // this.selection could be null if an event occurs before we are displayed
+      if (this.selection.onChange) {
+        this.selection.onChange(change, this);
+      }
     },
     onClearChanges: function(context) {
       if (this.context != context)    return;

@@ -1,10 +1,13 @@
 /* See license.txt for terms of usage */
-
-var FireDiff = {};
+var FireDiff = FireDiff || {};
 FireDiff.domplate = {};
 
 FBL.ns(function() {
 (function () { with(FBL) {
+
+var i18n = document.getElementById("strings_firediff");
+var Events = FireDiff.events,
+    Path = FireDiff.Path;
 
 // Common Domplates
 /**
@@ -22,7 +25,8 @@ FBL.ns(function() {
 var attributeList = domplate({
   tag: FOR("attr", "$change|attrIterator", TAG("$attr|getAttrTag", {attr: "$attr"})),
   attributeDiff:
-      SPAN({class: "nodeAttr", $removedClass: "$attr|isAttrRemoved", $addedClass: "$attr|isAttrAdded"},
+      SPAN({class: "nodeAttr", $removedClass: "$attr|isAttrRemoved", $addedClass: "$attr|isAttrAdded",
+        $firebugDiff: "$attr|isFirebugDiff", $appDiff: "$attr|isAppDiff"},
           "&nbsp;",
           SPAN({class: "nodeName"}, "$attr.localName"), "=&quot;",
           SPAN({class: "nodeValue"}, 
@@ -95,6 +99,12 @@ var attributeList = domplate({
   isAttrRemoved: function(attr) {
       return attr.change && attr.change.isRemoval();
   },
+  isFirebugDiff: function(attr) {
+    return attr.change && attr.change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
+  },
+  isAppDiff: function(attr) {
+    return attr.change && attr.change.changeSource == Events.ChangeSource.APP_CHANGE;
+  },
   diffAttr: function(attr) {
       if (attr.change) {
           return diffStringObj(attr.change.previousValue, attr.change.value);
@@ -108,10 +118,9 @@ var attributeList = domplate({
 // TODO : Allow replink in the monitor case
 var textChanged = domplate(FirebugReps.TextNode, {
   tag: SPAN(
-      {$removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
-      PRE(
+      {class: "textDiff", $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
         FOR("block", "$change|diffText",
-            SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value"))
+            SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value")
         )),
   getText: function(value) {
     return Firebug.showWhitespaceNodes ? value : value.replace(/(?:^\s+)|(?:\s+$)/g, "");
@@ -212,14 +221,60 @@ var ChangeElement = extend(FirebugReps.Element, {
   isElementRemoved: function(change) {
     change = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
     return change && change.isElementRemoved && change.isElementRemoved();
+  },
+  isFirebugDiff: function(change) {
+    change = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
+    return change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
+  },
+  isAppDiff: function(change) {
+    change = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
+    return change.changeSource == Events.ChangeSource.APP_CHANGE;
+  }
+});
+
+var ParentChangeElement = extend(ChangeElement, {
+  childIterator: function(node) {
+    if (node.contentDocument)
+      return [node.contentDocument.documentElement];
+    
+    var removed = this.removedChanges(node).slice();
+    removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
+    
+    function pushChild(child) {
+      if (Firebug.showWhitespaceNodes || !isWhitespaceText(child)) {
+        nodes.push(child);
+      }
+    }
+    
+    var nodes = [], nodeIndex = 1, removedIndex = 0;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      while (removedIndex < removed.length) {
+        var curChange = removed[removedIndex];
+        var identifier = FireDiff.Path.getIdentifier(curChange.xpath);
+        if (identifier.index == nodeIndex) {
+          pushChild(curChange);
+          removedIndex++;
+        } else {
+          break;
+        }
+      }
+      
+      pushChild(child);
+      nodeIndex++;
+    }
+    for (; removedIndex < removed.length; removedIndex++) {
+      pushChild(removed[removedIndex]);
+    }
+    return nodes;
   }
 });
 
 this.allChanges = {
-    CompleteElement: domplate(ChangeElement, {
+    CompleteElement: domplate(ParentChangeElement, {
       tag:
         DIV({class: "nodeBox open repIgnore", _repObject: "$change",
-            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+            $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
           DIV({class: "nodeLabel"},
           SPAN({class: "nodeLabelBox repTarget"},
             "&lt;",
@@ -238,46 +293,15 @@ this.allChanges = {
         )
       ),
       getNodeTag: function(node) {
-        return getNodeTag(node.clone || node, true);
-      },
-      
-      childIterator: function(node) {
-        if (node.contentDocument)
-          return [node.contentDocument.documentElement];
-        
-        var removed = this.removedChanges(node).slice();
-        removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
-        
-        var nodes = [], nodeIndex = 1, removedIndex = 0;
-        for (var child = node.firstChild; child; child = child.nextSibling) {
-          while (removedIndex < removed.length) {
-            var curChange = removed[removedIndex];
-            var identifier = FireDiff.Path.getIdentifier(curChange.xpath);
-            if (identifier.index == nodeIndex) {
-              if (Firebug.showWhitespaceNodes || !isWhitespaceText(child)) {
-                nodes.push(curChange);
-              }
-            } else {
-              break;
-            }
-            removedIndex++;
-          }
-          if (child.nodeType != Node.TEXT_NODE || Firebug.showWhitespaceNodes || !isWhitespaceText(child)) {
-            nodes.push(child);
-          }
-          nodeIndex++;
-        }
-        for (; removedIndex < removed.length; removedIndex++) {
-          nodes.push(removed[removedIndex]);
-        }
-        return nodes;
+        return getNodeTag(node.clone || node, true, false);
       }
     }),
 
     Element: domplate(ChangeElement, {
       tag:
         DIV({class: "nodeBox containerNodeBox repIgnore", _repObject: "$change",
-          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+          $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
           DIV({class: "nodeLabel"},
             IMG({class: "twisty"}),
             SPAN({class: "nodeLabelBox repTarget"},
@@ -296,9 +320,35 @@ this.allChanges = {
         )
     }),
 
+    TextElement: domplate(ParentChangeElement, {
+      tag:
+        DIV({class: "nodeBox textNodeBox repIgnore", _repObject: "$change",
+            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+            $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
+          DIV({class: "nodeLabel"},
+            SPAN({class: "nodeLabelBox repTarget"},
+              "&lt;",
+              SPAN({class: "nodeTag"}, "$change|getElementName"),
+              TAG(attributeList.tag, {change: "$change"}),
+              SPAN({class: "nodeBracket"}, "&gt;"),
+              FOR("child", "$change|childIterator",
+                  TAG("$child|getNodeTag", {change: "$child"})
+              ),
+              "&lt;/",
+              SPAN({class: "nodeTag"}, "$change|getElementName"),
+              "&gt;"
+            )
+          )
+        ),
+        getNodeTag: function(node) {
+          return getNodeTag(node.clone || node, true, true);
+        }
+    }),
+
     EmptyElement: domplate(ChangeElement, {
       tag: DIV({class: "nodeBox emptyNodeBox repIgnore", _repObject: "$change",
-          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+          $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
         DIV({class: "nodeLabel"},
           SPAN({class: "nodeLabelBox repTarget"},
             "&lt;",
@@ -310,11 +360,19 @@ this.allChanges = {
         )
     }),
 
-    // TODO : Single TextNode domplate
     TextNode: domplate(ChangeElement, {
       tag:
         DIV({class: "nodeBox", _repObject: "$change",
-            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+            $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
+          SPAN({class: "nodeText"}, TAG(textChanged.tag, {change: "$change"}))
+        )
+    }),
+    InlineTextNode: domplate(ChangeElement, {
+      tag:
+        SPAN({_repObject: "$change",
+            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+            $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
           SPAN({class: "nodeText"}, TAG(textChanged.tag, {change: "$change"}))
         )
     }),
@@ -322,7 +380,8 @@ this.allChanges = {
     // TODO : Determine how CDATA can be changed, if it can
     CDATANode: domplate(ChangeElement, {
       tag: DIV({class: "nodeBox", _repObject: "$change",
-          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+          $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
         "&lt;![CDATA[",
         SPAN({class: "nodeText"}, TAG(textChanged, {change: "$change"})),
         "]]&gt;"
@@ -332,7 +391,8 @@ this.allChanges = {
     // TODO : Determine how comments can be changed, if they can
     CommentNode: domplate(ChangeElement, {
       tag: DIV({class: "nodeBox", _repObject: "$change",
-          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
+          $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+          $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
         DIV({class: "nodeComment"},
           "&lt;!--", TAG(textChanged, {change: "$change"}), "--&gt;"
           )
@@ -341,7 +401,7 @@ this.allChanges = {
 };
 
 
-function getNodeTag(node, expandAll) {
+function getNodeTag(node, expandAll, inline) {
   var allChanges = FireDiff.domplate.allChanges;
   
   if (node instanceof Element) {
@@ -349,15 +409,15 @@ function getNodeTag(node, expandAll) {
       return allChanges.EmptyElement.tag;
     else if (node.firebugIgnore)
       return null;
-    else if (isContainerElement(node))
-      return expandAll ? allChanges.CompleteElement.tag : allChanges.Element.tag;
     else if (isEmptyElement(node))
       return allChanges.EmptyElement.tag;
+    else if (isPureText(node))
+      return allChanges.TextElement.tag;
     else
       return expandAll ? allChanges.CompleteElement.tag : allChanges.Element.tag;
   }
   else if (node instanceof Text)
-    return allChanges.TextNode.tag;
+    return inline ? allChanges.InlineTextNode.tag : allChanges.TextNode.tag;
   else if (node instanceof CDATASection)
     return allChanges.CDATANode.tag;
   else if (node instanceof Comment && (Firebug.showCommentNodes || expandAll))
@@ -366,22 +426,6 @@ function getNodeTag(node, expandAll) {
     return FirebugReps.SourceText.tag;
   else
     return FirebugReps.Nada.tag;
-}
-
-// TODO : Is this necessary?
-function getNodeBoxTag(nodeBox) {
-    var re = /([^\s]+)NodeBox/;
-    var m = re.exec(nodeBox.className);
-    if (!m)
-        return null;
-
-    var nodeBoxType = m[1];
-    if (nodeBoxType == "container")
-        return Firebug.HTMLPanel.Element.tag;
-    else if (nodeBoxType == "text")
-        return Firebug.HTMLPanel.TextElement.tag;
-    else if (nodeBoxType == "empty")
-        return Firebug.HTMLPanel.EmptyElement.tag;
 }
 
 function isContainerElement(element) {
@@ -398,6 +442,21 @@ function isContainerElement(element) {
             return element.getAttribute("rel") == "stylesheet";
     }
     return false;
+}
+
+function isPureText(element) {
+  for (var child = element.firstChild; child; child = child.nextSibling) {
+    if (child.nodeType == Node.ELEMENT_NODE) {
+      return false;
+    }
+  }
+  var removeChanges = element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
+  for (var i = 0; i < removeChanges.length; i++) {
+    if (removeChanges[i].clone.nodeType == Node.ELEMENT_NODE) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // Duplicate of HTMLPanel.prototype isWhitespaceText

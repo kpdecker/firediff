@@ -1,4 +1,5 @@
 /* See license.txt for terms of usage */
+var FireDiff = FireDiff || {};
 
 FBL.ns(function() { with (FBL) {
 FireDiff.Path = {};

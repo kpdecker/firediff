@@ -1,14 +1,5 @@
 /* See license.txt for terms of usage */
 
-.addedClass, .addedClass * {
-    background: green;
-    color: white;
-}
-.removedClass, .removedClass * {
-    background: red;
-    color: black;
-}
-
 .logEntry {
     padding-left: 10px;
 }
@@ -23,11 +14,46 @@
     background-color: #FFFFFF;
 }
 
-.showFirebugChanges .firebugDiff,
-.showAppChanges .appDiff {
-    display: block;
+/* Removed Changes should not be displayed at all if the change source is filtered */
+.removedClass {
+  display: none;
 }
 
+.showFirebugChanges div.firebugDiff,
+.showFirebugChanges .firebugDiff div,
+.showAppChanges div.appDiff,
+.showAppChanges .appDiff div {
+  display: block;
+}
+.showFirebugChanges span.firebugDiff,
+.showFirebugChanges .firebugDiff span,
+.showFirebugChanges .firebugDiff a,
+.showAppChanges span.appDiff,
+.showAppChanges .appDiff span,
+.showAppChanges .appDiff a {
+  display: inline;
+}
+
+.showFirebugChanges .firebugDiff .addedClass,
+.showFirebugChanges .firebugDiff.addedClass,
+.showAppChanges .appDiff .addedClass,
+.showAppChanges .appDiff.addedClass {
+  background: green;
+  color: white;
+}
+.showFirebugChanges .firebugDiff .removedClass,
+.showFirebugChanges .firebugDiff.removedClass,
+.showAppChanges .appDiff .removedClass,
+.showAppChanges .appDiff.removedClass {
+  background: red;
+  color: black;
+}
+
+.addedClass *,
+.removedClass * {
+  background: inherit;
+  color: inherit;
+}
 
 .diffSep {
     margin: 0 .5em;
@@ -46,6 +72,9 @@
     padding-bottom: 1em;
 }
 
+.textDiff {
+  white-space: pre;
+}
 
 /* Customized Rules for CSS Display. All others reuse the standard CSS styles */
 .cssRuleDiff {
