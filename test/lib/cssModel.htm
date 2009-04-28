@@ -1,0 +1,49 @@
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Firediff: CSS Model Test</title>
+    <style type="text/css">
+      p {
+        background-color: green;
+      }
+      div {
+        background-color: red;
+      }
+      p {
+        margin: 100;
+      }
+    </style>
+    <style type="text/css" id="cssId">
+      #div1 {
+        background-color: blue;
+      }
+    </style>
+    <link type="text/css" rel="stylesheet" href="link1.css" />
+    <link type="text/css" rel="stylesheet" href="link2.css" />
+</head>
+<body>
+    <div id="div1"></div>
+    <p id="p1">
+        Text
+        <br/>
+        Text2
+    </p>
+    <div id="div2"></div><!-- Comment 1 -->
+    <div id="div3">
+        <![CDATA[CDATA Value1]]>
+        Text Value
+        <![CDATA[CDATA Value1]]>
+        <div id="nestedDiv"></div><![CDATA[CDATA Value2]]>
+        Text2
+    </div>
+    <link type="text/css" rel="stylesheet" href="link2.css" />
+    <style type="text/css">
+      div div {
+        background-color: orange;
+      }
+    </style>
+</body>
+</html>

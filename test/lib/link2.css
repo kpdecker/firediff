@@ -1,0 +1,9 @@
+@import url("import.css");
+
+body {
+  padding: 10px;
+}
+
+#div3 {
+  float: right;
+}

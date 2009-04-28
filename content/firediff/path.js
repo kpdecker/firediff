@@ -2,18 +2,40 @@
 var FireDiff = FireDiff || {};
 
 FBL.ns(function() { with (FBL) {
-FireDiff.Path = {};
+var Path = {};
+FireDiff.Path = Path;
 
-FireDiff.Path.updateForInsert = function(pathUpdate, pathInsert) {
-  return this.updateForMutate(pathUpdate, pathInsert, 1, false);
-};
-FireDiff.Path.updateForRemove = function(pathUpdate, pathRemoved) {
-  return this.updateForMutate(pathUpdate, pathRemoved, -1, true);
-};
+function getSheetId(sheet) {
+  if (sheet.href) {
+    return "@href='" + sheet.href + "'";
+  }
+  if (sheet.ownerNode && sheet.ownerNode.id) {
+    return "@id='" + sheet.ownerNode.id + "'"
+  }
+  return getSheetIndex(sheet);
+}
+function getSheetIndex(sheet) {
+  if (!sheet || !sheet.ownerNode)     return;
+  var styleSheets = sheet.ownerNode.ownerDocument.styleSheets;
+  for (var i = 0; i < styleSheets.length; i++) {
+    if (styleSheets[i] == sheet) {
+      return i+1;
+    }
+  }
+}
+function getRuleIndex(style, parent) {
+  if (!style)     return;
+  for (var i = 0; i < parent.cssRules.length; i++) {
+    if (parent.cssRules[i] == style
+        || parent.cssRules[i].styleSheet == style) {
+      return i+1;
+    }
+  }
+}
 
-FireDiff.Path.updateForMutate = function(pathUpdate, pathChanged, offset, destroyAncestor) {
-  var components = this.getRelativeComponents(pathUpdate, pathChanged);
-  var changeParent = this.getParentPath(pathChanged);
+function updateForMutate(pathUpdate, pathChanged, offset, destroyAncestor) {
+  var components = Path.getRelativeComponents(pathUpdate, pathChanged);
+  var changeParent = Path.getParentPath(pathChanged);
   
   if (destroyAncestor && components.common == pathChanged) {
     // Path to update is the same or child of the one being removed
@@ -51,6 +73,13 @@ FireDiff.Path.updateForMutate = function(pathUpdate, pathChanged, offset, destro
   return pathUpdate;
 };
 
+FireDiff.Path.updateForInsert = function(pathUpdate, pathInsert) {
+  return updateForMutate(pathUpdate, pathInsert, 1, false);
+};
+FireDiff.Path.updateForRemove = function(pathUpdate, pathRemoved) {
+  return updateForMutate(pathUpdate, pathRemoved, -1, true);
+};
+
 FireDiff.Path.getIdentifier = function(path) {
   var match = path.match(/^.*\/(.+?)(?:\[(\d+)\])?$/);
   if (match) {
@@ -62,7 +91,7 @@ FireDiff.Path.getParentPath = function(path) {
 };
 
 FireDiff.Path.isChildOrSelf = function(parent, child) {
-  return parent == child || this.isChild(parent, child);
+  return parent == child || Path.isChild(parent, child);
 };
 FireDiff.Path.isChild = function(parent, child) {
   return child.indexOf(parent + "/") === 0;
@@ -109,6 +138,33 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
   }
 
   return paths.length ? "/" + paths.join("/") : null;
+};
+
+FireDiff.Path.generateStylePath = function(style) {
+  var paths = [];
+  
+  // Style declarations are not part of the path
+  if (style instanceof CSSStyleDeclaration)     style = style.parentRule;
+  if (!style)     return undefined;
+  
+  var parent = style;
+  while ((parent = style.parentRule || style.parentStyleSheet)) {
+    if (style instanceof CSSStyleSheet)    break;
+    
+    var index = getRuleIndex(style, parent);
+    if (!index)    break;
+    
+    paths.splice(0, 0, "rule()[" + index + "]");
+    style = parent;
+  }
+  
+  // At this point we should be at the sheet object, if we aren't, the style
+  // isn't in the doc
+  var sheetId = getSheetId(style);
+  if (!sheetId)     return undefined;
+  
+  paths.splice(0, 0, "/style()[" + sheetId+ "]");
+  return paths.join("/");
 };
 
 }});
