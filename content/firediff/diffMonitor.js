@@ -99,7 +99,7 @@ DiffMonitor.prototype = extend(Panel, {
     selectSnapshot: function(change) {
       try {
         // We run this here to defer change processing
-        this.select(new Reps.Snapshot(change, this.context.window.document));
+        this.select(change.getSnapshotRep(this.context));
       } catch (err) {
         FBTrace.sysout(err,err);
       }
@@ -122,14 +122,16 @@ DiffMonitor.prototype = extend(Panel, {
     
     getObjectPath: function(object) {
       var ret = [ Reps.Monitor ];
-      if (Reps.SnapshotRep.supportsObject(object)) {
+      if (Reps.DOMSnapshotRep.supportsObject(object)
+          || Reps.CSSSnapshotRep.supportsObject(object)) {
         ret.push(object);
       }
       return ret;
     },
     supportsObject: function(object) {
       if (Reps.MonitorRep.supportsObject(object)
-          || Reps.SnapshotRep.supportsObject(object))
+          || Reps.DOMSnapshotRep.supportsObject(object)
+          || Reps.CSSSnapshotRep.supportsObject(object))
         return 1000;
       return 0;
     },

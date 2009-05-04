@@ -89,7 +89,7 @@ this.MonitorRep = domplate(Firebug.Rep,{
   }
 });
 
-this.Snapshot = function(change, document){
+function Snapshot(change) {
   var changes = Firebug.DiffModule.getChanges();
   var displayChanges = [], revertChanges = [];
   var foundChange = false;
@@ -102,34 +102,61 @@ this.Snapshot = function(change, document){
     }
   }
   displayChanges = Events.merge(displayChanges);
-
-  var displayTree = document.documentElement.cloneNode(true);
-  var cloneXPath = Path.getElementPath(document.documentElement);
-  for (var i = revertChanges.length; i > 0; i--) {
-    revertChanges[i-1].revert(displayTree, cloneXPath);
-  }
-  for (var i = 0; i < displayChanges.length; i++) {
-    displayChanges[i].annotateTree(displayTree, cloneXPath);
-  }
-  this.displayTree = displayTree;
+  
   this.displayChanges = displayChanges;
   this.revertChanges = revertChanges;
+}
+
+this.DOMSnapshot = function(change, document){
+  Snapshot.call(this, change);
+  
+  var displayTree = document.documentElement.cloneNode(true);
+  var cloneXPath = Path.getElementPath(document.documentElement);
+  for (var i = this.revertChanges.length; i > 0; i--) {
+    this.revertChanges[i-1].revert(displayTree, cloneXPath);
+  }
+  for (var i = 0; i < this.displayChanges.length; i++) {
+    this.displayChanges[i].annotateTree(displayTree, cloneXPath);
+  }
+  this.displayTree = displayTree;
 };
-this.Snapshot.prototype = {
+this.DOMSnapshot.prototype = {
   show: function(panel) {
     FireDiff.domplate.allChanges.CompleteElement.tag.append({change: this.displayTree}, panel.panelNode);
   }
 };
-this.SnapshotRep = domplate(Firebug.Rep, {
+this.DOMSnapshotRep = domplate(Firebug.Rep, {
   supportsObject: function(object, type) {
-    return object instanceof FireDiff.reps.Snapshot;
+    return object instanceof FireDiff.reps.DOMSnapshot;
   },
   getTitle: function(object) {
-    return i18n.getString("page.Snapshot");
+    return i18n.getString("page.DOMSnapshot");
+  }
+});
+
+this.CSSSnapshot = function(change){
+  Snapshot.call(this, change);
+  
+  FBTrace.sysout("StyleSheet", change.style.parentRule.parentStyleSheet);
+  
+  FBTrace.sysout("CSS Snapshot", this.displayChanges);
+};
+this.CSSSnapshot.prototype = {
+  show: function(panel) {
+    FireDiff.domplate.allChanges.CompleteElement.tag.append({change: this.displayTree}, panel.panelNode);
+  }
+};
+this.CSSSnapshotRep = domplate(Firebug.Rep, {
+  supportsObject: function(object, type) {
+    return object instanceof FireDiff.reps.CSSSnapshot;
+  },
+  getTitle: function(object) {
+    return i18n.getString("page.CSSSnapshot");
   }
 });
 
 Firebug.registerRep(
     this.MonitorRep,
-    this.SnapshotRep);
+    this.DOMSnapshotRep,
+    this.CSSSnapshotRep);
 }});

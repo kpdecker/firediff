@@ -4,7 +4,10 @@ FireDiff  = FireDiff || {};
 FBL.ns(function() { with (FBL) {
 
 var i18n = document.getElementById("strings_firediff");
-var Path = FireDiff.Path;
+
+var Events = FireDiff.events,
+    Path = FireDiff.Path,
+    Reps = FireDiff.reps;
 
 const CHANGES = "firebug-firediff-changes";
 const ATTR_CHANGES = "firebug-firediff-attrChanges";
@@ -28,6 +31,7 @@ ChangeEvent.prototype = {
     cloneOnXPath: function(xpath) {},
     appliesTo: function(target) {},
     sameFile: function(otherChange) {},
+    getSnapshotRep: function(context) {},
     
     apply: function() {},
     revert: function() {},
@@ -54,6 +58,9 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     sameFile: function(otherChange) {
       return this.getChangeType() == otherChange.getChangeType()
           && this.target.ownerDocument == otherChange.target.ownerDocument;
+    },
+    getSnapshotRep: function(context) {
+      return new Reps.DOMSnapshot(this, context.window.document);
     },
     
     isElementAdded: function() { return false; },
@@ -547,6 +554,10 @@ CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
     appliesTo: function(target) {
         return this.style === target;
     },
+    getSnapshotRep: function(context) {
+      return new Reps.CSSSnapshot(this);
+    },
+    
     merge: function(candidate) {
         if (this.changeType != candidate.changeType
                 || this.style != candidate.style
