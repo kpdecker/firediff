@@ -32,6 +32,41 @@ function getRuleIndex(style, parent) {
     }
   }
 }
+var styleLookups = {
+  "style()" : function(current, index) {
+    var fieldLookup = /@(.*?)='(.*?)'/;
+    var match = fieldLookup.exec(index);
+    FBTrace.sysout("style() match: " + index, match);
+    if (match) {
+      function checkSheet(sheet) {
+        if (sheet[match[1]] == match[2]
+            || (sheet.ownerNode && sheet.ownerNode[match[1]] == match[2])) {
+          return sheet;
+        }
+        for (var i = 0; i < sheet.cssRules.length; i++) {
+          if (sheet.cssRules[i] instanceof CSSImportRule) {
+            var ret = checkSheet(sheet.cssRules[i].styleSheet);
+            if (ret) {
+              return ret;
+            }
+          }
+        }
+      }
+      for (var i = current.styleSheets.length; i > 0; i--) {
+        var ret = checkSheet(current.styleSheets[i-1]);
+        if (ret) {
+          return ret;
+        }
+      }
+    } else {
+      return current.styleSheets[index-1];
+    }
+  },
+  "rule()" : function(current, index) {
+    FBTrace.sysout("rule() match: " + index, current);
+    return current.cssRules[index-1];
+  }
+};
 
 function updateForMutate(pathUpdate, pathChanged, offset, destroyAncestor) {
   var components = Path.getRelativeComponents(pathUpdate, pathChanged);
@@ -140,7 +175,7 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
   return paths.length ? "/" + paths.join("/") : null;
 };
 
-FireDiff.Path.generateStylePath = function(style) {
+FireDiff.Path.getStylePath = function(style) {
   var paths = [];
   
   // Style declarations are not part of the path
@@ -165,6 +200,24 @@ FireDiff.Path.generateStylePath = function(style) {
   
   paths.splice(0, 0, "/style()[" + sheetId+ "]");
   return paths.join("/");
+};
+
+FireDiff.Path.evaluateStylePath = function(path, document) {
+  var parser = /\/(.*?)\[(.*?)\]/g;
+  var component;
+  var components = [];
+  var current = document;
+  while (current && (component = parser.exec(path))) {
+    components.push(component);
+    
+    var lookup = styleLookups[component[1]];
+    if (!lookup) {
+      return undefined;
+    }
+    
+    current = lookup(current, component[2]);
+  }
+  return current;
 };
 
 }});

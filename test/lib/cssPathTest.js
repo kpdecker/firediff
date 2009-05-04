@@ -14,6 +14,10 @@ function runTest() {
         "/style()[@id='cssId']/rule()[1]",
         "/style()[@href='" + urlBase + "lib/link1.css']",
         "/style()[@href='" + urlBase + "lib/link1.css']/rule()[1]",
+        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[1]/rule()[1]",
+        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]",
+        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]/rule()[1]",
+        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]",
         "/style()[@href='" + urlBase + "lib/link2.css']",
         "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
         "/style()[@href='" + urlBase + "lib/import.css']",
@@ -29,24 +33,30 @@ function runTest() {
         "/style()[6]",
         "/style()[6]/rule()[1]"
         ];
+    var expectedStyles = [];
     
     // TODO : Look at all of the other CSS rule types that could be in use
 
     function testSheet(curStyle, expectedStylePaths) {
       FBTest.compare(
           expectedStylePaths[expectedIndex++],
-          Path.generateStylePath(curStyle),
+          Path.getStylePath(curStyle),
           "Check generated CSS Path");
+      expectedStyles.push(curStyle);
       for (var testIndex = 0; testIndex < curStyle.cssRules.length; testIndex++) {
-        FBTrace.sysout("Test: " + expectedStylePaths[expectedIndex], curStyle.cssRules[testIndex]);
-        FBTest.compare(
-            expectedStylePaths[expectedIndex++],
-            Path.generateStylePath(curStyle.cssRules[testIndex]),
-            "Check generated CSS Path");
+        var rule = curStyle.cssRules[testIndex];
+        if (rule instanceof CSSMediaRule) {
+          testSheet(rule, expectedStylePaths);
+        } else {
+          FBTest.compare(
+              expectedStylePaths[expectedIndex++],
+              Path.getStylePath(rule),
+              "Check generated CSS Path");
+          expectedStyles.push(rule);
+        }
         
-        FBTrace.sysout("cssRule: " + testIndex, curStyle.cssRules[testIndex]);
-        if (curStyle.cssRules[testIndex] instanceof CSSImportRule) {
-          testSheet(curStyle.cssRules[testIndex].styleSheet, expectedStylePaths);
+        if (rule instanceof CSSImportRule) {
+          testSheet(rule.styleSheet, expectedStylePaths);
         }
       }
     }
@@ -64,11 +74,43 @@ function runTest() {
       testSheet(win.document.styleSheets[i], expectedStylePaths);
     }
     
-    // TODO : Test on @media and other CSS constructs
-    
-    // TODO : Test CSS Path Lookup
-    //    This should verify that duplicate links return the last one in the
-    //    page
+    function compareStyle(style, expectedStyle, path) {
+      if (style instanceof CSSRule) {
+        FBTest.compare(
+            expectedStyle.type,
+            style.type,
+            "Style returned by path " + path + " type");
+        FBTest.compare(
+            expectedStyle.cssText,
+            style.cssText,
+            "Style returned by path " + path + " cssText");
+      } else {
+        for (var name in style) {
+          if (name == "ownerNode" || name == "parentRule"
+              || name == "parentStyleSheet" || name == "styleSheet"
+              || name == "cssRules")  continue;
+            
+          FBTest.compare(
+              expectedStyle[name],
+              style[name],
+              "Style returned by path " + path + " " + name);
+        }
+      }
+      
+      if (style.cssRules) {
+        for (var ruleIndex = 0; ruleIndex < style.cssRules.length; ruleIndex++) {
+          compareStyle(
+              expectedStyle.cssRules[ruleIndex],
+              style.cssRules[ruleIndex],
+              path + "/rule()[" + (ruleIndex+1) + "]");
+        }
+      }
+    }
+    for (var i = 0; i < expectedStylePaths.length; i++) {
+      var style = Path.evaluateStylePath(expectedStylePaths[i], win.document);
+      
+      compareStyle(expectedStyles[i], style, expectedStylePaths[i]);
+    }
     
     FBTestFirebug.testDone();
   });
