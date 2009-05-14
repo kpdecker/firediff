@@ -1,6 +1,7 @@
 (function() {
   FBTestFireDiff = {
     compareChangeList: function(expected, actual, msg) {
+      FBTest.FirebugWindow.FBTrace.sysout(msg);
       FBTest.compare(expected.length, actual.length, msg + " length");
       for (var i = 0; i < actual.length; i++) {
         this.compareObjects(
@@ -23,6 +24,13 @@
           
           if (expected[i] && expected[i].isEqualNode) {
             var equal = actual[i] && expected[i].isEqualNode(actual[i]);
+            FBTest.ok(equal, msg + " " + i);
+            if (!equal) {
+              FBTest.sysout(msg + " " + i + " expected", expected[i]);
+              FBTest.sysout(msg + " " + i + " actual", actual[i]);
+            }
+          } else if (expected[i] && expected[i].equals) {
+            var equal = actual[i] && expected[i].equals(actual[i]);
             FBTest.ok(equal, msg + " " + i);
             if (!equal) {
               FBTest.sysout(msg + " " + i + " expected", expected[i]);

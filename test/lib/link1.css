@@ -1,4 +1,4 @@
-@media tv {
+@media tv, print {
   #div2 {
     overflow: hidden;
   }
