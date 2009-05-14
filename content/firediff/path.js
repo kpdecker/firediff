@@ -36,7 +36,6 @@ var styleLookups = {
   "style()" : function(current, index) {
     var fieldLookup = /@(.*?)='(.*?)'/;
     var match = fieldLookup.exec(index);
-    FBTrace.sysout("style() match: " + index, match);
     if (match) {
       function checkSheet(sheet) {
         if (sheet[match[1]] == match[2]
@@ -63,7 +62,6 @@ var styleLookups = {
     }
   },
   "rule()" : function(current, index) {
-    FBTrace.sysout("rule() match: " + index, current);
     return current.cssRules[index-1];
   }
 };
