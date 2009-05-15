@@ -7,7 +7,8 @@ var i18n = document.getElementById("strings_firediff");
 
 var Events = FireDiff.events,
     Path = FireDiff.Path,
-    Reps = FireDiff.reps;
+    Reps = FireDiff.reps,
+    CSSModel = FireDiff.CSSModel;
 
 const CHANGES = "firebug-firediff-changes";
 const ATTR_CHANGES = "firebug-firediff-attrChanges";
@@ -120,7 +121,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     annotateTree: function(tree, root) {
       var actionNode = this.getActionNode(tree, root);
       if (!actionNode) {
-        FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
+        if (FBTrace.DBG_ERRORS)   FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
       }
       actionNode[CHANGES] = this;
       
@@ -542,42 +543,177 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
     }
 });
 
-function CSSChangeEvent(style, propName, changeSource) {
+function CSSChangeEvent(style, changeSource, xpath) {
     ChangeEvent.call(this, changeSource);
     
     this.style = style;
-    this.propName = propName;
+    this.xpath = xpath || Path.getStylePath(style);
 }
 CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
     changeType: "CSS",
-    
+
+    getActionNode: function(target, xpath) {
+      try {
+        xpath = xpath || Path.getStylePath(target);
+        if (xpath == this.xpath) {
+          // Empty string passed to evaluate is bad. 
+          return target;
+        }
+        
+        var components = Path.getRelativeComponents(this.xpath, xpath);
+        if (!components.right) {
+          return Path.evaluateStylePath(components.left, target);
+        }
+      } catch (err) {
+        if (FBTrace.DBG_ERRORS) {
+          FBTrace.sysout("CSS.getActionNode Error: " + err, err);
+          FBTrace.sysout(" - getActionNode: " + this.xpath + " " + xpath, components);
+        }
+        throw err;
+      }
+    },
     appliesTo: function(target) {
-        return this.style === target;
+      // Any change that is made to the target or a child
+      return target && Path.isChildOrSelf(Path.getStylePath(target), this.xpath);
     },
     getSnapshotRep: function(context) {
       return new Reps.CSSSnapshot(this);
-    },
-    
-    merge: function(candidate) {
-        if (this.changeType != candidate.changeType
-                || this.style != candidate.style
-                || this.propName != candidate.propName) {
-            return undefined;
-        }
-        
-        return this.mergeSubtype(candidate);
     }
 });
 
-function CSSSetPropertyEvent(style, propName, propValue, propPriority, prevValue, prevPriority, changeSource) {
-    CSSChangeEvent.call(this, style, propName, changeSource);
+function CSSRuleEvent(style, changeSource, xpath, clone) {
+  CSSChangeEvent.call(this, style, changeSource, xpath);
+  
+  this.clone = clone || CSSModel.cloneCSSObject(style);
+}
+CSSRuleEvent.prototype = extend(CSSChangeEvent.prototype, {
+  annotateList: function(list) {
+    
+  }
+}
+});
+
+function CSSInsertRuleEvent(style, changeSource, xpath, clone) {
+  CSSRuleEvent.call(this, style, changeSource, xpath, clone);
+}
+CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
+  subType: "insertRule",
+
+  merge: function(candidate) {
+    if (candidate.subType == "removeRule"
+        && this.xpath == candidate.xpath) {
+      return this.clone.equals(candidate.clone) ? [] : undefined;
+    } else if (candidate.subType == "insertRule"
+        || candidate.subType == "removeRule") {
+      var updateXpath = candidate.getMergedXPath(this);
+      if (updateXpath) {
+        return [
+            this.cloneOnXPath(updateXpath),
+            candidate
+          ];
+      }
+    } else if (Path.isChildOrSelf(this.xpath, candidate.xpath)
+        && (candidate.subType == "setProp" || candidate.subType == "removeProp")){
+      // TODO : Handle @media nested changes?
+      var clone = this.clone.clone();
+      candidate.apply(clone, this.xpath);
+      
+      return [ new CSSInsertRuleEvent(this.style, this.changeSource, this.xpath, clone) ];
+    }
+  },
+  cloneOnXPath: function(xpath) {
+    return new CSSInsertRuleEvent(this.style, this.changeSource, xpath, this.clone);
+  },
+  getMergedXPath: function(prior) {
+    var updatedPath = Path.updateForInsert(prior.xpath, this.xpath);
+    if (updatedPath != prior.xpath) {
+      return updatedPath;
+    }
+  }
+});
+
+function CSSRemoveRuleEvent(style, changeSource, xpath, clone) {
+  CSSRuleEvent.call(this, style, changeSource, xpath, clone);
+}
+CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
+  subType: "removeRule",
+
+  merge: function(candidate) {
+    if (candidate.subType == "insertRule"
+        && this.xpath == candidate.xpath) {
+      if (this.clone.equals(candidate.clone)) {
+        return [];
+      } else {
+        return [this, candidate];
+      }
+    } else if (candidate.subType == "insertRule"
+        || candidate.subType == "removeRule") {
+      var updateXpath = candidate.getMergedXPath(this);
+      if (updateXpath) {
+        return [
+            this.cloneOnXPath(updateXpath),
+            candidate
+          ];
+      }
+    } else if (this.xpath == candidate.xpath
+        && (this.subType == "setProp" || this.subType == "removeProp")){
+      // TODO : Handle @media nested changes?
+      var clone = this.clone.clone();
+      candidate.apply(clone, this.xpath);
+      
+      return [ new CSSRemoveRuleEvents(this.style, this.changeSource, this.xpath, clone) ];
+    }
+  },
+  cloneOnXPath: function(xpath) {
+    return new CSSRemoveRuleEvent(this.style, this.changeSource, xpath, this.clone);
+  },
+  getMergedXPath: function(prior) {
+    var updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
+    if (updatedPath != prior.xpath) {
+      return updatedPath;
+    }
+  }
+});
+
+function CSSPropChangeEvent(style, propName, changeSource, xpath) {
+  CSSChangeEvent.call(this, style, changeSource, xpath);
+  
+  this.propName = propName;
+}
+CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
+  merge: function(candidate) {
+    if (candidate.subType == "removeRule"
+        && this.xpath == candidate.xpath) {
+      return [candidate];
+    } else if (candidate.subType == "insertRule"
+        || candidate.subType == "removeRule") {
+      var updateXpath = candidate.getMergedXPath(this);
+      if (updateXpath) {
+        return [
+            this.cloneOnXPath(updateXpath),
+            candidate
+          ];
+      }
+    }
+      if (this.changeType != candidate.changeType
+              || this.xpath != candidate.xpath
+              || this.propName != candidate.propName) {
+          return undefined;
+      }
+      
+      return this.mergeSubtype(candidate);
+  }
+});
+
+function CSSSetPropertyEvent(style, propName, propValue, propPriority, prevValue, prevPriority, changeSource, xpath) {
+    CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
     
     this.propValue = propValue;
     this.propPriority = propPriority;
     this.prevValue = prevValue;
     this.prevPriority = prevPriority;
 };
-CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
+CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     subType: "setProp",
     
     getSummary: function() {
@@ -591,7 +727,8 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
               new CSSSetPropertyEvent(
                       this.style, this.propName,
                       candidate.propValue, candidate.propPriority,
-                      this.prevValue, this.prevPriority, this.changeSource)
+                      this.prevValue, this.prevPriority, this.changeSource,
+                      this.xpath)
               ];
         } else {
           return [];
@@ -602,17 +739,28 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
           return [
               new CSSRemovePropertyEvent(
                       this.style, this.propName,
-                      this.prevValue, this.prevPriority)
+                      this.prevValue, this.prevPriority,
+                      this.changeSource, this.xpath)
               ];
         } else {
           return [];
         }
       }
     },
-    apply: function(style) {
+    cloneOnXPath: function(xpath) {
+      return new CSSSetPropertyEvent(
+          this.style, this.propName,
+          this.propValue, this.propPriority,
+          this.prevValue, this.prevPriority,
+          this.changeSource,
+          xpath);
+    },
+    
+    apply: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
-            Firebug.CSSModule.setProperty(style, this.propName, this.propValue, this.propPriority);
+            style = this.getActionNode(style, xpath);
+            (style.style || style).setProperty(this.propName, this.propValue, this.propPriority);
           }, this));
     },
     revert: function(style) {
@@ -627,8 +775,8 @@ CSSSetPropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
     }
 });
 
-function CSSRemovePropertyEvent(style, propName, prevValue, prevPriority, changeSource) {
-    CSSChangeEvent.call(this, style, propName, changeSource);
+function CSSRemovePropertyEvent(style, propName, prevValue, prevPriority, changeSource, xpath) {
+    CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
 
     // Seed empty values for the current state. This makes the domplate
     // display much easier
@@ -638,7 +786,7 @@ function CSSRemovePropertyEvent(style, propName, prevValue, prevPriority, change
     this.prevValue = prevValue;
     this.prevPriority = prevPriority;
 };
-CSSRemovePropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
+CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     subType: "removeProp",
     
     getSummary: function() {
@@ -652,14 +800,23 @@ CSSRemovePropertyEvent.prototype = extend(CSSChangeEvent.prototype, {
                 new CSSSetPropertyEvent(
                         this.style, this.propName,
                         candidate.propValue, candidate.propPriority,
-                        this.prevValue, this.prevPriority, this.changeSource)
+                        this.prevValue, this.prevPriority, this.changeSource,
+                        this.xpath)
                 ];
       }
     },
-    apply: function(style) {
+    cloneOnXPath: function(xpath) {
+      return new CSSRemovePropertyEvent(
+          this.style, this.propName,
+          this.prevValue, this.prevPriority,
+          this.changeSource,
+          xpath);
+    },
+    apply: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
-            Firebug.CSSModule.removeProperty(style, this.propName);
+            style = this.getActionNode(style, xpath);
+            (style.style || style).removeProperty(this.propName);
           }, this));
     },
     revert: function(style) {
@@ -679,8 +836,6 @@ FireDiff.events = {
       REMOVE_CHANGES: REMOVE_CHANGES,
       HAS_CHILD_CHANGES: HAS_CHILD_CHANGES
     },
-    
-    ChangeEvent: ChangeEvent,
     
     DOMChangeEvent: DOMChangeEvent,
     DOMInsertedEvent: DOMInsertedEvent,
@@ -703,7 +858,8 @@ FireDiff.events = {
         }
     },
     
-    CSSChangeEvent: CSSChangeEvent,
+    CSSInsertRuleEvent: CSSInsertRuleEvent,
+    CSSRemoveRuleEvent: CSSRemoveRuleEvent,
     CSSSetPropertyEvent: CSSSetPropertyEvent,
     CSSRemovePropertyEvent: CSSRemovePropertyEvent,
     
