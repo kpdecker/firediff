@@ -11,12 +11,20 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
   function elementEquals(left, right, i) {
     if (left && left.equals) {
       if (!left.equals(right)) {
-        FBTrace.sysout("Not Equal equals: " + i + " '" + left + "' '" + right + "'", left);
+        if (FBTrace.DBG_FIREDIFF) {
+          FBTrace.sysout("Not Equal equals: " + i + " '" + left + "' '" + right + "'");
+          FBTrace.sysout("Not Equal", left);
+          FBTrace.sysout("Not Equal", right);
+        }
         return false;
       }
     } else {
       if (left != right) {
-        FBTrace.sysout("Not Equal ==: " + i + " '" + left + "' '" + right + "'", left);
+        if (FBTrace.DBG_FIREBUG) {
+          FBTrace.sysout("Not Equal ==: " + i + " '" + left + "' '" + right + "'", left);
+          FBTrace.sysout("Not Equal", left);
+          FBTrace.sysout("Not Equal", right);
+        }
         return false;
       }
     }
@@ -26,6 +34,8 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
   function CloneObject() {}
   CloneObject.prototype = {
     equals: function(test) {
+      if (!test)    return false;
+      
       var tested = { cssText: true },
           i;
       for (i in this) {
@@ -54,9 +64,12 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     }
   }
   ArrayCloneObject.prototype = {
+    // for in interation does not work on built in types, thus we have to
+    // selectively extend the array prototype
     push: Array.prototype.push,
+    splice: Array.prototype.splice,
     equals: function arrayEquals(right) {
-      if (this.length != right.length)    return false;
+      if (!right || this.length != right.length)    return false;
       for (var i = 0; i < this.length; i++) {
         if (!elementEquals(this[i], right[i], i))    return false;
       }
@@ -84,6 +97,9 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     }
   }
   StyleDeclarationClone.prototype = extend(CloneObject.prototype, {
+    push: Array.prototype.push,
+    splice: Array.prototype.splice,
+    
     getPropertyValue: function(propertyName) {
       var prop = this.properties[propertyName];
       return prop && prop.value;
@@ -98,20 +114,46 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
           priority: priority || "",
           
           equals: function(right) {
-            return this.value == right.value && this.priority == right.priority;
+            return right && this.value == right.value && this.priority == right.priority;
           }
       };
-      // TODO : Don't add this if the prop already exists
-      this[this.length++] = propertyName;
-      // TODO : Update cssText so we can clone properly
+      if (this.getPropIndex(propertyName) < 0) {
+        this.push(propertyName);
+      }
+      this.cssText = this.generateCSSText();
     },
     removeProperty: function(propertyName) {
-      // TODO : Fix the indexes
+      this.splice(this.getPropIndex(propertyName), 1);
       delete this.properties[propertyName];
-      // TODO : Update cssText so we can clone properly
+      this.cssText = this.generateCSSText();
     },
     equals: function(test) {
       return CloneObject.prototype.equals.call(this.properties, test.properties);
+    },
+    
+    generateCSSText: function() {
+      var out = [];
+      for (var i = 0; i < this.length; i++) {
+        out.push(this[i]);
+        out.push(": ");
+        out.push(this.getPropertyValue(this[i]));
+        
+        var priority = this.getPropertyPriority(this[i]);
+        if (priority) {
+          out.push(" ");
+          out.push(priority);
+        }
+        out.push(";\n");
+      }
+      return out.join("");
+    },
+    getPropIndex: function(propName) {
+      for (var i = 0; i < this.length; i++) {
+        if (this[i] == propName) {
+          return i;
+        }
+      }
+      return -1;
     }
   });
 
@@ -140,8 +182,11 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
   }
   StyleSheetClone.prototype = extend(CloneObject.prototype, {
     insertRule: function(rule, index) {
-      // TODO : Parse the the rule text
-      this.cssRules.splice(index, 0, {});
+      // Note: This does not match the CSS object API. Parsing of this will
+      //    be overly complicated, so this function differs from the CSS spec
+      //    in that it will only accept a pre-parsed CSS clone object
+      if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("StyleSheetClone.insertRule: " + index + " " + rule, this.cssRules);
+      this.cssRules.splice(index, 0, rule);
     },
     deleteRule: function(index) {
       this.cssRules.splice(index, 1);
@@ -167,7 +212,8 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     this.media = new MediaListClone(rule.media);
   }
   CSSMediaRuleClone.prototype = extend(CSSRuleClone.prototype, {
-    // TODO : Impl the functions for this class
+    insertRule: StyleSheetClone.prototype.insertRule,
+    deleteRule: StyleSheetClone.prototype.deleteRule
   });
   var CSSFontFaceRuleClone = CSSStyleRuleClone;
   var CSSPageRuleClone = CSSStyleRuleClone;

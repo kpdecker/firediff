@@ -5,7 +5,6 @@ function runTest() {
   
   FBTest.loadScript("FBTestFireDiff.js", this);
   FBTestFirebug.openNewTab(urlBase + "lib/cssModel.htm", function(win) {
-    try {
     var doc = win.document;
     
     function createSheet(cssText) {
@@ -33,7 +32,6 @@ function runTest() {
         sheetThree = createSheet(".rule1 {} .rule2 {} .rule3 { border: medium none; }");
     
     // Test clone contents
-    // TODO : Impl
     var cloneOne = CSSModel.cloneCSSObject(sheetOne);
     FBTest.compare("text/css", cloneOne.type, "clone type");
     FBTest.compare(false, cloneOne.disabled, "clone disabled");
@@ -90,10 +88,7 @@ function runTest() {
     FBTest.sysout("import " + testRule, testRule);
     FBTest.compare(urlBase + "lib/import.css", testRule.styleSheet && testRule.styleSheet.href, "clone import media sheet href");
     
-    // TODO : Clone data for: font face, page, charset decls
-    
     // Test CSS equals
-    // TODO : Equality tests when href, etc are involved? I.e other sheet level props
     compareCSS(link1, link1, true, "link1 equals link1");
     compareCSS(link2, link2, true, "link2 equals link2");
     compareCSS(import, import, true, "import equals import");
@@ -134,18 +129,27 @@ function runTest() {
     cloneOne.setProperty("border", "medium none");
     FBTest.compare(true, cloneOne.equals(CSSModel.cloneCSSObject(sheetThree.cssRules[2].style)), "Compare add property");
 
-    var cloneOne = CSSModel.cloneCSSObject(sheetOne.cssRules[2].style);
+    cloneOne = CSSModel.cloneCSSObject(sheetOne.cssRules[2].style);
     cloneOne.removeProperty("border");
     FBTest.compare(true, cloneOne.equals(CSSModel.cloneCSSObject(sheetThree.cssRules[0].style)), "Compare remove property");
     
+    // Test clone of a changed style declaration
+    cloneOne = CSSModel.cloneCSSObject(sheetOne.cssRules[0].style);
+    cloneOne.setProperty("border", "medium none");
+    FBTest.compare(true, cloneOne.equals(CSSModel.cloneCSSObject(cloneOne)), "Compare change style clone");
     
-    // TODO : look at the other events that can occur on the clones (insert remove rule, etc)
+    // Test stylesheet deleteRule
+    cloneOne = CSSModel.cloneCSSObject(sheetOne);
+    cloneOne.deleteRule(1);
+    cloneOne.deleteRule(1);
+    FBTest.compare(true, cloneOne.equals(CSSModel.cloneCSSObject(sheetTwo)), "Compare deleteRule clone");
     
-    // TODO : Test clone of a changed style declaration
-    
-    FBTest.ok(false, "Not Impl");
+    // Test stylesheet insertRule
+    cloneOne = CSSModel.cloneCSSObject(sheetTwo);
+    cloneOne.insertRule(CSSModel.cloneCSSObject(sheetOne.cssRules[1]), 1);
+    cloneOne.insertRule(CSSModel.cloneCSSObject(sheetOne.cssRules[2]), 2);
+    FBTest.compare(true, cloneOne.equals(CSSModel.cloneCSSObject(sheetOne)), "Compare insertRule clone");
     
     FBTestFirebug.testDone();
-    } catch (err) { FBTrace.sysout(err,err); }
   });
 }
