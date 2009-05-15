@@ -257,10 +257,6 @@ function runTest() {
         win.document.getElementById("p1").lastChild,
         "getElementPath - p1 - text2");
 
-    // TODO : Need to design a lookup method for CSS elements. Currently this is
-    // not needed, but if we allow inserting rules or diff the free edits it will
-    // be
-
     FBTestFirebug.testDone();
   });
 }
