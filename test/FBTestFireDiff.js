@@ -73,7 +73,7 @@
             tests[curTest].verified = true;
             setTimeout(executeTest, 0);
           } else if (tests[curTest].eventCount < changeNum) {
-            FBTest.compare(changeNum, tests[curTest].eventCount, "Unexpected number of events");
+            FBTest.compare(tests[curTest].eventCount, changeNum, "Unexpected number of events");
           } else {
             timeout = setTimeout(cancelTest, 5000);
           }
