@@ -256,5 +256,14 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     }
   }
   
+  this.StyleSheetClone = StyleSheetClone;
+  this.CSSStyleRuleClone = CSSStyleRuleClone;
+  this.CSSMediaRuleClone = CSSMediaRuleClone;
+  this.CSSFontFaceRuleClone = CSSFontFaceRuleClone;
+  this.CSSPageRuleClone = CSSPageRuleClone;
+  this.CSSImportRuleClone = CSSImportRuleClone;
+  this.CSSCharsetRuleClone = CSSCharsetRuleClone;
+  this.CSSRuleClone = CSSRuleClone;
+  this.StyleDeclarationClone = StyleDeclarationClone;
   this.cloneCSSObject = cloneCSSObject;
 }});
