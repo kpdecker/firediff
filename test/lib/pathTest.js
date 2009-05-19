@@ -1,4 +1,5 @@
 function runTest() {
+  try {
   var urlBase = FBTest.getHTTPURLBase();
   FBTest.loadScript("FBTestFireDiff.js", this);
   FBTestFirebug.openNewTab(urlBase + "lib/path.htm", function(win) {
@@ -54,6 +55,10 @@ function runTest() {
         undefined,
         Path.updateForRemove("/html[1]/body[1]/div[3]/text()[2]", "/html[1]/body[1]/div[3]"),
         "updateForRemove: parent");
+    FBTest.compare(
+        "/node()[@id='test/value']/body[1]/div[3]/text()[3]",
+        Path.updateForRemove("/node()[@id='test/value']/body[1]/div[3]/text()[3]", "/node()[1]"),
+        "updateForRemove: root path selector");
         
     // FireDiff.Path.updateForInsert
     FBTest.compare(
@@ -104,6 +109,10 @@ function runTest() {
         "/html[1]/body[1]/div[4]/text()[2]",
         Path.updateForInsert("/html[1]/body[1]/div[3]/text()[2]", "/html[1]/body[1]/div[3]"),
         "updateForInsert: parent");
+    FBTest.compare(
+        "/node()[@id='test/value']/body[1]/div[3]/text()[3]",
+        Path.updateForInsert("/node()[@id='test/value']/body[1]/div[3]/text()[3]", "/node()[1]"),
+        "updateForInsert: root path selector");
     
     // FireDiff.Path.getIdentifier
     FBTestFireDiff.compareObjects(undefined, Path.getIdentifier("/"), "getIdentifier");
@@ -111,6 +120,8 @@ function runTest() {
     FBTestFireDiff.compareObjects({tag: "div", index: 1 }, Path.getIdentifier("/html[1]/body[1]/div[1]"), "getIdentifier");
     FBTestFireDiff.compareObjects({tag: "text()", index: 2 }, Path.getIdentifier("/html[1]/body[1]/text()[2]"), "getIdentifier");
     FBTestFireDiff.compareObjects({tag: "test()", index: 6 }, Path.getIdentifier("/html[1]/body[1]/element[1]/item[1]/test()[6]"), "getIdentifier");
+    FBTestFireDiff.compareObjects({tag: "test()", index: "@id='test/value'" }, Path.getIdentifier("/html[1]/body[1]/element[1]/item[1]/test()[@id='test/value']"), "getIdentifier path selector");
+    FBTestFireDiff.compareObjects({tag: "test()", index: 1 }, Path.getIdentifier("/html[1]/body[1]/element[1]/item[@id='test/value']/test()[1]"), "getIdentifier path selector parent");
     
     // FireDiff.Path.getParentPath
     FBTest.compare("/", Path.getParentPath("/"), "getParentPath /");
@@ -118,6 +129,22 @@ function runTest() {
     FBTest.compare("/html[1]/body[1]", Path.getParentPath("/html[1]/body[1]/div[1]"), "getParentPath div[1]");
     FBTest.compare("/html[1]/body[1]", Path.getParentPath("/html[1]/body[1]/text()[2]"), "getParentPath text()");
     FBTest.compare("/html[1]/body[1]/element[1]/item[1]", Path.getParentPath("/html[1]/body[1]/element[1]/item[1]/test()[6]"), "getParentPath test()");
+    FBTest.compare("/html[1]/body[1]", Path.getParentPath("/html[1]/body[1]/div[@id='test/value']"), "getParentPath path selector child");
+    FBTest.compare("/html[1]/body[@id='test/value']", Path.getParentPath("/html[1]/body[@id='test/value']/div[1]"), "getParentPath path selector parent");
+    
+    // FireDiff.Path.getTopPath
+    FBTest.compare("/", Path.getTopPath("/"), "getTopPath /");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]"), "getTopPath html");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body"), "getTopPath body");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body[1]/div[1]"), "getTopPath div[1]");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body[1]/text()[2]"), "getTopPath text()");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body[1]/element[1]/item[1]/test()[6]"), "getTopPath test()");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body[1]/div[@id='test/value']"), "getTopPath path selector child");
+    FBTest.compare("/html[1]", Path.getTopPath("/html[1]/body[@id='test/value']/div[1]"), "getTopPath path selector parent");
+    FBTest.compare("", Path.getTopPath(""), "getTopPath blank");
+    FBTest.compare("body", Path.getTopPath("body"), "getTopPath body");
+    FBTest.compare("body[1]", Path.getTopPath("body[1]/div[@id='test/value']"), "getTopPath path selector child");
+    FBTest.compare("body[@id='test/value']", Path.getTopPath("body[@id='test/value']/div[1]"), "getTopPath path selector parent");
     
     // FireDiff.Path.getRelativeComponents
     FBTestFireDiff.compareObjects(
@@ -160,6 +187,14 @@ function runTest() {
         { common: "/", right: "node()[1]/text()[1]", left: "node()[2]/div[1]/text()[1]" },
         Path.getRelativeComponents("/node()[2]/div[1]/text()[1]", "/node()[1]/text()[1]"),
         "getRelativeComponents - root disjoint");
+    FBTestFireDiff.compareObjects(
+        { common: "/html[1]/text()[@id='test/value']", left: "text()[1]", right: "div[1]/text()[1]" },
+        Path.getRelativeComponents("/html[1]/text()[@id='test/value']/text()[1]", "/html[1]/text()[@id='test/value']/div[1]/text()[1]"),
+        "getRelativeComponents - nephew path lookup");
+    FBTestFireDiff.compareObjects(
+        { common: "/html[1]", left: "text()[@id='test/value']", right: "text()[@id='test/value2']" },
+        Path.getRelativeComponents("/html[1]/text()[@id='test/value']", "/html[1]/text()[@id='test/value2']"),
+        "getRelativeComponents - sibling path lookup");
     
     // FireDiff.Path.getElementPath
     function compareXPath(expected, element, msg, useTagNames) {
@@ -259,4 +294,5 @@ function runTest() {
 
     FBTestFirebug.testDone();
   });
+  } catch (err) { FBTrace.sysout(err, err); }
 }

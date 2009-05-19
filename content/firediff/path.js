@@ -5,6 +5,8 @@ FBL.ns(function() { with (FBL) {
 var Path = {};
 FireDiff.Path = Path;
 
+const PATH_COMPONENT = /\/?([^\/\[\]]*(?:\[(?:\d+|@.+?='.*?')\]))/g;
+
 function getSheetId(sheet) {
   if (sheet.href) {
     return "@href='" + sheet.href + "'";
@@ -66,6 +68,15 @@ var styleLookups = {
   }
 };
 
+function extractComponents(path) {
+  var ret = path.indexOf("/") === 0 ? [""] : [],
+      match;
+  while ((match = PATH_COMPONENT.exec(path))) {
+    ret.push(match[1]);
+  }
+  return ret;
+}
+
 function updateForMutate(pathUpdate, pathChanged, offset, destroyAncestor) {
   var components = Path.getRelativeComponents(pathUpdate, pathChanged);
   var changeParent = Path.getParentPath(pathChanged);
@@ -86,7 +97,7 @@ function updateForMutate(pathUpdate, pathChanged, offset, destroyAncestor) {
     // The removed path was the child of the common path element.
     // If the modified element was of the same type as our ancestor
     // at this level, then we will need to update our path
-    var pathExtract = /^([^\/]+?)\[(\d+)\]/;
+    var pathExtract = /^([^\/]+?)\[(\d+|@.+?='.*?')\]/;
     var ancestor = pathExtract.exec(components.left);
     var changed = pathExtract.exec(components.right);
 
@@ -114,13 +125,17 @@ FireDiff.Path.updateForRemove = function(pathUpdate, pathRemoved) {
 };
 
 FireDiff.Path.getIdentifier = function(path) {
-  var match = path.match(/^.*\/(.+?)(?:\[(\d+)\])?$/);
+  var match = path.match(/^.*\/([^/\[\]]+?)(?:\[(\d+|@.+?='.*?')\])?$/);
   if (match) {
-    return { tag: match[1], index: (match[2] || match[2] === "0") ? parseInt(match[2]) : undefined };
+    var index = parseInt(match[2]);
+    return { tag: match[1], index: isNaN(index) ? match[2] : index };
   }
 };
 FireDiff.Path.getParentPath = function(path) {
-  return (path.match(/^(.+)\/.*?$/) || ["", "/"])[1];
+  return (path.match(/^(.+)\/([^\/\[\]]+?)(?:\[(\d+|@.+?='.*?')\])?$/) || ["", "/"])[1];
+};
+FireDiff.Path.getTopPath = function(path) {
+  return (path.match(/^\/?[^\/\[\]]*(?:\[(?:\d+|@.+?='.*?')\])?/) || ["", ""])[0];
 };
 
 FireDiff.Path.isChildOrSelf = function(parent, child) {
@@ -131,8 +146,8 @@ FireDiff.Path.isChild = function(parent, child) {
 };
 
 FireDiff.Path.getRelativeComponents = function(path1, path2) {
-  path1 = path1.split("/");
-  path2 = path2.split("/");
+  path1 = extractComponents(path1);
+  path2 = extractComponents(path2);
   
   var common = [];
   for (var i = 0; i < path1.length && i < path2.length && path1[i] == path2[i]; i++) {
@@ -201,7 +216,7 @@ FireDiff.Path.getStylePath = function(style) {
 };
 
 FireDiff.Path.evaluateStylePath = function(path, document) {
-  var parser = /\/(.*?)\[(.*?)\]/g;
+  var parser = /\/?(.*?)\[(.*?)\]/g;
   var component;
   var components = [];
   var current = document;
