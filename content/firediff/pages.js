@@ -6,7 +6,8 @@ FireDiff.reps = FBL.ns(function() { with (FBL) {
 const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptableDateFormat");
 
 var Events = FireDiff.events,
-    Path = FireDiff.Path;
+    Path = FireDiff.Path,
+    CSSModel = FireDiff.CSSModel;
 
 var i18n = document.getElementById("strings_firediff");
 
@@ -50,7 +51,7 @@ this.Monitor = domplate({
         date.getHours(), date.getMinutes(), date.getSeconds()); 
   },
   getXPath: function(change) {
-    return change.displayXPath || "";
+    return change.displayXPath || change.xpath || "";
   },
   isFirebugDiff: function(change) {
     return change.changeSource == Events.ChangeSource.FIREBUG_CHANGE;
@@ -106,25 +107,30 @@ function Snapshot(change) {
   this.displayChanges = displayChanges;
   this.revertChanges = revertChanges;
 }
+Snapshot.prototype = {
+  updateCloneToChange: function(clone, cloneXPath) {
+    for (var i = this.revertChanges.length; i > 0; i--) {
+      this.revertChanges[i-1].revert(clone, cloneXPath);
+    }
+    for (var i = 0; i < this.displayChanges.length; i++) {
+      this.displayChanges[i].annotateTree(clone, cloneXPath);
+    }
+  }
+}
 
 this.DOMSnapshot = function(change, document){
   Snapshot.call(this, change);
   
-  var displayTree = document.documentElement.cloneNode(true);
-  var cloneXPath = Path.getElementPath(document.documentElement);
-  for (var i = this.revertChanges.length; i > 0; i--) {
-    this.revertChanges[i-1].revert(displayTree, cloneXPath);
-  }
-  for (var i = 0; i < this.displayChanges.length; i++) {
-    this.displayChanges[i].annotateTree(displayTree, cloneXPath);
-  }
-  this.displayTree = displayTree;
+  this.displayTree = document.documentElement.cloneNode(true);
+  this.updateCloneToChange(
+      this.displayTree,
+      Path.getElementPath(document.documentElement));
 };
-this.DOMSnapshot.prototype = {
+this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
     FireDiff.domplate.allChanges.CompleteElement.tag.append({change: this.displayTree}, panel.panelNode);
   }
-};
+});
 this.DOMSnapshotRep = domplate(Firebug.Rep, {
   supportsObject: function(object, type) {
     return object instanceof FireDiff.reps.DOMSnapshot;
@@ -137,15 +143,18 @@ this.DOMSnapshotRep = domplate(Firebug.Rep, {
 this.CSSSnapshot = function(change){
   Snapshot.call(this, change);
   
-  FBTrace.sysout("StyleSheet", change.style.parentRule.parentStyleSheet);
-  
-  FBTrace.sysout("CSS Snapshot", this.displayChanges);
+  // TODO : Ensure that this works with all change types
+  this.sheet = change.style.parentRule.parentStyleSheet;
+  this.displayTree = CSSModel.cloneCSSObject(this.sheet);
+  this.updateCloneToChange(
+      this.displayTree,
+      Path.getStylePath(this.sheet));
 };
-this.CSSSnapshot.prototype = {
+this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
-    FireDiff.domplate.allChanges.CompleteElement.tag.append({change: this.displayTree}, panel.panelNode);
+    FireDiff.domplate.CSSChanges.CSSList.tag.append({change: this.displayTree}, panel.panelNode);
   }
-};
+});
 this.CSSSnapshotRep = domplate(Firebug.Rep, {
   supportsObject: function(object, type) {
     return object instanceof FireDiff.reps.CSSSnapshot;

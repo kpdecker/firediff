@@ -7,7 +7,17 @@ FBL.ns(function() {
 
 var i18n = document.getElementById("strings_firediff");
 var Events = FireDiff.events,
-    Path = FireDiff.Path;
+    Path = FireDiff.Path,
+    CSSModel = FireDiff.CSSModel;
+
+function ArrayIterator(array) {
+  var index = -1;
+
+  this.next = function() {
+    if (++index >= array.length)    $break();
+    return array[index];
+  };
+}
 
 // Common Domplates
 /**
@@ -18,9 +28,6 @@ var Events = FireDiff.events,
  * 
  * Parameter:
  *   change: Change object that we are displaying
- *
- * TODO : Update this to display a single change or a collection of changes on
- *    an element. Need to determine the data model that will be the best for this.
  */
 var attributeList = domplate({
   tag: FOR("attr", "$change|attrIterator", TAG("$attr|getAttrTag", {attr: "$attr"})),
@@ -114,6 +121,35 @@ var attributeList = domplate({
   }
 });
 
+var propertyDefinition = domplate({
+  tag: 
+    DIV({class: "cssPropDiff"},
+      SPAN({$removedClass: "$change|isPropRemoved", $addedClass: "$change|isPropAdded"},
+        SPAN({class: "cssPropName"}, "$change.propName"),
+        SPAN({class: "cssColon"}, ":"),
+        SPAN({class: "cssPropValue"},
+          FOR("block", "$change|diffProp",
+            SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value")),
+          SPAN({$removedClass: "$change|isPriorityRemoved", $addedClass: "$change|isPriorityAdded"},
+            "$change|getPriorityText")
+        ),
+        SPAN({class: "cssSemi"}, ";")
+    )),
+  
+  diffProp: function(change) {
+      return diffStringObj(change.prevValue, change.propValue);
+  },
+  isPropAdded: function(change) { return !change.prevValue; },
+  isPropRemoved: function(change) { return !change.propValue; },
+  
+  getPriorityText: function(change) {
+    var important = change.propPriority || change.prevPriority;
+    return important ? (" !" + important) : "";
+  },
+  isPriorityAdded: function(change) { return !change.prevPriority; },
+  isPriorityRemoved: function(change) { return !change.propPriority; }
+});
+
 // Diff Monitor Domplates
 // TODO : Allow replink in the monitor case
 var textChanged = domplate(FirebugReps.TextNode, {
@@ -148,6 +184,7 @@ this.TextChanged = textChanged;
 // Displays a rep link to an element that has changed.
 // 
 // These changes are primarily attribute and insertion changes
+// TODO : Attempt to merge this with the domplate defined below
 this.ElementChanged = domplate(FirebugReps.Element, {
     tag: FirebugReps.OBJECTLINK(
         {$removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded"},
@@ -161,46 +198,6 @@ this.ElementChanged = domplate(FirebugReps.Element, {
     },
     isElementRemoved: function(change) {
         return change.isElementRemoved();
-    }
-});
-
-this.CSSChanged = domplate({
-    tag: DIV({class: "cssRuleDiff"},
-            DIV({class: "cssHead"},
-                    SPAN({class: "cssSelector"}, "$change.style.parentRule.selectorText"), " {"
-                ),
-                DIV({class: "cssPropDiff"},
-                  SPAN({$removedClass: "$change|isPropRemoved", $addedClass: "$change|isPropAdded"},
-                    SPAN({class: "cssPropName"}, "$change.propName"),
-                    SPAN({class: "cssColon"}, ":"),
-                    SPAN({class: "cssPropValue"},
-                        FOR("block", "$change|diffProp",
-                                SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value")),
-                        SPAN({$removedClass: "$change|isPriorityRemoved", $addedClass: "$change|isPriorityAdded"},
-                                "$change|getPriorityText")
-                    ),
-                    SPAN({class: "cssSemi"}, ";")
-                )),
-                DIV("}")
-            ),
-    diffProp: function(change) {
-        return diffStringObj(change.prevValue, change.propValue);
-    },
-    isPropAdded: function(change) {
-        return !change.prevValue;
-    },
-    isPropRemoved: function(change) {
-        return !change.propValue;
-    },
-    getPriorityText: function(change) {
-      var important = change.propPriority || change.prevPriority;
-      return important ? (" !" + important) : "";
-    },
-    isPriorityAdded: function(change) {
-        return !change.prevPriority;
-    },
-    isPriorityRemoved: function(change) {
-        return !change.propPriority;
     }
 });
 
@@ -478,6 +475,92 @@ function isSourceElement(element) {
 function isEmptyElement(element) {
   return !element.firstChild && !element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES];
 }
+
+
+this.CSSChanged = domplate({
+    tag: DIV({class: "cssRuleDiff"},
+      DIV({class: "cssHead"},
+          SPAN({class: "cssSelector"}, "$change.style.parentRule.selectorText"), " {"),
+          TAG(propertyDefinition.tag, {change: "$change"}),
+          DIV("}")
+      )
+});
+
+var CSSChangeElement = {
+  getCSSRules: function(change) {
+    return new ArrayIterator(change.cssRules);
+  },
+  
+  getNodeTag: function(cssRule) {
+    var CSSChanges = FireDiff.domplate.CSSChanges;
+    
+    if (cssRule instanceof CSSStyleSheet || cssRule instanceof CSSModel.StyleSheetClone) {
+      return CSSChanges.CSSList.tag;
+    } else if (cssRule instanceof CSSStyleRule || cssRule instanceof CSSModel.CSSStyleRuleClone) {
+      return CSSChanges.CSSStyleRule.tag;
+    }
+  }
+};
+this.CSSChanges = {
+  CSSList: domplate(CSSChangeElement, {
+    tag: FOR("rule", "$change|getCSSRules",
+      TAG("$rule|getNodeTag", {change: "$rule"})
+    )
+  }),
+  CSSStyleRule: domplate(CSSChangeElement, {
+    tag: DIV({class: "cssRuleDiff firebugDiff"},
+      DIV({class: "cssHead"},
+        SPAN({class: "cssSelector"}, "$change.selectorText"), " {"),
+          FOR("prop", "$change|getRemovedProps",
+            TAG(propertyDefinition.tag, {change: "$prop"})),
+          FOR("prop", "$change|getCurrentProps",
+            TAG(propertyDefinition.tag, {change: "$prop"})),
+        DIV("}")
+      ),
+    getRemovedProps: function(change) {
+      if (!change.propChanges)    return [];
+      
+      var ret = [];
+      for (var i = 0; i < change.propChanges.length; i++) {
+        var prop = change.propChanges[i];
+        if (prop.subType == "removeProp") {
+          ret.push(prop);
+        }
+      }
+      return ret;
+    },
+    getCurrentProps: function(change) {
+      var propList = {},
+          i = 0, index = 0,
+          style = change.style;
+      for (i = 0; i < style.length; i++) {
+        var propName = style[i],
+            propValue = style.getPropertyValue(propName),
+            propPriority = style.getPropertyPriority(propName);
+        propList[propName] = {
+          propName: propName,
+          propValue: propValue, propPriority: propPriority,
+          prevValue: propValue, prevPriority: propPriority
+        };
+      }
+      if (change.propChanges) {
+        for (i = 0; i < change.propChanges.length; i++) {
+          var prop = change.propChanges[i];
+          if (prop.subType == "setProp") {
+            propList[prop.propName] = prop;
+          }
+        }
+      }
+      return {
+        next: function() {
+          if (index >= change.style.length)   $break();
+          return propList[change.style[index++]];
+        }
+      }
+    }
+  })
+  // TODO : @media, etc domplates
+};
 
 }}).apply(FireDiff.domplate);
 });

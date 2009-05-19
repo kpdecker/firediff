@@ -30,12 +30,58 @@ ChangeEvent.prototype = {
     merge: function(candidate) {},
     mergeCancellation: function(candidate) {},
     cloneOnXPath: function(xpath) {},
-    appliesTo: function(target) {},
+    appliesTo: function(target) {
+      // Any change that is made to the target or a child
+      return target && Path.isChildOrSelf(this.getXpath(target), this.xpath);
+    },
     sameFile: function(otherChange) {},
     getSnapshotRep: function(context) {},
     
     apply: function() {},
     revert: function() {},
+    
+    getXpath: function(target) {},
+    xpathLookup: function(xpath, root) {},
+    getActionNode: function(target, xpath) {
+      try {
+        xpath = xpath || this.getXpath(target);
+        if (xpath == this.xpath) {
+          // Empty string passed to evaluate is bad. 
+          return target;
+        }
+        
+        var components = Path.getRelativeComponents(this.xpath, xpath);
+        if (!components.right) {
+          return this.xpathLookup(components.left, target);
+        }
+      } catch (err) {
+        if (FBTrace.DBG_ERRORS) {
+          FBTrace.sysout("getActionNode Error: " + err, err);
+          FBTrace.sysout(" - getActionNode: " + this.xpath + " " + xpath, components);
+        }
+        throw err;
+      }
+    },
+    getInsertActionNode: function(target, xpath) {
+      xpath = xpath || this.getXpath(target);
+      
+      var parentPath = Path.getParentPath(this.xpath);
+      var selfId = Path.getIdentifier(this.xpath);
+      
+      var components = Path.getRelativeComponents(parentPath, xpath);
+      var parentEl;
+      if (components.left) {
+        parentEl = this.xpathLookup(components.left, target);
+      } else {
+        parentEl = target;
+      }
+      
+      var siblingEl = this.xpathLookup(selfId.tag + "[" + selfId.index + "]", parentEl);
+      return {
+        parent: parentEl,
+        sibling: siblingEl
+      };
+    },
     
     toString: function() {
       return "[object ChangeEvent-" + this.changeType + "-" + this.subType + " " + this.xpath + "]";
@@ -52,10 +98,6 @@ function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
     this.target = target;
 }
 DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
-    appliesTo: function(target) {
-      // DOM appliesTo: Any change that is made to the target or a child
-      return target && Path.isChildOrSelf(Path.getElementPath(target), this.xpath);
-    },
     sameFile: function(otherChange) {
       return this.getChangeType() == otherChange.getChangeType()
           && this.target.ownerDocument == otherChange.target.ownerDocument;
@@ -67,51 +109,10 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     isElementAdded: function() { return false; },
     isElementRemoved: function() { return false; },
     
-    getActionNode: function(target, xpath) {
-      try {
-        xpath = xpath || Path.getElementPath(target);
-        if (xpath == this.xpath) {
-          // Empty string passed to evaluate is bad. 
-          return target;
-        }
-        
-        var components = Path.getRelativeComponents(this.xpath, xpath);
-        if (!components.right) {
-          // We can only have an action node if we are looking for a child
-          var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
-          return iterate.iterateNext();
-        }
-      } catch (err) {
-        if (FBTrace.DBG_ERRORS) {
-          FBTrace.sysout("getActionNode Error: " + err, err);
-          FBTrace.sysout(" - getActionNode: " + this.xpath + " " + xpath, components);
-        }
-        throw err;
-      }
-    },
-    getInsertActionNode: function(target, xpath) {
-      xpath = xpath || Path.getElementPath(target);
-      
-      var parentPath = Path.getParentPath(this.xpath);
-      var selfId = Path.getIdentifier(this.xpath);
-      
-      var components = Path.getRelativeComponents(parentPath, xpath);
-      var parentEl;
-      if (components.left) {
-        var iterate = target.ownerDocument.evaluate(components.left, target, null, XPathResult.ANY_TYPE, null);
-        parentEl = iterate.iterateNext() ;
-      } else {
-        parentEl = target;
-      }
-      
-      iterate = target.ownerDocument.evaluate(
-          selfId.tag + "[" + selfId.index + "]", parentEl, null, XPathResult.ANY_TYPE, null);
-      var siblingEl = iterate.iterateNext();
-      
-      return {
-        parent: parentEl,
-        sibling: siblingEl
-      };
+    getXpath: function(target) { return Path.getElementPath(target); },
+    xpathLookup: function(xpath, root) {
+      var iterate = root.ownerDocument.evaluate(xpath, root, null, XPathResult.ANY_TYPE, null);
+      return iterate.iterateNext();
     },
     
     /* Merge Helper Routines */
@@ -552,29 +553,12 @@ function CSSChangeEvent(style, changeSource, xpath) {
 CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
     changeType: "CSS",
 
-    getActionNode: function(target, xpath) {
-      try {
-        xpath = xpath || Path.getStylePath(target);
-        if (xpath == this.xpath) {
-          // Empty string passed to evaluate is bad. 
-          return target;
-        }
-        
-        var components = Path.getRelativeComponents(this.xpath, xpath);
-        if (!components.right) {
-          return Path.evaluateStylePath(components.left, target);
-        }
-      } catch (err) {
-        if (FBTrace.DBG_ERRORS) {
-          FBTrace.sysout("CSS.getActionNode Error: " + err, err);
-          FBTrace.sysout(" - getActionNode: " + this.xpath + " " + xpath, components);
-        }
-        throw err;
-      }
+    getXpath: function(target) { return Path.getStylePath(target); },
+    xpathLookup: function(xpath, root) {
+      return Path.evaluateStylePath(xpath, root);
     },
-    appliesTo: function(target) {
-      // Any change that is made to the target or a child
-      return target && Path.isChildOrSelf(Path.getStylePath(target), this.xpath);
+    sameFile: function(target) {
+      return target && Path.getTopPath(target.xpath) == Path.getTopPath(this.xpath);
     },
     getSnapshotRep: function(context) {
       return new Reps.CSSSnapshot(this);
@@ -587,10 +571,15 @@ function CSSRuleEvent(style, changeSource, xpath, clone) {
   this.clone = clone || CSSModel.cloneCSSObject(style);
 }
 CSSRuleEvent.prototype = extend(CSSChangeEvent.prototype, {
-  annotateList: function(list) {
+  annotateTree: function(tree, root) {
+    var parent = this.getInsertActionNode(tree, root).parent;
+    var identifier = Path.getIdentifier(this.xpath);
     
+    if (!parent && FBTrace.DBG_ERROR) {
+      FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath, tree);
+    }
+    parent.cssRules.splice(identifier.index, 0, this);
   }
-}
 });
 
 function CSSInsertRuleEvent(style, changeSource, xpath, clone) {
@@ -681,6 +670,17 @@ function CSSPropChangeEvent(style, propName, changeSource, xpath) {
   this.propName = propName;
 }
 CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
+  annotateTree: function(tree, root) {
+    var parent = this.getActionNode(tree, root);
+    
+    if (!parent && FBTrace.DBG_ERROR) {
+      FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath, tree);
+    }
+    var changes = parent.propChanges || [];
+    changes.push(this);
+    parent.propChanges = changes;
+  },
+  
   merge: function(candidate) {
     if (candidate.subType == "removeRule"
         && this.xpath == candidate.xpath) {
@@ -763,13 +763,14 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
             (style.style || style).setProperty(this.propName, this.propValue, this.propPriority);
           }, this));
     },
-    revert: function(style) {
+    revert: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
+            var actionNode = this.getActionNode(style, xpath);
             if (this.prevValue) {
-              Firebug.CSSModule.setProperty(style, this.propName, this.prevValue, this.prevPriority);
+              Firebug.CSSModule.setProperty(actionNode, this.propName, this.prevValue, this.prevPriority);
             } else {
-              Firebug.CSSModule.removeProperty(style, this.propName);
+              Firebug.CSSModule.removeProperty(actionNode, this.propName);
             }
           }, this));
     }
@@ -819,10 +820,11 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
             (style.style || style).removeProperty(this.propName);
           }, this));
     },
-    revert: function(style) {
+    revert: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
-            Firebug.CSSModule.setProperty(style, this.propName, this.prevValue, this.prevPriority);
+            var actionNode = this.getActionNode(style, xpath);
+            Firebug.CSSModule.setProperty(actionNode, this.propName, this.prevValue, this.prevPriority);
           }, this));
     }
 });
