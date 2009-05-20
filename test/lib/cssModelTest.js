@@ -61,7 +61,7 @@ function runTest() {
     var link1 = doc.styleSheets[2], link2 = doc.styleSheets[doc.styleSheets.length - 2];
     cloneOne = CSSModel.cloneCSSObject(link1);
     
-    testRule = cloneOne.cssRules[0];
+    testRule = cloneOne.cssRules[2];
     FBTest.compare(true, testRule.equals(testRule), "clone media equal");
     FBTest.compare(CSSRule.MEDIA_RULE, testRule.type, "clone media type");
     FBTest.compare(2, testRule.media && testRule.media.length, "clone media lenth");

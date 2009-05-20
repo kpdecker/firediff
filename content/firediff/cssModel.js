@@ -204,7 +204,7 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     this.selectorText = rule.selectorText;
     this.style = new StyleDeclarationClone(rule.style);
   }
-  CSSStyleRuleClone.prototype = CSSRuleClone.prototype;
+  CSSStyleRuleClone.prototype = extend(CSSRuleClone.prototype, {});
   
   function CSSMediaRuleClone(rule) {
     CSSRuleClone.call(this, rule);
@@ -215,8 +215,11 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     insertRule: StyleSheetClone.prototype.insertRule,
     deleteRule: StyleSheetClone.prototype.deleteRule
   });
-  var CSSFontFaceRuleClone = CSSStyleRuleClone;
-  var CSSPageRuleClone = CSSStyleRuleClone;
+  function CSSFontFaceRuleClone(rule) {
+    CSSStyleRuleClone.call(this, rule);
+    this.selectorText = "@font-face";
+  }
+  CSSFontFaceRuleClone.prototype = extend(CSSRuleClone.prototype, {});
   
   function CSSImportRuleClone(rule) {
     CSSRuleClone.call(this, rule);
@@ -225,13 +228,13 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     this.media = new MediaListClone(rule.media);
     this.styleSheet = new StyleSheetClone(rule.styleSheet);
   }
-  CSSImportRuleClone.prototype = CSSRuleClone.prototype;
+  CSSImportRuleClone.prototype = extend(CSSRuleClone.prototype, {});
   
   function CSSCharsetRuleClone(rule) {
     CSSRuleClone.call(this, rule);
     this.encoding = rule.encoding;
   }
-  CSSCharsetRuleClone.prototype = CSSRuleClone.prototype;
+  CSSCharsetRuleClone.prototype = extend(CSSRuleClone.prototype, {});
   
 
   function cloneCSSObject(cssRule) {
@@ -243,8 +246,6 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
       return new CSSMediaRuleClone(cssRule);
     } else if (cssRule instanceof CSSFontFaceRule || cssRule instanceof CSSFontFaceRuleClone) {
       return new CSSFontFaceRuleClone(cssRule);
-    } else if (cssRule instanceof CSSPageRule || cssRule instanceof CSSPageRuleClone) {
-      return new CSSPageRuleClone(cssRule);
     } else if (cssRule instanceof CSSImportRule || cssRule instanceof CSSImportRuleClone) {
       return new CSSImportRuleClone(cssRule);
     } else if (cssRule instanceof CSSCharsetRule || cssRule instanceof CSSCharsetRuleClone) {
@@ -260,7 +261,6 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
   this.CSSStyleRuleClone = CSSStyleRuleClone;
   this.CSSMediaRuleClone = CSSMediaRuleClone;
   this.CSSFontFaceRuleClone = CSSFontFaceRuleClone;
-  this.CSSPageRuleClone = CSSPageRuleClone;
   this.CSSImportRuleClone = CSSImportRuleClone;
   this.CSSCharsetRuleClone = CSSCharsetRuleClone;
   this.CSSRuleClone = CSSRuleClone;

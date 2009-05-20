@@ -77,11 +77,19 @@
 }
 
 /* Customized Rules for CSS Display. All others reuse the standard CSS styles */
-.cssRuleDiff {
-    position: relative;
-    font-family: Monaco, monospace;
-    color: #000000;
+.cssRuleDiff, .cssMediaRuleDiff {
+  position: relative;
+  margin: 0;
+  padding: 1em 0 0 6px;
+  font-family: Monaco, monospace;
+  color: #000000;
 }
-.cssPropDiff {
+.cssRuleDiff:first-child, .cssMediaRuleDiff:first-child {
+    padding-top: 6px;
+ }
+.cssMediaRuleDiff .cssRuleDiff:first-child {
+    padding-top: 0px;
+ }
+.cssPropDiff, .cssMediaRuleContent {
     padding-left: 2em;
 }

@@ -496,8 +496,15 @@ var CSSChangeElement = {
     
     if (cssRule instanceof CSSStyleSheet || cssRule instanceof CSSModel.StyleSheetClone) {
       return CSSChanges.CSSList.tag;
-    } else if (cssRule instanceof CSSStyleRule || cssRule instanceof CSSModel.CSSStyleRuleClone) {
+    } else if (cssRule instanceof CSSStyleRule || cssRule instanceof CSSModel.CSSStyleRuleClone
+        || cssRule instanceof CSSFontFaceRule || cssRule instanceof CSSModel.CSSFontFaceRuleClone) {
       return CSSChanges.CSSStyleRule.tag;
+    } else if (cssRule instanceof CSSMediaRule || cssRule instanceof CSSModel.CSSMediaRuleClone) {
+      return CSSChanges.CSSMediaRule.tag;
+    } else if (cssRule instanceof CSSImportRule || cssRule instanceof CSSModel.CSSImportRuleClone) {
+      return CSSChanges.CSSImportRule.tag;
+    } else if (cssRule instanceof CSSCharsetRule || cssRule instanceof CSSModel.CSSCharsetRuleClone) {
+      return CSSChanges.CSSCharsetRule.tag;
     }
   }
 };
@@ -506,6 +513,29 @@ this.CSSChanges = {
     tag: FOR("rule", "$change|getCSSRules",
       TAG("$rule|getNodeTag", {change: "$rule"})
     )
+  }),
+  CSSImportRule: domplate(CSSChangeElement, {
+    tag: DIV({class: "cssRuleDiff firebugDiff"}, "@import &quot;$change.href&quot;;")
+  }),
+  CSSCharsetRule: domplate(CSSChangeElement, {
+    tag: DIV({class: "cssRuleDiff firebugDiff"}, "@charset &quot;$change.encoding&quot;;")
+  }),
+  CSSMediaRule: domplate(CSSChangeElement, {
+    tag: DIV({class: "cssMediaRuleDiff firebugDiff"},
+        DIV({class: "cssSelector"}, "@media $change|getMediaList {"),
+        DIV({class: "cssMediaRuleContent"},
+          FOR("rule", "$change|getCSSRules",
+              TAG("$rule|getNodeTag", {change: "$rule"}))),
+        DIV("}")
+    ),
+    getMediaList: function(change) {
+      var content = [],
+          media = change.media;
+      for (var i = 0; i < media.length; i++) {
+        content.push(media.item ? media.item(i) : media[i]);
+      }
+      return content.join(", ");
+    }
   }),
   CSSStyleRule: domplate(CSSChangeElement, {
     tag: DIV({class: "cssRuleDiff firebugDiff"},
