@@ -480,7 +480,7 @@ function isEmptyElement(element) {
 this.CSSChanged = domplate({
     tag: DIV({class: "cssRuleDiff"},
       DIV({class: "cssHead"},
-          SPAN({class: "cssSelector"}, "$change.style.parentRule.selectorText"), " {"),
+          SPAN({class: "cssSelector"}, "$change.style.selectorText"), " {"),
           TAG(propertyDefinition.tag, {change: "$change"}),
           DIV("}")
       )

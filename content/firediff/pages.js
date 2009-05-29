@@ -144,7 +144,7 @@ this.CSSSnapshot = function(change){
   Snapshot.call(this, change);
   
   // TODO : Ensure that this works with all change types
-  this.sheet = change.style.parentRule.parentStyleSheet;
+  this.sheet = change.style.parentStyleSheet;
   this.displayTree = CSSModel.cloneCSSObject(this.sheet);
   this.updateCloneToChange(
       this.displayTree,

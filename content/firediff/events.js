@@ -618,6 +618,38 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     if (updatedPath != prior.xpath) {
       return updatedPath;
     }
+  },
+  
+  apply: function(style, xpath) {
+    Firebug.DiffModule.ignoreChanges(bindFixed(
+        function() {
+          var actionNode = this.getInsertActionNode(style, xpath);
+          var identifier = Path.getIdentifier(this.xpath);
+          identifier.index--;
+          
+          if (actionNode.parent instanceof CSSStyleSheet
+              || actionNode.parent instanceof CSSMediaRule) {
+            Firebug.CSSModule.insertRule(actionNode.parent, this.clone.cssText, identifier.index);
+          } else {
+            FBTrace.sysout("CSSInsertRule.apply: actionNode", actionNode);
+            actionNode.parent.cssRules.splice(identifier.index, 0, this.clone);
+          }
+        }, this));
+  },
+  revert: function(style, xpath) {
+    Firebug.DiffModule.ignoreChanges(bindFixed(
+        function() {
+          var actionNode = this.getInsertActionNode(style, xpath);
+          var identifier = Path.getIdentifier(this.xpath);
+          identifier.index--;
+          
+          if (actionNode.parent instanceof CSSStyleSheet
+              || actionNode.parent instanceof CSSMediaRule) {
+            Firebug.CSSModule.deleteRule(actionNode.parent, identifier.index);
+          } else {
+            actionNode.parent.cssRules.splice(identifier.index, 1);
+          }
+        }, this));
   }
 });
 
@@ -661,7 +693,10 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     if (updatedPath != prior.xpath) {
       return updatedPath;
     }
-  }
+  },
+  
+  apply: CSSInsertRuleEvent.prototype.revert,
+  revert: CSSInsertRuleEvent.prototype.apply
 });
 
 function CSSPropChangeEvent(style, propName, changeSource, xpath) {
@@ -759,8 +794,8 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     apply: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
-            style = this.getActionNode(style, xpath);
-            (style.style || style).setProperty(this.propName, this.propValue, this.propPriority);
+            var actionNode = this.getActionNode(style, xpath);
+            Firebug.CSSModule.setProperty(actionNode.style, this.propName, this.propValue, this.propPriority);
           }, this));
     },
     revert: function(style, xpath) {
@@ -768,9 +803,9 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
           function() {
             var actionNode = this.getActionNode(style, xpath);
             if (this.prevValue) {
-              Firebug.CSSModule.setProperty(actionNode, this.propName, this.prevValue, this.prevPriority);
+              Firebug.CSSModule.setProperty(actionNode.style, this.propName, this.prevValue, this.prevPriority);
             } else {
-              Firebug.CSSModule.removeProperty(actionNode, this.propName);
+              Firebug.CSSModule.removeProperty(actionNode.style, this.propName);
             }
           }, this));
     }
@@ -816,15 +851,15 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     apply: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
-            style = this.getActionNode(style, xpath);
-            (style.style || style).removeProperty(this.propName);
+            var actionNode = this.getActionNode(style, xpath);
+            Firebug.CSSModule.removeProperty(actionNode.style, this.propName);
           }, this));
     },
     revert: function(style, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
           function() {
             var actionNode = this.getActionNode(style, xpath);
-            Firebug.CSSModule.setProperty(actionNode, this.propName, this.prevValue, this.prevPriority);
+            Firebug.CSSModule.setProperty(actionNode.style, this.propName, this.prevValue, this.prevPriority);
           }, this));
     }
 });
