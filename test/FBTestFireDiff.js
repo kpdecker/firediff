@@ -58,7 +58,7 @@
       var timeout;
       
       var listener = {
-        onDiffChange: function(change) {
+        onDiffChange: cleanupWrapper(function(change) {
           if (timeout) {
             clearTimeout(timeout);  timeout = undefined;
           }
@@ -71,19 +71,33 @@
           changeNum++;
           if (tests[curTest].eventCount == changeNum) {
             tests[curTest].verified = true;
-            setTimeout(executeTest, 0);
+            setCatchTimeout(executeTest, 0);
           } else if (tests[curTest].eventCount < changeNum) {
             FBTest.compare(tests[curTest].eventCount, changeNum, "Unexpected number of events");
           } else {
-            timeout = setTimeout(cancelTest, 5000);
+            timeout = setCatchTimeout(cancelTest, 5000);
           }
-        }
+        })
       };
       FBTest.FirebugWindow.Firebug.DiffModule.addListener(listener);
       function testDone() {
         FBTest.progress("Module tests done");
         FBTest.FirebugWindow.Firebug.DiffModule.removeListener(listener);
         FBTestFirebug.testDone();
+      }
+      function cleanupWrapper(exec) {
+        return function() {
+          try {
+            return exec.apply(this, arguments);
+          } catch (exc) {
+            FBTest.FirebugWindow.FBTrace.sysout("runTest FAILS "+exc, exc);
+            FBTest.ok(false, "runTest FAILS "+exc);
+            testDone();
+          }
+        };
+      }
+      function setCatchTimeout(exec, timeout) {
+        return setTimeout(cleanupWrapper(exec), timeout);
       }
       
       function cancelTest() {
@@ -96,7 +110,7 @@
         changeNum = 0;
         curTest++;
         FBTest.progress("Execute Test: " + (tests[curTest] || {name:""}).name);
-        FBTest.FirebugWindow.FBTrace.sysout("Execute Test: " + (tests[curTest] || {name:""}).name);
+        FBTest.FirebugWindow.FBTrace.sysout("Execute Test: " + (tests[curTest] || {name:""}).name, tests[curTest]);
         if (curTest < tests.length) {
           if (tests[curTest].setup) {
             setup = true;
@@ -106,14 +120,14 @@
           
           tests[curTest].execute(win);
           if (!tests[curTest].verified) {
-            timeout = setTimeout(cancelTest, 5000);
+            timeout = setCatchTimeout(cancelTest, 5000);
           }
         } else {
           testDone();
         }
       }
       
-      executeTest();
+      cleanupWrapper(executeTest)();
     }
   };
 })();
