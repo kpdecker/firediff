@@ -26,7 +26,7 @@ this.Monitor = domplate({
   getChangeTag: function(change) {
     // TODO : Consider converting these into rep objects
     if (change.changeType == "CSS") {
-      return FireDiff.domplate.CSSChanged.tag;
+      return FireDiff.domplate.CSSChanges.CSSStyleRule.tag;
     } else if (change.clone instanceof Text) {
       return FireDiff.domplate.TextChanged.tag;
     } else {
@@ -143,8 +143,7 @@ this.DOMSnapshotRep = domplate(Firebug.Rep, {
 this.CSSSnapshot = function(change){
   Snapshot.call(this, change);
   
-  // TODO : Ensure that this works with all change types
-  this.sheet = change.style.parentStyleSheet;
+  this.sheet = change.styleSheet || change.style.parentStyleSheet;
   this.displayTree = CSSModel.cloneCSSObject(this.sheet);
   this.updateCloneToChange(
       this.displayTree,

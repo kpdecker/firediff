@@ -18,6 +18,57 @@ function ArrayIterator(array) {
     return array[index];
   };
 }
+function DOMIterator(node) {
+  var curNode = node.firstChild;
+  this.next = function() {
+    var ret = curNode;
+    if (!curNode)    $break();
+    curNode = curNode.nextSibling;
+    return ret;
+  }
+}
+
+function RemovedIterator(content, removed, includeFilter) {
+  removed = removed.slice();
+  removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
+  
+  var nodeIndex = 1, removedIndex = 0,
+      lastId;
+  this.next = function() {
+    // Check for removed at the current position
+    while (true) {
+      while (removedIndex < removed.length) {
+        var curChange = removed[removedIndex];
+        lastId = lastId || FireDiff.Path.getIdentifier(curChange.xpath);
+        if (lastId.index <= nodeIndex || nodeIndex < 0) {
+          removedIndex++;   lastId = undefined;
+          if (!includeFilter || includeFilter(curChange)) {
+            return curChange;
+          }
+        } else {
+          break;
+        }
+      }
+      
+      // Read the content list
+      nodeIndex++;
+      if (content) {
+        try {
+          var ret = content.next();
+          if (ret && (!includeFilter || includeFilter(ret))) {
+            return ret;
+          }
+        } catch (err) {
+          // Assume this is StopIteration
+          content = undefined;
+        }
+      } else if (removedIndex >= removed.length) {
+        // Content and removed exhausted
+        $break();
+      }
+    }
+  };
+}
 
 // Common Domplates
 /**
@@ -234,35 +285,10 @@ var ParentChangeElement = extend(ChangeElement, {
     if (node.contentDocument)
       return [node.contentDocument.documentElement];
     
-    var removed = this.removedChanges(node).slice();
-    removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
-    
-    function pushChild(child) {
-      if (Firebug.showWhitespaceNodes || !isWhitespaceText(child)) {
-        nodes.push(child);
-      }
+    function includeChild(child) {
+      return Firebug.showWhitespaceNodes || !isWhitespaceText(child);
     }
-    
-    var nodes = [], nodeIndex = 1, removedIndex = 0;
-    for (var child = node.firstChild; child; child = child.nextSibling) {
-      while (removedIndex < removed.length) {
-        var curChange = removed[removedIndex];
-        var identifier = FireDiff.Path.getIdentifier(curChange.xpath);
-        if (identifier.index == nodeIndex) {
-          pushChild(curChange);
-          removedIndex++;
-        } else {
-          break;
-        }
-      }
-      
-      pushChild(child);
-      nodeIndex++;
-    }
-    for (; removedIndex < removed.length; removedIndex++) {
-      pushChild(removed[removedIndex]);
-    }
-    return nodes;
+    return new RemovedIterator(new DOMIterator(node), this.removedChanges(node), includeChild);
   }
 });
 
@@ -476,24 +502,16 @@ function isEmptyElement(element) {
   return !element.firstChild && !element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES];
 }
 
-
-this.CSSChanged = domplate({
-    tag: DIV({class: "cssRuleDiff"},
-      DIV({class: "cssHead"},
-          SPAN({class: "cssSelector"}, "$change.style.selectorText"), " {"),
-          TAG(propertyDefinition.tag, {change: "$change"}),
-          DIV("}")
-      )
-});
-
 var CSSChangeElement = {
   getCSSRules: function(change) {
-    return new ArrayIterator(change.cssRules);
+    var removed = change[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
+    return new RemovedIterator(new ArrayIterator(change.cssRules), removed);
   },
   
   getNodeTag: function(cssRule) {
     var CSSChanges = FireDiff.domplate.CSSChanges;
     
+    cssRule = cssRule.changeType ? cssRule.clone : cssRule;
     if (cssRule instanceof CSSStyleSheet || cssRule instanceof CSSModel.StyleSheetClone) {
       return CSSChanges.CSSList.tag;
     } else if (cssRule instanceof CSSStyleRule || cssRule instanceof CSSModel.CSSStyleRuleClone
@@ -538,17 +556,37 @@ this.CSSChanges = {
     }
   }),
   CSSStyleRule: domplate(CSSChangeElement, {
-    tag: DIV({class: "cssRuleDiff firebugDiff"},
+    tag: DIV({
+        class: "cssRuleDiff firebugDiff",
+        $removedClass: "$change|isRemoved", $addedClass: "$change|isAdded"
+      },
       DIV({class: "cssHead"},
-        SPAN({class: "cssSelector"}, "$change.selectorText"), " {"),
+        SPAN({class: "cssSelector"}, "$change|getSelectorText"), " {"),
           FOR("prop", "$change|getRemovedProps",
             TAG(propertyDefinition.tag, {change: "$prop"})),
           FOR("prop", "$change|getCurrentProps",
             TAG(propertyDefinition.tag, {change: "$prop"})),
         DIV("}")
       ),
+    getSelectorText: function(change) {
+      return change.selectorText || (change.clone || change.style).selectorText;
+    },
+    isAdded: function(change) {
+      change = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
+      return change.subType == "insertRule";
+    },
+    isRemoved: function(change) {
+      change = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
+      return change.subType == "removeRule";
+    },
     getRemovedProps: function(change) {
-      if (!change.propChanges)    return [];
+      if (!change.propChanges) {
+        if (change.subType == "removeProp") {
+          return [change];
+        } else {
+          return [];
+        }
+      }
       
       var ret = [];
       for (var i = 0; i < change.propChanges.length; i++) {
@@ -560,9 +598,15 @@ this.CSSChanges = {
       return ret;
     },
     getCurrentProps: function(change) {
+      if (change.subType == "setProp") {
+        return [change];
+      } else if (change.subType == "removeProp") {
+        return [];
+      }
+      
       var propList = {},
           i = 0, index = 0,
-          style = change.style;
+          style = (change.clone || change.style).style || change.style;
       for (i = 0; i < style.length; i++) {
         var propName = style[i],
             propValue = style.getPropertyValue(propName),
@@ -583,13 +627,12 @@ this.CSSChanges = {
       }
       return {
         next: function() {
-          if (index >= change.style.length)   $break();
-          return propList[change.style[index++]];
+          if (index >= style.length)   $break();
+          return propList[style[index++]];
         }
       }
     }
   })
-  // TODO : @media, etc domplates
 };
 
 }}).apply(FireDiff.domplate);

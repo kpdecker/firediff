@@ -571,15 +571,12 @@ function CSSRuleEvent(style, changeSource, xpath, clone) {
   this.clone = clone || CSSModel.cloneCSSObject(style);
 }
 CSSRuleEvent.prototype = extend(CSSChangeEvent.prototype, {
-  annotateTree: function(tree, root) {
-    var parent = this.getInsertActionNode(tree, root).parent;
-    var identifier = Path.getIdentifier(this.xpath);
-    
-    if (!parent && FBTrace.DBG_ERROR) {
-      FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath, tree);
-    }
-    parent.cssRules.splice(identifier.index, 0, this);
-  }
+  // This is a little bit of a hack. The rule editor does not always have a
+  // valid rep object and as a consequence we can't key on the target.
+  //
+  // Since rule insert and remove events always come from Firebug we assume
+  // that this change applies to the current editor
+  appliesTo: function(target) { return target; },
 });
 
 function CSSInsertRuleEvent(style, changeSource, xpath, clone) {
@@ -587,7 +584,19 @@ function CSSInsertRuleEvent(style, changeSource, xpath, clone) {
 }
 CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   subType: "insertRule",
+  getSummary: function() {
+    return i18n.getString("summary.CSSInsertRule");
+  },
 
+  annotateTree: function(tree, root) {
+    var parent = this.getInsertActionNode(tree, root).parent;
+    var identifier = Path.getIdentifier(this.xpath);
+    
+    if (!parent && FBTrace.DBG_ERRORS) {
+      FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath + " " + root, tree);
+    }
+    parent.cssRules[identifier.index-1][FireDiff.events.AnnotateAttrs.CHANGES] = this;
+  },
   merge: function(candidate) {
     if (candidate.subType == "removeRule"
         && this.xpath == candidate.xpath) {
@@ -631,7 +640,6 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
               || actionNode.parent instanceof CSSMediaRule) {
             Firebug.CSSModule.insertRule(actionNode.parent, this.clone.cssText, identifier.index);
           } else {
-            FBTrace.sysout("CSSInsertRule.apply: actionNode", actionNode);
             actionNode.parent.cssRules.splice(identifier.index, 0, this.clone);
           }
         }, this));
@@ -653,12 +661,26 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   }
 });
 
-function CSSRemoveRuleEvent(style, changeSource, xpath, clone) {
+function CSSRemoveRuleEvent(style, changeSource, xpath, clone, styleSheet) {
   CSSRuleEvent.call(this, style, changeSource, xpath, clone);
+  this.styleSheet = styleSheet || style.parentStyleSheet;
 }
 CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   subType: "removeRule",
+  getSummary: function() {
+    return i18n.getString("summary.CSSRemoveRule");
+  },
 
+  annotateTree: function(tree, root) {
+    var actionNode = this.getInsertActionNode(tree, root).parent;
+    var list = actionNode[REMOVE_CHANGES] || [];
+    list.push(this);
+    actionNode[REMOVE_CHANGES] = list;
+    
+    while (actionNode = actionNode.parentNode) {
+      actionNode[HAS_CHILD_CHANGES] = true;
+    }
+  },
   merge: function(candidate) {
     if (candidate.subType == "insertRule"
         && this.xpath == candidate.xpath) {
@@ -679,14 +701,15 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     } else if (this.xpath == candidate.xpath
         && (this.subType == "setProp" || this.subType == "removeProp")){
       // TODO : Handle @media nested changes?
+      // TODO : Unit test this path
       var clone = this.clone.clone();
       candidate.apply(clone, this.xpath);
       
-      return [ new CSSRemoveRuleEvents(this.style, this.changeSource, this.xpath, clone) ];
+      return [ new CSSRemoveRuleEvents(this.style, this.changeSource, this.xpath, clone, this.styleSheet) ];
     }
   },
   cloneOnXPath: function(xpath) {
-    return new CSSRemoveRuleEvent(this.style, this.changeSource, xpath, this.clone);
+    return new CSSRemoveRuleEvent(this.style, this.changeSource, xpath, this.clone, this.styleSheet);
   },
   getMergedXPath: function(prior) {
     var updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
@@ -708,7 +731,7 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
   annotateTree: function(tree, root) {
     var parent = this.getActionNode(tree, root);
     
-    if (!parent && FBTrace.DBG_ERROR) {
+    if (!parent && FBTrace.DBG_ERRORS) {
       FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath, tree);
     }
     var changes = parent.propChanges || [];

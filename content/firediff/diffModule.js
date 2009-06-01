@@ -55,7 +55,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     //////////////////////////////////////////////
     // Editor Listener
     onBeginEditing: function(panel, editor, target, value) {
-      this.onBeginFirebugChange(Firebug.getRepObject(target));
+      this.onBeginFirebugChange(target);
       this.onSaveEdit(panel, editor, target, value);
     },
     onSaveEdit: function(panel, editor, target, value, previousValue) {
@@ -69,6 +69,20 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     
     //////////////////////////////////////////////
     // CSSModule Listener
+    onCSSInsertRule: function(styleSheet, cssText, ruleIndex) {
+      styleSheet.source = "dispatch";
+      this.recordChange(
+          new Events.CSSInsertRuleEvent(
+              styleSheet.cssRules[ruleIndex],
+              Events.ChangeSource.FIREBUG_CHANGE));
+    },
+    onCSSDeleteRule: function(styleSheet, ruleIndex) {
+      styleSheet.source = "dispatch";
+      this.recordChange(
+          new Events.CSSRemoveRuleEvent(
+              styleSheet.cssRules[ruleIndex],
+              Events.ChangeSource.FIREBUG_CHANGE));
+    },
     onCSSSetProperty: function(style, propName, propValue, propPriority, prevValue, prevPriority) {
         this.recordChange(
             new Events.CSSSetPropertyEvent(
@@ -250,7 +264,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
             return;
           }
         }
-        if (!change.appliesTo(diffContext.editTarget)) {
+        if (!change.appliesTo(Firebug.getRepObject(diffContext.editTarget) || diffContext.editTarget)) {
             this.dispatchChange(change, context);
         } else {
             diffContext.editEvents.push(change);

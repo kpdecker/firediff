@@ -1,3 +1,5 @@
+const KNOWN_CSS = "#insertNode { background-color: green; }";
+
 function runTest() {
   var Events = FBTest.FirebugWindow.FireDiff.events,
     Firebug = FBTest.FirebugWindow.Firebug,
@@ -13,12 +15,13 @@ function runTest() {
   }
   function resetCSS(win) {
     var style = win.document.getElementsByTagName("style")[0];
+    var sheetOne = style.sheet;
     var rules = style.sheet.cssRules;
     for (var i = 0; i < rules.length; i++) {
       FBTrace.sysout("style " + i + " " + rules[i].cssText, rules[i]);
     }
-    style.innerHTML = "#insertNode {background-color: green;}";
-    cssPanel.updateLocation(style.sheet);
+    style.innerHTML = KNOWN_CSS;
+    cssPanel.navigate(style.sheet);
   }
   
   var tests = [
@@ -198,10 +201,85 @@ function runTest() {
         FBTest.compare(change.prevPriority, "", "Prev Priority: " + change.prevPriority);
       },
       eventCount: 2
+    },
+
+    {
+      name: "newRule",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var sheet = panelNode.getElementsByClassName("cssSheet")[0];
+        
+        cssPanel.insertRule(sheet);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "div");
+        setEditorValue(editor, "*");
+        Firebug.Editor.stopEditing();
+      },
+      verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
+        FBTest.compare(change.subType, "insertRule", "Sub type: " + change.subType);
+        FBTest.compare(change.clone.cssText, "* {  }", "CSS Text: " + change.clone.cssText);
+        FBTest.compare(change.xpath, "/style()[1]/rule()[2]", "XPath: " + change.xpath);
+      },
+      eventCount: 1
+    },
+    {
+      name: "editRule",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssSelector")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "div");
+        setEditorValue(editor, "#yellow");
+        Firebug.Editor.stopEditing();
+      },
+      verify: function(win, number, change) {
+        var rules = win.document.styleSheets[0].cssRules;
+        FBTrace.sysout("Sheet: " + rules.length, rules);
+        for (var i = 0; i < rules.length; i++) {
+          FBTrace.sysout("Sheet: rule " + i, rules[1]);
+        }
+        FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
+        FBTest.compare(change.subType, number ? "insertRule" : "removeRule", "Sub type: " + change.subType);
+        FBTest.compare(change.clone.cssText, number ? "#yellow { background-color: green; }" : KNOWN_CSS, "CSS Text: " + change.clone.cssText);
+        FBTest.compare(change.xpath, "/style()[1]/rule()[1]", "XPath: " + change.xpath);
+      },
+      eventCount: 2
+    },
+    {
+      name: "deleteRule",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssSelector")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "border-color");
+        setEditorValue(editor, "");
+        Firebug.Editor.stopEditing();
+      },
+      verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
+        FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
+        FBTest.compare(change.subType, "removeRule", "Sub type: " + change.subType);
+        FBTest.compare(change.clone.cssText, KNOWN_CSS, "CSS Text: " + change.clone.cssText);
+        FBTest.compare(change.xpath, "/style()[1]/rule()[1]", "XPath: " + change.xpath);
+      },
+      eventCount: 1
     }
-    
     // TODO : Tests
     // CSS Free edit
+    // CSS Rule edit
   ];
   
   var urlBase = FBTest.getHTTPURLBase();
