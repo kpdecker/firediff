@@ -137,6 +137,12 @@ FireDiff.Path.getParentPath = function(path) {
 FireDiff.Path.getTopPath = function(path) {
   return (path.match(/^\/?[^\/\[\]]*(?:\[(?:\d+|@.+?='.*?')\])?/) || ["", ""])[0];
 };
+FireDiff.Path.isNextSibling = function(first, second) {
+  var parent = Path.getParentPath(first);
+  var identifier = Path.getIdentifier(first);
+  
+  return (parent + "/" + identifier.tag + "[" + (parseInt(identifier.index)+1) + "]") == second;
+};
 
 FireDiff.Path.isChildOrSelf = function(parent, child) {
   return parent == child || Path.isChild(parent, child);

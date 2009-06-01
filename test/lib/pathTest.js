@@ -145,6 +145,13 @@ function runTest() {
     FBTest.compare("body", Path.getTopPath("body"), "getTopPath body");
     FBTest.compare("body[1]", Path.getTopPath("body[1]/div[@id='test/value']"), "getTopPath path selector child");
     FBTest.compare("body[@id='test/value']", Path.getTopPath("body[@id='test/value']/div[1]"), "getTopPath path selector parent");
+
+    // FireDiff.Path.getTopPath
+    FBTest.compare(true, Path.isNextSibling("/node()[1]/node()[1]", "/node()[1]/node()[2]"), "isNextSibling sibling");
+    FBTest.compare(false, Path.isNextSibling("/node()[1]/node()[2]", "/node()[1]/node()[1]"), "isNextSibling reverse sibling");
+    FBTest.compare(false, Path.isNextSibling("/node()[1]", "/node()[1]/node()[2]"), "isNextSibling parent");
+    FBTest.compare(false, Path.isNextSibling("/node()[1]/node()[2]", "/node()[1]"), "isNextSibling child");
+    FBTest.compare(false, Path.isNextSibling("/html[1]/body[1]/div[@id='test/value']", "/html[1]/body[1]/div[2]"), "isNextSibling id");
     
     // FireDiff.Path.getRelativeComponents
     FBTestFireDiff.compareObjects(
