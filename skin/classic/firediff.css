@@ -34,6 +34,14 @@
   display: inline;
 }
 
+.firebugDiff div.nodeChildBox,
+.firebugDiff div.nodeCloseLabel,
+.appDiff div.nodeChildBox,
+.appDiff div.nodeCloseLabel {
+    display: none;
+}
+
+
 .showFirebugChanges .firebugDiff .addedClass,
 .showFirebugChanges .firebugDiff.addedClass,
 .showAppChanges .appDiff .addedClass,
@@ -51,8 +59,11 @@
 
 .addedClass *,
 .removedClass * {
-  background: inherit;
   color: inherit;
+}
+
+.nodeContainerLabel {
+  cursor: pointer;
 }
 
 .diffSep {

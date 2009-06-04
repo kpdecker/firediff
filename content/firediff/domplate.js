@@ -29,7 +29,7 @@ function DOMIterator(node) {
 }
 
 function RemovedIterator(content, removed, includeFilter) {
-  removed = removed.slice();
+  removed = (removed || []).slice();
   removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
   
   var nodeIndex = 1, removedIndex = 0,
@@ -215,9 +215,9 @@ var textChanged = domplate(FirebugReps.TextNode, {
   diffText: function(change) {
     var diffChanges = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
     if (diffChanges.changeType) {
-      return diffStringObj(diffChanges.previousValue, diffChanges.value);
+      return diffStringObj(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
     } else {
-      return [{ value: change.nodeValue }];
+      return [{ value: this.getText(change.nodeValue) }];
     }
   },
   isElementAdded: function(change) {
@@ -286,46 +286,44 @@ var ParentChangeElement = extend(ChangeElement, {
       return [node.contentDocument.documentElement];
     
     function includeChild(child) {
-      return Firebug.showWhitespaceNodes || !isWhitespaceText(child);
+      return Firebug.showWhitespaceNodes || !allChanges.isWhitespaceText(child);
     }
     return new RemovedIterator(new DOMIterator(node), this.removedChanges(node), includeChild);
   }
 });
 
-this.allChanges = {
-    CompleteElement: domplate(ParentChangeElement, {
-      tag:
-        DIV({class: "nodeBox open repIgnore", _repObject: "$change",
-            $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
-            $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
-          DIV({class: "nodeLabel"},
-          SPAN({class: "nodeLabelBox repTarget"},
-            "&lt;",
-            SPAN({class: "nodeTag"}, "$change|getElementName"),
-            TAG(attributeList.tag, {change: "$change"}),
-            SPAN({class: "nodeBracket"}, "&gt;")
-          )
-        ),
-        DIV({class: "nodeChildBox"},
-          FOR("child", "$change|childIterator",
-            TAG("$child|getNodeTag", {change: "$child"})
-          )
-        ),
-        DIV({class: "nodeCloseLabel"},
-          "&lt;/", SPAN({class: "nodeTag"}, "$change|getElementName"), "&gt;"
-        )
-      ),
-      getNodeTag: function(node) {
-        return getNodeTag(node.clone || node, true, false);
+var allChanges = {
+    getNodeTag: function(node, inline) {
+      if (node instanceof Element) {
+        if (node instanceof HTMLAppletElement)
+          return allChanges.EmptyElement.tag;
+        else if (node.firebugIgnore)
+          return null;
+        else if (this.isEmptyElement(node))
+          return allChanges.EmptyElement.tag;
+        else if (!this.isSourceElement(node) && this.isPureText(node))
+          return allChanges.TextElement.tag;
+        else
+          return allChanges.Element.tag;
       }
-    }),
+      else if (node instanceof Text)
+        return inline ? allChanges.InlineTextNode.tag : allChanges.TextNode.tag;
+      else if (node instanceof CDATASection)
+        return allChanges.CDATANode.tag;
+      else if (node instanceof Comment && Firebug.showCommentNodes)
+        return allChanges.CommentNode.tag;
+      else if (node instanceof SourceText)
+        return FirebugReps.SourceText.tag;
+      else
+        return FirebugReps.Nada.tag;
+    },
 
     Element: domplate(ChangeElement, {
       tag:
         DIV({class: "nodeBox containerNodeBox repIgnore", _repObject: "$change",
           $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
           $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
-          DIV({class: "nodeLabel"},
+          DIV({class: "nodeLabel nodeContainerLabel"},
             IMG({class: "twisty"}),
             SPAN({class: "nodeLabelBox repTarget"},
               "&lt;",
@@ -364,7 +362,7 @@ this.allChanges = {
           )
         ),
         getNodeTag: function(node) {
-          return getNodeTag(node.clone || node, true, true);
+          return allChanges.getNodeTag(node.clone || node, true);
         }
     }),
 
@@ -420,87 +418,103 @@ this.allChanges = {
           "&lt;!--", TAG(textChanged, {change: "$change"}), "--&gt;"
           )
         )
-    })
-};
+    }),
 
+  isEmptyElement: function(element) {
+    return !element.firstChild && !element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES];
+  },
 
-function getNodeTag(node, expandAll, inline) {
-  var allChanges = FireDiff.domplate.allChanges;
-  
-  if (node instanceof Element) {
-    if (node instanceof HTMLAppletElement)
-      return allChanges.EmptyElement.tag;
-    else if (node.firebugIgnore)
-      return null;
-    else if (isEmptyElement(node))
-      return allChanges.EmptyElement.tag;
-    else if (isPureText(node))
-      return allChanges.TextElement.tag;
-    else
-      return expandAll ? allChanges.CompleteElement.tag : allChanges.Element.tag;
-  }
-  else if (node instanceof Text)
-    return inline ? allChanges.InlineTextNode.tag : allChanges.TextNode.tag;
-  else if (node instanceof CDATASection)
-    return allChanges.CDATANode.tag;
-  else if (node instanceof Comment && (Firebug.showCommentNodes || expandAll))
-    return allChanges.CommentNode.tag;
-  else if (node instanceof SourceText)
-    return FirebugReps.SourceText.tag;
-  else
-    return FirebugReps.Nada.tag;
-}
-
-function isContainerElement(element) {
-    var tag = element.localName.toLowerCase();
-    switch (tag) {
-        case "script":
-        case "style":
-        case "iframe":
-        case "frame":
-        case "tabbrowser":
-        case "browser":
-            return true;
-        case "link":
-            return element.getAttribute("rel") == "stylesheet";
+  isPureText: function(element) {
+    for (var child = element.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType == Node.ELEMENT_NODE) {
+        return false;
+      }
     }
-    return false;
-}
-
-function isPureText(element) {
-  for (var child = element.firstChild; child; child = child.nextSibling) {
-    if (child.nodeType == Node.ELEMENT_NODE) {
-      return false;
+    var removeChanges = element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
+    for (var i = 0; i < removeChanges.length; i++) {
+      if (removeChanges[i].clone.nodeType == Node.ELEMENT_NODE) {
+        return false;
+      }
     }
-  }
-  var removeChanges = element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
-  for (var i = 0; i < removeChanges.length; i++) {
-    if (removeChanges[i].clone.nodeType == Node.ELEMENT_NODE) {
-      return false;
-    }
-  }
-  return true;
-}
+    return true;
+  },
 
-// Duplicate of HTMLPanel.prototype isWhitespaceText
-function isWhitespaceText(node) {
+  // Duplicate of HTMLPanel.prototype isWhitespaceText
+  isWhitespaceText: function(node) {
     node = node.clone || node;
     if (node instanceof HTMLAppletElement)
-        return false;
+      return false;
     return node.nodeType == Node.TEXT_NODE && isWhitespace(node.nodeValue);
-}
+  },
 
-// Duplicate of HTMLPanel.prototype TODO: create a namespace for all of these functions so
-// they can be called outside of this file.
-function isSourceElement(element) {
+  // Duplicate of HTMLPanel.prototype TODO: create a namespace for all of these functions so
+  // they can be called outside of this file.
+  isSourceElement: function(element) {
     var tag = element.localName.toLowerCase();
     return tag == "script" || tag == "link" || tag == "style"
         || (tag == "link" && element.getAttribute("rel") == "stylesheet");
-}
+  }
+};
 
-function isEmptyElement(element) {
-  return !element.firstChild && !element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES];
+this.HtmlSnapshotView = function(tree, rootXPath, panelNode) {
+  this.tree = tree;
+  this.rootXPath = rootXPath;
+  this.panelNode = panelNode;
 }
+this.HtmlSnapshotView.prototype = {
+  childIterator: function(parent) {
+    return new RemovedIterator(
+        new DOMIterator(parent.clone || parent),
+        parent[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES],
+        this.includeChild);
+  },
+  includeChild: function(child) {
+    return Firebug.showWhitespaceNodes || !allChanges.isWhitespaceText(child);
+  },
+  
+  /* InsideOutBox View Interface */
+  getParentObject: function(child) {
+    if (child.parentNode) {
+      return child.parentNode.change || child.parentNode;
+    }
+    if (child.change) {
+      return child.change;
+    }
+    
+    if (child.xpath) {
+      var components = Path.getRelativeComponents(Path.getParentPath(child.xpath), this.rootXPath);
+      if (!components.right) {
+        var iterate = this.tree.ownerDocument.evaluate(components.left, this.tree, null, XPathResult.ANY_TYPE, null);
+        var ret = iterate.iterateNext();
+        return ret;
+      }
+    }
+  },
+  getChildObject: function(parent, index, prevSibling) {
+    if (!parent)    return;
+
+    var iter = parent._diffIter || this.childIterator(parent.clone || parent);
+    var diffCache = parent._diffCache || [];
+    // Read in more elements if the this is a cache miss
+    while (diffCache.length <= index && !parent._diffIterExhausted) {
+      try {
+        diffCache.push(iter.next());
+      } catch (err) {
+        // Assume this is StopIterator
+        parent._diffIterExhausted = true;
+      }
+    }
+    
+    parent._diffIter = iter;
+    parent._diffCache = diffCache;
+    
+    return diffCache[index];
+  },
+  createObjectBox: function(object, isRoot) {
+    var tag = allChanges.getNodeTag(object.clone || object, false);
+    return tag.replace({change: object}, this.panelNode.document);
+  }
+};
 
 var CSSChangeElement = {
   getCSSRules: function(change) {

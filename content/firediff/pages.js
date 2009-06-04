@@ -7,7 +7,8 @@ const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptab
 
 var Events = FireDiff.events,
     Path = FireDiff.Path,
-    CSSModel = FireDiff.CSSModel;
+    CSSModel = FireDiff.CSSModel,
+    DiffDomplate = FireDiff.domplate;
 
 var i18n = document.getElementById("strings_firediff");
 
@@ -26,11 +27,11 @@ this.Monitor = domplate({
   getChangeTag: function(change) {
     // TODO : Consider converting these into rep objects
     if (change.changeType == "CSS") {
-      return FireDiff.domplate.CSSChanges.CSSStyleRule.tag;
+      return DiffDomplate.CSSChanges.CSSStyleRule.tag;
     } else if (change.clone instanceof Text) {
-      return FireDiff.domplate.TextChanged.tag;
+      return DiffDomplate.TextChanged.tag;
     } else {
-      return FireDiff.domplate.ElementChanged.tag;
+      return DiffDomplate.ElementChanged.tag;
     }
   },
   getSummary: function(change) {
@@ -109,11 +110,12 @@ function Snapshot(change) {
 }
 Snapshot.prototype = {
   updateCloneToChange: function(clone, cloneXPath) {
+    this.changeNodeList = [];
     for (var i = this.revertChanges.length; i > 0; i--) {
       this.revertChanges[i-1].revert(clone, cloneXPath);
     }
     for (var i = 0; i < this.displayChanges.length; i++) {
-      this.displayChanges[i].annotateTree(clone, cloneXPath);
+      this.changeNodeList.push(this.displayChanges[i].annotateTree(clone, cloneXPath));
     }
   }
 }
@@ -122,13 +124,37 @@ this.DOMSnapshot = function(change, document){
   Snapshot.call(this, change);
   
   this.displayTree = document.documentElement.cloneNode(true);
-  this.updateCloneToChange(
-      this.displayTree,
-      Path.getElementPath(document.documentElement));
+  this.cloneXPath = Path.getElementPath(document.documentElement);
+  this.updateCloneToChange(this.displayTree, this.cloneXPath);
+  
+  this.onMouseDown = bind(this.onMouseDown, this);
 };
 this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
-    FireDiff.domplate.allChanges.CompleteElement.tag.append({change: this.displayTree}, panel.panelNode);
+    this.ioBox = new InsideOutBox(
+        new DiffDomplate.HtmlSnapshotView(this.displayTree, this.cloneXPath, panel),
+        panel.panelNode);
+    this.ioBox.openObject(this.displayTree);
+    
+    for (var i = 0; i < this.changeNodeList.length; i++) {
+      this.ioBox.openToObject(this.changeNodeList[i]);
+    }
+
+    panel.panelNode.addEventListener("mousedown", this.onMouseDown, false);
+  },
+  hide: function(panel) {
+    if (this.ioBox) {
+      this.ioBox.destroy();
+      delete this.ioBox;
+    }
+
+    panel.panelNode.removeEventListener("mousedown", this.onMouseDown, false);
+  },
+  
+  onMouseDown: function(event) {
+    if (isLeftClick(event) && getAncestorByClass(event.target, "nodeContainerLabel")) {
+      this.ioBox.expandObject(Firebug.getRepObject(event.target));
+    }
   }
 });
 this.DOMSnapshotRep = domplate(Firebug.Rep, {
@@ -151,7 +177,7 @@ this.CSSSnapshot = function(change){
 };
 this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
-    FireDiff.domplate.CSSChanges.CSSList.tag.append({change: this.displayTree}, panel.panelNode);
+    DiffDomplate.CSSChanges.CSSList.tag.append({change: this.displayTree}, panel.panelNode);
   }
 });
 this.CSSSnapshotRep = domplate(Firebug.Rep, {
