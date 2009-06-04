@@ -31,16 +31,6 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         this.monitorContext(context);
       }
     },
-    onResumeFirebug: function(context) {
-      if (this.isAlwaysEnabled()) {
-        this.monitorContext(context);
-      }
-    },
-    onSuspendFirebug: function(context) {
-      if (this.isAlwaysEnabled()) {
-        this.unmonitorContext(context);
-      }
-    },
     onPanelEnable: function(context, panelName) {
       if (panelName != this.panelName)    return;
       
@@ -250,7 +240,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     recordChange: function(change, context) {
         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.recordChange", change);
         var diffContext = this.getDiffContext(context);
-        if (diffContext.ignore)   return;
+        if (!diffContext || diffContext.ignore)   return;
         
         if (diffContext.htmlEditPath) {
           // Special case for HTML free edit. It's not pretty but it gets the
@@ -280,7 +270,8 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     },
     
     getChanges: function(context) {
-      return this.getDiffContext(context).changes;
+      var diffContext = this.getDiffContext(context);
+      return (diffContext && diffContext.changes) || [];
     },
     
     getDiffContext: function(context) {
