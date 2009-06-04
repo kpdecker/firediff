@@ -13,7 +13,6 @@ var Events = FireDiff.events,
 const CHANGES = "firebug-firediff-changes";
 const ATTR_CHANGES = "firebug-firediff-attrChanges";
 const REMOVE_CHANGES = "firebug-firediff-removeChanges";
-const HAS_CHILD_CHANGES = "firebug-firediff-childChanges";
 
 var ChangeSource = {
     APP_CHANGE: "APP_CHANGE",
@@ -126,9 +125,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       }
       actionNode[CHANGES] = this;
       
-      while (actionNode = actionNode.parentNode) {
-        actionNode[HAS_CHILD_CHANGES] = true;
-      }
+      return actionNode;
     }
 });
 
@@ -154,7 +151,6 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
           function() {
             var actionNode = this.getInsertActionNode(target, xpath);
             
-            // TODO : Should we clone or just insert target?
             actionNode.parent.insertBefore(this.clone.cloneNode(true), actionNode.sibling);
           }, this));
     },
@@ -326,9 +322,9 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       list.push(this);
       actionNode[REMOVE_CHANGES] = list;
       
-      while (actionNode = actionNode.parentNode) {
-        actionNode[HAS_CHILD_CHANGES] = true;
-      }
+      this.clone.change = this;
+      
+      return this;
     }
 });
 
@@ -478,9 +474,7 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
       list[this.attrName] = this;
       actionNode[ATTR_CHANGES] = list;
       
-      while (actionNode = actionNode.parentNode) {
-        actionNode[HAS_CHILD_CHANGES] = true;
-      }
+      return actionNode;
     }
 });
 
@@ -595,7 +589,9 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     if (!parent && FBTrace.DBG_ERRORS) {
       FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath + " " + root, tree);
     }
-    parent.cssRules[identifier.index-1][FireDiff.events.AnnotateAttrs.CHANGES] = this;
+    var rule = parent.cssRules[identifier.index-1];
+    rule[FireDiff.events.AnnotateAttrs.CHANGES] = this;
+    return rule;
   },
   merge: function(candidate) {
     if (candidate.subType == "removeRule"
@@ -677,9 +673,7 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     list.push(this);
     actionNode[REMOVE_CHANGES] = list;
     
-    while (actionNode = actionNode.parentNode) {
-      actionNode[HAS_CHILD_CHANGES] = true;
-    }
+    return actionNode;
   },
   merge: function(candidate) {
     if (candidate.subType == "insertRule"
@@ -737,6 +731,7 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
     var changes = parent.propChanges || [];
     changes.push(this);
     parent.propChanges = changes;
+    return parent;
   },
   
   merge: function(candidate) {
@@ -893,8 +888,7 @@ FireDiff.events = {
     AnnotateAttrs: {
       CHANGES: CHANGES,
       ATTR_CHANGES: ATTR_CHANGES,
-      REMOVE_CHANGES: REMOVE_CHANGES,
-      HAS_CHILD_CHANGES: HAS_CHILD_CHANGES
+      REMOVE_CHANGES: REMOVE_CHANGES
     },
     
     DOMChangeEvent: DOMChangeEvent,
