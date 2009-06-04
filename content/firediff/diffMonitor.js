@@ -117,7 +117,12 @@ DiffMonitor.prototype = extend(Panel, {
     updateSelection: function(object) {
       clearNode(this.panelNode);
       
+      if (this.lastSel && this.lastSel.hide) {
+        this.lastSel.hide(this);
+      }
+      
       object.show(this);
+      this.lastSel = object;
     },
     
     getObjectPath: function(object) {
