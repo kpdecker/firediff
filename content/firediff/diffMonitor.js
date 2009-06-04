@@ -106,9 +106,11 @@ DiffMonitor.prototype = extend(Panel, {
     },
     
     getContextMenuItems: function(object, target) {
-      return [
-          { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true }
-      ];
+      if (this.selection == Reps.Monitor) {
+        return [
+            { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true }
+        ];
+      }
     },
     
     getDefaultSelection: function(object) {
