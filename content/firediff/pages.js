@@ -126,6 +126,7 @@ this.DOMSnapshot = function(change, document){
   this.displayTree = document.documentElement.cloneNode(true);
   this.cloneXPath = Path.getElementPath(document.documentElement);
   this.updateCloneToChange(this.displayTree, this.cloneXPath);
+  this.normalizeChangeNodes();
   
   this.onMouseDown = bind(this.onMouseDown, this);
 };
@@ -139,6 +140,8 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     for (var i = 0; i < this.changeNodeList.length; i++) {
       this.ioBox.openToObject(this.changeNodeList[i]);
     }
+    this.curChange = -1;
+    this.showNext();
 
     panel.panelNode.addEventListener("mousedown", this.onMouseDown, false);
   },
@@ -151,10 +154,52 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     panel.panelNode.removeEventListener("mousedown", this.onMouseDown, false);
   },
   
+  showNext: function() {
+    this.curChange++;
+    if (this.curChange >= this.changeNodeList.length) {
+      this.curChange = 0;
+    }
+    
+    this.showCurNode();
+  },
+  showPrev: function() {
+    this.curChange--;
+    if (this.curChange > 0) {
+      this.curChange = this.changeNodeList.length - 1;
+    }
+    
+    this.showCurNode();
+  },
+  showCurNode: function() {
+    var objectBox = this.ioBox.openToObject(this.changeNodeList[this.curChange]);
+
+    scrollIntoCenterView(objectBox);
+  },
+  
   onMouseDown: function(event) {
     if (isLeftClick(event) && getAncestorByClass(event.target, "nodeContainerLabel")) {
       this.ioBox.expandObject(Firebug.getRepObject(event.target));
     }
+  },
+  
+  normalizeChangeNodes: function() {
+    // Reduce to one element per xpath
+    var pathList = {};
+    var ret = [];
+    for (var i = 0; i < this.changeNodeList.length; i++) {
+      var change = this.changeNodeList[i];
+      var path = change.xpath || (this.cloneXPath + Path.getElementPath(change));
+      
+      if (!pathList[path]) {
+        change.lookupXPath = path;
+        ret.push(change);
+        pathList[path] = change;
+      }
+    }
+    
+    ret.sort(function(a, b) { return a.lookupXPath.localeCompare(b.lookupXPath); });
+    
+    this.changeNodeList = ret;
   }
 });
 this.DOMSnapshotRep = domplate(Firebug.Rep, {

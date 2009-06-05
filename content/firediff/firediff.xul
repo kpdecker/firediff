@@ -3,7 +3,13 @@
 
 <?xml-stylesheet href="chrome://firediff/skin/firediff.css"?>
 
-<!DOCTYPE window SYSTEM "chrome://firebug/locale/firebug.dtd">
+<!DOCTYPE window [
+  <!ENTITY % firebugDTD SYSTEM "chrome://firebug/locale/firebug.dtd">
+  %firebugDTD;
+  <!ENTITY % firediffDTD SYSTEM "chrome://firediff/locale/firediff.dtd">
+  %firediffDTD;
+]>
+
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <stringbundleset id="stringbundleset">
@@ -21,6 +27,8 @@
   
   <commandset id="mainCommandSet">
     <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(FirebugContext)"/>
+    <command id="cmd_prevChange" oncommand="Firebug.DiffModule.navPrevChange(FirebugContext)"/>
+    <command id="cmd_nextChange" oncommand="Firebug.DiffModule.navNextChange(FirebugContext)"/>
   </commandset>
   
   <toolbar id="fbToolbar" align="center">
@@ -29,6 +37,11 @@
         <toolbarseparator/>
         <toolbarbutton label="&firebug.Clear;" class="toolbar-text-button"
                        tooltiptext="&firebug.ClearTooltip;" command="cmd_clearDiffMonitor"/>
+        <hbox id="fbDiffSnapshotNav" collapsed="true">
+          <toolbarseparator/>
+          <toolbarbutton label="&firediff.PrevChange;" command="cmd_prevChange" class="toolbar-text-button"/>
+          <toolbarbutton label="&firediff.NextChange;" command="cmd_nextChange" class="toolbar-text-button"/>
+        </hbox>
       </hbox>
     </hbox>
   </toolbar>

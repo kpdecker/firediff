@@ -210,6 +210,13 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       dispatch(this.fbListeners, "onClearChanges", [context || FirebugContext]);
     },
     
+    navNextChange: function(context) {
+      dispatch(this.fbListeners, "onNavNextChange", [context || FirebugContext]);
+    },
+    navPrevChange: function(context) {
+      dispatch(this.fbListeners, "onNavPrevChange", [context || FirebugContext]);
+    },
+    
     ignoreChanges: function(worker, context) {
       // If no context is available failover. This failover is mostly for testing merges.
       var diffContext = this.getDiffContext(context) || {};

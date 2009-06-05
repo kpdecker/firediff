@@ -124,6 +124,7 @@ DiffMonitor.prototype = extend(Panel, {
       }
       
       object.show(this);
+      this.showToolbarButtons("fbDiffSnapshotNav", !!object.showNext);
       this.lastSel = object;
     },
     
@@ -182,6 +183,16 @@ DiffMonitor.prototype = extend(Panel, {
       
       if (this.panelNode) {
         clearNode(this.panelNode);
+      }
+    },
+    onNavNextChange: function(context) {
+      if (this.selection.showNext) {
+        this.selection.showNext();
+      }
+    },
+    onNavPrevChange: function(context) {
+      if (this.selection.showPrev) {
+        this.selection.showPrev();
       }
     }
 });
