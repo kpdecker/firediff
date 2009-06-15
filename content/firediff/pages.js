@@ -132,6 +132,8 @@ this.DOMSnapshot = function(change, document){
 };
 this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
+    this.panel = panel;
+    
     this.ioBox = new InsideOutBox(
         new DiffDomplate.HtmlSnapshotView(this.displayTree, this.cloneXPath, panel),
         panel.panelNode);
@@ -141,7 +143,7 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
       this.ioBox.openToObject(this.changeNodeList[i]);
     }
     this.curChange = -1;
-    this.showNext();
+    panel.panelNode.scrollTop = 0;
 
     panel.panelNode.addEventListener("mousedown", this.onMouseDown, false);
   },
@@ -152,28 +154,76 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     }
 
     panel.panelNode.removeEventListener("mousedown", this.onMouseDown, false);
+    
+    delete this.panel;
+  },
+  
+  hasChanges: function(changeNode, changeSource) {
+    var change = changeNode[Events.AnnotateAttrs.CHANGES] || changeNode;
+    if (change.changeSource == changeSource) {
+      return true;
+    }
+    var changes = changeNode[Events.AnnotateAttrs.ATTR_CHANGES] || {};
+    for (var i in changes) {
+      if (changes[i].changeSource == changeSource) {
+        return true;
+      }
+    }
+  },
+  iterateChanges: function(stepper) {
+    var change = stepper(this.curChange);
+
+    for (var i = 0; i < this.changeNodeList.length+1; i++) {
+      if (change >= this.changeNodeList.length) {
+        change = 0;
+      } else if (change < 0) {
+        change = this.changeNodeList.length - 1;
+      }
+
+      // Accept the change if
+      //  - Is not whitespace only or we are displaying whitespace
+      //  - Is an app change and we are displaying app changes
+      //  - Is a firebug change and we are displaying firebug changes
+      var changeNode = this.changeNodeList[change];
+      var displayAppChange = this.panel.isDisplayAppChanges() && this.hasChanges(changeNode, Events.ChangeSource.APP_CHANGE);
+      var displayFirebugChange = this.panel.isDisplayFirebugChanges() && this.hasChanges(changeNode, Events.ChangeSource.FIREBUG_CHANGE);
+      var whitespaceTest = Firebug.showWhitespaceNodes || !DiffDomplate.DomUtil.isWhitespaceText(changeNode);
+      if ((displayAppChange || displayFirebugChange) && whitespaceTest) {
+        return change;
+      }
+      
+      change = stepper(change);
+    }
+    return -1;
   },
   
   showNext: function() {
-    this.curChange++;
-    if (this.curChange >= this.changeNodeList.length) {
-      this.curChange = 0;
-    }
+    this.curChange = this.iterateChanges(
+        function(change) { return change + 1; });
     
     this.showCurNode();
   },
   showPrev: function() {
-    this.curChange--;
-    if (this.curChange > 0) {
-      this.curChange = this.changeNodeList.length - 1;
-    }
+    this.curChange = this.iterateChanges(
+        function(change) { return change - 1; });
     
     this.showCurNode();
   },
   showCurNode: function() {
+    if (this.curChange < 0) {
+      return;
+    }
+
     var objectBox = this.ioBox.openToObject(this.changeNodeList[this.curChange]);
 
-    scrollIntoCenterView(objectBox);
+    if (objectBox) {
+      scrollIntoCenterView(objectBox);
+      var labelBox = getChildByClass(objectBox.firstChild, 'nodeLabelBox');
+      if (labelBox) {
+        setClassTimed(labelBox, "jumpHighlight", this.panel.context);
+      }
+    }
+    return objectBox;
   },
   
   onMouseDown: function(event) {

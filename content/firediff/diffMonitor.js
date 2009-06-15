@@ -169,6 +169,12 @@ DiffMonitor.prototype = extend(Panel, {
         removeClass(this.panelNode, cssName);
       }
     },
+    isDisplayAppChanges: function() {
+      return Firebug.getPref(Firebug.prefDomain, "firediff.displayAppChanges");
+    },
+    isDisplayFirebugChanges: function() {
+      return Firebug.getPref(Firebug.prefDomain, "firediff.displayFirebugChanges");
+    },
     
     onDiffChange: function(change, context) {
       if (this.context != context || !this.selection)    return;

@@ -70,6 +70,44 @@ function RemovedIterator(content, removed, includeFilter) {
   };
 }
 
+var DomUtil = {
+  isEmptyElement: function(element) {
+    return !element.firstChild && !element[Events.AnnotateAttrs.REMOVE_CHANGES];
+  },
+
+  isPureText: function(element) {
+    for (var child = element.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType == Node.ELEMENT_NODE) {
+        return false;
+      }
+    }
+    var removeChanges = element[Events.AnnotateAttrs.REMOVE_CHANGES] || [];
+    for (var i = 0; i < removeChanges.length; i++) {
+      if (removeChanges[i].clone.nodeType == Node.ELEMENT_NODE) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  // Duplicate of HTMLPanel.prototype isWhitespaceText
+  isWhitespaceText: function(node) {
+    node = node.clone || node;
+    if (node instanceof HTMLAppletElement)
+      return false;
+    return node.nodeType == Node.TEXT_NODE && isWhitespace(node.nodeValue);
+  },
+
+  // Duplicate of HTMLPanel.prototype TODO: create a namespace for all of these functions so
+  // they can be called outside of this file.
+  isSourceElement: function(element) {
+    var tag = element.localName.toLowerCase();
+    return tag == "script" || tag == "link" || tag == "style"
+        || (tag == "link" && element.getAttribute("rel") == "stylesheet");
+  }
+};
+this.DomUtil = DomUtil;
+
 // Common Domplates
 /**
  * Pretty print attribute list.
@@ -286,7 +324,7 @@ var ParentChangeElement = extend(ChangeElement, {
       return [node.contentDocument.documentElement];
     
     function includeChild(child) {
-      return Firebug.showWhitespaceNodes || !allChanges.isWhitespaceText(child);
+      return Firebug.showWhitespaceNodes || !DomUtil.isWhitespaceText(child);
     }
     return new RemovedIterator(new DOMIterator(node), this.removedChanges(node), includeChild);
   }
@@ -299,9 +337,9 @@ var allChanges = {
           return allChanges.EmptyElement.tag;
         else if (node.firebugIgnore)
           return null;
-        else if (this.isEmptyElement(node))
+        else if (DomUtil.isEmptyElement(node))
           return allChanges.EmptyElement.tag;
-        else if (!this.isSourceElement(node) && this.isPureText(node))
+        else if (!DomUtil.isSourceElement(node) && DomUtil.isPureText(node))
           return allChanges.TextElement.tag;
         else
           return allChanges.Element.tag;
@@ -418,42 +456,7 @@ var allChanges = {
           "&lt;!--", TAG(textChanged, {change: "$change"}), "--&gt;"
           )
         )
-    }),
-
-  isEmptyElement: function(element) {
-    return !element.firstChild && !element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES];
-  },
-
-  isPureText: function(element) {
-    for (var child = element.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType == Node.ELEMENT_NODE) {
-        return false;
-      }
-    }
-    var removeChanges = element[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
-    for (var i = 0; i < removeChanges.length; i++) {
-      if (removeChanges[i].clone.nodeType == Node.ELEMENT_NODE) {
-        return false;
-      }
-    }
-    return true;
-  },
-
-  // Duplicate of HTMLPanel.prototype isWhitespaceText
-  isWhitespaceText: function(node) {
-    node = node.clone || node;
-    if (node instanceof HTMLAppletElement)
-      return false;
-    return node.nodeType == Node.TEXT_NODE && isWhitespace(node.nodeValue);
-  },
-
-  // Duplicate of HTMLPanel.prototype TODO: create a namespace for all of these functions so
-  // they can be called outside of this file.
-  isSourceElement: function(element) {
-    var tag = element.localName.toLowerCase();
-    return tag == "script" || tag == "link" || tag == "style"
-        || (tag == "link" && element.getAttribute("rel") == "stylesheet");
-  }
+    })
 };
 
 this.HtmlSnapshotView = function(tree, rootXPath, panelNode) {
@@ -469,7 +472,7 @@ this.HtmlSnapshotView.prototype = {
         this.includeChild);
   },
   includeChild: function(child) {
-    return Firebug.showWhitespaceNodes || !allChanges.isWhitespaceText(child);
+    return Firebug.showWhitespaceNodes || !DomUtil.isWhitespaceText(child);
   },
   
   /* InsideOutBox View Interface */
