@@ -550,13 +550,22 @@ this.CSSChanges = {
     )
   }),
   CSSImportRule: domplate(CSSChangeElement, {
-    tag: DIV({class: "cssRuleDiff firebugDiff"}, "@import &quot;$change.href&quot;;")
+    tag: DIV({
+          class: "cssRuleDiff firebugDiff",
+          _repObject: "$change"},
+      "@import &quot;$change.href&quot;;")
   }),
   CSSCharsetRule: domplate(CSSChangeElement, {
-    tag: DIV({class: "cssRuleDiff firebugDiff"}, "@charset &quot;$change.encoding&quot;;")
+    tag: DIV({
+          class: "cssRuleDiff firebugDiff",
+          _repObject: "$change"
+        }, "@charset &quot;$change.encoding&quot;;")
   }),
   CSSMediaRule: domplate(CSSChangeElement, {
-    tag: DIV({class: "cssMediaRuleDiff firebugDiff"},
+    tag: DIV({
+          class: "cssMediaRuleDiff firebugDiff",
+          _repObject: "$change"
+        },
         DIV({class: "cssSelector"}, "@media $change|getMediaList {"),
         DIV({class: "cssMediaRuleContent"},
           FOR("rule", "$change|getCSSRules",
@@ -575,6 +584,7 @@ this.CSSChanges = {
   CSSStyleRule: domplate(CSSChangeElement, {
     tag: DIV({
         class: "cssRuleDiff firebugDiff",
+        _repObject: "$change",
         $removedClass: "$change|isRemoved", $addedClass: "$change|isAdded"
       },
       DIV({class: "cssHead"},
