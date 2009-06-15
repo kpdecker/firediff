@@ -591,6 +591,7 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     }
     var rule = parent.cssRules[identifier.index-1];
     rule[FireDiff.events.AnnotateAttrs.CHANGES] = this;
+    rule.xpath = this.xpath;
     return rule;
   },
   merge: function(candidate) {
@@ -672,6 +673,7 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     var list = actionNode[REMOVE_CHANGES] || [];
     list.push(this);
     actionNode[REMOVE_CHANGES] = list;
+    acitonNode.xpath = this.xpath;
     
     return actionNode;
   },
@@ -731,6 +733,7 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
     var changes = parent.propChanges || [];
     changes.push(this);
     parent.propChanges = changes;
+    parent.xpath = this.xpath;
     return parent;
   },
   
