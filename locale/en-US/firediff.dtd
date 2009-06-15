@@ -1,2 +1,2 @@
-<!ENTITY firediff.NextChange "Next Change">
-<!ENTITY firediff.PrevChange "Prev Change">
+<!ENTITY firediff.NextChange "&gt;">
+<!ENTITY firediff.PrevChange "&lt;">
