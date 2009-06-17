@@ -36,8 +36,6 @@ function runTest() {
         "/style()[6]/rule()[1]"
         ];
     var expectedStyles = [];
-    
-    // TODO : Look at all of the other CSS rule types that could be in use
 
     function testSheet(curStyle, expectedStylePaths) {
       FBTest.compare(

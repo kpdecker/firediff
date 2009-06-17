@@ -1,15 +1,12 @@
 The following are items that need further work:
 - Data Model:
- - Handle diffs for the Firebug free edit modes
- - Implement more complext diffing on insert and remove. I.e. expand insert and remove
+ - Handle diffs for the Firebug free edit modes (HTML free edit is complete)
+ - Implement more complex diffing on insert and remove. I.e. expand insert and remove
     combinations into distinct changes within the data rather than 2 events.
 - CSS Changes merged with editor changes due to "race" condition
 - Diff Monitor
  - Search
  - CSS Rep Links
-- All Changes Panel
- - Update to allow snapshot functionality
- - UI cleanup
 - Unified Diff Panel
 - Examine Undo/Redo functionality
 - Testing

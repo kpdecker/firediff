@@ -243,14 +243,6 @@ function runTest() {
         win.document.getElementById("div2").nextSibling,
         "getElementPath - comment",
         true);
-    /* CDATA Is a comment in the rendering mode that we are currently usin.
-     * TODO : Invalidate this test if necessary.
-    compareXPath(
-        "/html[1]/body[1]/div[3]/text()[2]",
-        win.document.getElementById("nestedDiv").nextSibling,
-        "getElementPath - CDATA/Text",
-        true);
-    */
     compareXPath(
         "/html[1]/body[1]/p[1]/text()[1]",
         win.document.getElementById("p1").firstChild,

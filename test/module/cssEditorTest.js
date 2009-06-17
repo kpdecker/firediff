@@ -279,7 +279,6 @@ function runTest() {
     }
     // TODO : Tests
     // CSS Free edit
-    // CSS Rule edit
   ];
   
   var urlBase = FBTest.getHTTPURLBase();
