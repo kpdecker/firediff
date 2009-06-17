@@ -25,7 +25,6 @@ this.Monitor = domplate({
       ),
   
   getChangeTag: function(change) {
-    // TODO : Consider converting these into rep objects
     if (change.changeType == "CSS") {
       return DiffDomplate.CSSChanges.CSSStyleRule.tag;
     } else if (change.clone instanceof Text) {
