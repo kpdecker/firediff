@@ -5,37 +5,69 @@ function runTest() {
     var Path = FBTest.FirebugWindow.FireDiff.Path,
         FBTrace = FBTest.FirebugWindow.FBTrace;
     
-    var expectedStylePaths = [
-        "/style()[1]",
-        "/style()[1]/rule()[1]",
-        "/style()[1]/rule()[2]",
-        "/style()[1]/rule()[3]",
-        "/style()[@id='cssId']",
-        "/style()[@id='cssId']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link1.css']",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[4]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[4]/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link1.css']/rule()[5]",
-        "/style()[@href='" + urlBase + "lib/link2.css']",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/import.css']",
-        "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
-        "/style()[@href='" + urlBase + "lib/link2.css']",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/import.css']",
-        "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
-        "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
-        "/style()[6]",
-        "/style()[6]/rule()[1]"
-        ];
-    var expectedStyles = [];
+    var expectedStylePaths, expectedStyles = [];
+    if (FBTestFireDiff.isFirefox30()) {
+      expectedStylePaths = [
+          "/style()[1]",
+          "/style()[1]/rule()[1]",
+          "/style()[1]/rule()[2]",
+          "/style()[1]/rule()[3]",
+          "/style()[@id='cssId']",
+          "/style()[@id='cssId']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[4]",
+          "/style()[@href='" + urlBase + "lib/link2.css']",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/import.css']",
+          "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
+          "/style()[@href='" + urlBase + "lib/link2.css']",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/import.css']",
+          "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
+          "/style()[6]",
+          "/style()[6]/rule()[1]"
+          ];
+    } else {
+      expectedStylePaths = [
+          "/style()[1]",
+          "/style()[1]/rule()[1]",
+          "/style()[1]/rule()[2]",
+          "/style()[1]/rule()[3]",
+          "/style()[@id='cssId']",
+          "/style()[@id='cssId']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[3]/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[4]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[4]/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link1.css']/rule()[5]",
+          "/style()[@href='" + urlBase + "lib/link2.css']",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/import.css']",
+          "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
+          "/style()[@href='" + urlBase + "lib/link2.css']",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/import.css']",
+          "/style()[@href='" + urlBase + "lib/import.css']/rule()[1]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[2]",
+          "/style()[@href='" + urlBase + "lib/link2.css']/rule()[3]",
+          "/style()[6]",
+          "/style()[6]/rule()[1]"
+          ];
+    }
 
     function testSheet(curStyle, expectedStylePaths) {
       FBTest.compare(

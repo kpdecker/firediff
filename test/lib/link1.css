@@ -1,4 +1,6 @@
 @charset "ISO-8859-1";
+
+/* Not supported by Firefox 3.0 */
 @font-face {
   font-family: "Robson Celtic";
   src: url("http://site/fonts/rob-celt");
@@ -9,6 +11,7 @@ Not supported by firefox
 @page { size: 8.5in 11in; margin: 2cm }
 */
 
+/* Not supported by firefox 3.0 */
 @media tv, print {
   #div2 {
     overflow: hidden;
