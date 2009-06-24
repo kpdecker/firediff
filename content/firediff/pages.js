@@ -173,14 +173,14 @@ Snapshot.prototype = {
       var change = this.changeNodeList[i];
       var path = change.xpath || (this.cloneXPath + Path.getElementPath(change));
       
-      if (!pathList[path]) {
+      if (!change.normalized) {
         change.lookupXPath = path;
+        change.normalized = true;
         ret.push(change);
-        pathList[path] = change;
       }
     }
     
-    ret.sort(function(a, b) { return a.lookupXPath.localeCompare(b.lookupXPath); });
+    ret.sort(function(a, b) { return Path.compareXPaths(a.lookupXPath, b.lookupXPath); });
 
     this.changeNodeList = ret;
   }
@@ -204,6 +204,7 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
         panel.panelNode);
     this.ioBox.openObject(this.displayTree);
     
+    if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DOMSnapshot.changeNodeList", this.changeNodeList);
     for (var i = 0; i < this.changeNodeList.length; i++) {
       this.ioBox.openToObject(this.changeNodeList[i]);
     }
@@ -248,10 +249,18 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     }
   },
   getCurNode: function() {
-    var objectBox = this.ioBox.openToObject(this.changeNodeList[this.curChange]);
+    var change = this.changeNodeList[this.curChange]
+    var objectBox = this.ioBox.openToObject(change);
 
     if (objectBox) {
-      return getChildByClass(objectBox.firstChild, 'nodeLabelBox');
+      // For dom removed and events that register themselves as the elements
+      // sole change, highlight the entire element, otherwise
+      // highlight the label only (this should only be the attr case)
+      if (change.subType == "dom_removed" || change[FireDiff.events.AnnotateAttrs.CHANGES]) {
+        return objectBox;
+      } else {
+        return getChildByClass(objectBox.firstChild, 'nodeLabelBox') || objectBox;
+      }
     }
   },
   

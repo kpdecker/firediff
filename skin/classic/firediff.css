@@ -57,6 +57,28 @@
   color: black;
 }
 
+/* Ugh: There has to be a better way... */
+.showFirebugChanges .jumpHighlight.firebugDiff .addedClass,
+.showFirebugChanges .jumpHighlight.firebugDiff.addedClass,
+.showFirebugChanges .jumpHighlight .firebugDiff .addedClass,
+.showFirebugChanges .jumpHighlight .firebugDiff.addedClass,
+.showAppChanges .jumpHighlight.appDiff .addedClass,
+.showAppChanges .jumpHighlight.appDiff.addedClass,
+.showAppChanges .jumpHighlight .appDiff .addedClass,
+.showAppChanges .jumpHighlight .appDiff.addedClass {
+  background: #66FF66;
+}
+.showFirebugChanges .jumpHighlight.firebugDiff .removedClass,
+.showFirebugChanges .jumpHighlight.firebugDiff.removedClass,
+.showFirebugChanges .jumpHighlight .firebugDiff .removedClass,
+.showFirebugChanges .jumpHighlight .firebugDiff.removedClass,
+.showAppChanges .jumpHighlight.appDiff .removedClass,
+.showAppChanges .jumpHighlight.appDiff.removedClass,
+.showAppChanges .jumpHighlight .appDiff .removedClass,
+.showAppChanges .jumpHighlight .appDiff.removedClass {
+  background: salmon;
+}
+
 .addedClass *,
 .removedClass * {
   color: inherit;
@@ -103,4 +125,10 @@
  }
 .cssPropDiff, .cssMediaRuleContent {
     padding-left: 2em;
+}
+
+.nodeBox.textNodeBox.open > .nodeChildBox {
+  display: inline;
+  margin-left: 0px;
+  padding-left: 0px;
 }

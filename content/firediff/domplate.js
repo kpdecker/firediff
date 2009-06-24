@@ -30,7 +30,7 @@ function DOMIterator(node) {
 
 function RemovedIterator(content, removed, includeFilter) {
   removed = (removed || []).slice();
-  removed.sort(function(a, b) { return a.xpath.localeCompare(b.xpath); });
+  removed.sort(function(a, b) { return Path.compareXPaths(a.xpath, b.xpath); });
   
   var nodeIndex = 1, removedIndex = 0,
       lastId;
@@ -320,6 +320,7 @@ var ChangeElement = extend(FirebugReps.Element, {
 
 var ParentChangeElement = extend(ChangeElement, {
   childIterator: function(node) {
+    node = node.clone || node;
     if (node.contentDocument)
       return [node.contentDocument.documentElement];
     
@@ -381,22 +382,23 @@ var allChanges = {
 
     TextElement: domplate(ParentChangeElement, {
       tag:
-        DIV({class: "nodeBox textNodeBox repIgnore", _repObject: "$change",
+        DIV({class: "nodeBox textNodeBox open repIgnore", _repObject: "$change",
             $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
             $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
-          DIV({class: "nodeLabel"},
+          SPAN({class: "nodeLabel"},
             SPAN({class: "nodeLabelBox repTarget"},
               "&lt;",
               SPAN({class: "nodeTag"}, "$change|getElementName"),
               TAG(attributeList.tag, {change: "$change"}),
-              SPAN({class: "nodeBracket"}, "&gt;"),
-              FOR("child", "$change|childIterator",
-                  TAG("$child|getNodeTag", {change: "$child"})
-              ),
-              "&lt;/",
-              SPAN({class: "nodeTag"}, "$change|getElementName"),
-              "&gt;"
-            )
+              SPAN({class: "nodeBracket"}, "&gt;"))),
+          SPAN({class: "nodeChildBox"},
+            FOR("child", "$change|childIterator",
+              TAG("$child|getNodeTag", {change: "$child"})
+            )),
+          SPAN(
+            "&lt;/",
+            SPAN({class: "nodeTag"}, "$change|getElementName"),
+            "&gt;"
           )
         ),
         getNodeTag: function(node) {
