@@ -291,6 +291,12 @@ function runTest() {
         win.document.getElementById("p1").lastChild,
         "getElementPath - p1 - text2");
 
+    FBTest.compare(-1, Path.compareXPaths("/", "/node()[1]"), "Child path");
+    FBTest.compare(0, Path.compareXPaths("/node()[1]", "/node()[1]"), "Identity");
+    FBTest.compare(1, Path.compareXPaths("/node()[1]", "/"), "Parent path path");
+    FBTest.compare(-1, Path.compareXPaths("/node()[6]", "/node()[11]"), "Numeric sort");
+    FBTest.compare(1, Path.compareXPaths("/node()[11]", "/node()[6]"), "Numeric sort");
+    
     FBTestFirebug.testDone();
   });
   } catch (err) { FBTrace.sysout(err, err); }

@@ -170,6 +170,31 @@ FireDiff.Path.getRelativeComponents = function(path1, path2) {
   };
 };
 
+FireDiff.Path.compareXPaths = function(path1, path2) {
+  var components = Path.getRelativeComponents(path1, path2);
+  var leftTop = Path.getIdentifier("/" + Path.getTopPath(components.left));
+  var rightTop = Path.getIdentifier("/" + Path.getTopPath(components.right));
+  if (!leftTop) {
+    return rightTop ? -1 : 0;
+  }
+  if (!rightTop) {
+    return 1;
+  }
+  
+  var tagCompare = leftTop.tag.localeCompare(rightTop.tag);
+  if (tagCompare) {
+    return tagCompare;
+  }
+  
+  if (leftTop.index < rightTop.index) {
+    return -1;
+  } else if (leftTop.index == rightTop.index) {
+    return 0;
+  } else {
+    return 1;
+  }
+};
+
 FireDiff.Path.getElementPath = function(element, useTagNames) {
   var nameLookup = [];
   nameLookup[Node.COMMENT_NODE] = "comment()";
@@ -177,7 +202,7 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
   nameLookup[Node.PROCESSING_INSTRUCTION_NODE] = "processing-instruction()";
 
   var paths = [];
-  for (; element && element.nodeType != Node.DOCUMENT_NODE; element = element.parentNode) {
+  for (; element && element.nodeType != Node.DOCUMENT_NODE && element.parentNode; element = element.parentNode) {
     var tagName = element.localName || nameLookup[element.nodeType];
     var index = 0;
     for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling) {
