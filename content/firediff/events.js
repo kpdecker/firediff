@@ -676,7 +676,7 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     // TODO : Verify this is UTed
     actionNode.xpath = this.xpath;
     
-    return actionNode;
+    return this;
   },
   merge: function(candidate) {
     if (candidate.subType == "insertRule"
