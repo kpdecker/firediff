@@ -39,6 +39,8 @@ ChangeEvent.prototype = {
     apply: function() {},
     revert: function() {},
     
+    getMergedXPath: function(prior) {},
+    
     getXpath: function(target) {},
     xpathLookup: function(xpath, root) {},
     getActionNode: function(target, xpath) {
@@ -115,7 +117,6 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     },
     
     /* Merge Helper Routines */
-    getMergedXPath: function(prior) {},
     overridesChange: function(prior) {},
     
     annotateTree: function(tree, root) {
@@ -555,7 +556,7 @@ CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
       return target && Path.getTopPath(target.xpath) == Path.getTopPath(this.xpath);
     },
     getSnapshotRep: function(context) {
-      return new Reps.CSSSnapshot(this);
+      return new Reps.CSSSnapshot(this, context);
     }
 });
 
@@ -598,15 +599,14 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     if (candidate.subType == "removeRule"
         && this.xpath == candidate.xpath) {
       return this.clone.equals(candidate.clone) ? [] : undefined;
-    } else if (candidate.subType == "insertRule"
-        || candidate.subType == "removeRule") {
-      var updateXpath = candidate.getMergedXPath(this);
-      if (updateXpath) {
-        return [
-            this.cloneOnXPath(updateXpath),
-            candidate
-          ];
-      }
+    }
+    
+    var updateXpath = candidate.getMergedXPath(this);
+    if (updateXpath) {
+      return [
+          this.cloneOnXPath(updateXpath),
+          candidate
+        ];
     } else if (Path.isChildOrSelf(this.xpath, candidate.xpath)
         && (candidate.subType == "setProp" || candidate.subType == "removeProp")){
       // TODO : Handle @media nested changes?
@@ -673,7 +673,8 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     var list = actionNode[REMOVE_CHANGES] || [];
     list.push(this);
     actionNode[REMOVE_CHANGES] = list;
-    acitonNode.xpath = this.xpath;
+    // TODO : Verify this is UTed
+    actionNode.xpath = this.xpath;
     
     return actionNode;
   },
@@ -685,15 +686,14 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
       } else {
         return [this, candidate];
       }
-    } else if (candidate.subType == "insertRule"
-        || candidate.subType == "removeRule") {
-      var updateXpath = candidate.getMergedXPath(this);
-      if (updateXpath) {
-        return [
-            this.cloneOnXPath(updateXpath),
-            candidate
-          ];
-      }
+    }
+    
+    var updateXpath = candidate.getMergedXPath(this);
+    if (updateXpath) {
+      return [
+          this.cloneOnXPath(updateXpath),
+          candidate
+        ];
     } else if (this.xpath == candidate.xpath
         && (this.subType == "setProp" || this.subType == "removeProp")){
       // TODO : Handle @media nested changes?
@@ -740,16 +740,15 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
   merge: function(candidate) {
     if (candidate.subType == "removeRule"
         && this.xpath == candidate.xpath) {
-      return [candidate];
-    } else if (candidate.subType == "insertRule"
-        || candidate.subType == "removeRule") {
-      var updateXpath = candidate.getMergedXPath(this);
-      if (updateXpath) {
-        return [
-            this.cloneOnXPath(updateXpath),
-            candidate
-          ];
-      }
+      return [undefined, candidate];
+    }
+    
+    var updateXpath = candidate.getMergedXPath(this);
+    if (updateXpath) {
+      return [
+          this.cloneOnXPath(updateXpath),
+          candidate
+        ];
     }
       if (this.changeType != candidate.changeType
               || this.xpath != candidate.xpath

@@ -110,8 +110,15 @@ function Snapshot(change) {
 Snapshot.prototype = {
   updateCloneToChange: function(clone, cloneXPath) {
     this.changeNodeList = [];
+    if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Revert changes", this.revertChanges);
+    
     for (var i = this.revertChanges.length; i > 0; i--) {
-      this.revertChanges[i-1].revert(clone, cloneXPath);
+      try {
+        this.revertChanges[i-1].revert(clone, cloneXPath);
+      } catch (err) {
+        FBTrace.sysout("Snapshot.updateCloneToChane: revert " + i + " " + err, this.revertChanges[i-1]);
+        throw err;
+      }
     }
     for (var i = 0; i < this.displayChanges.length; i++) {
       this.changeNodeList.push(this.displayChanges[i].annotateTree(clone, cloneXPath));
@@ -279,14 +286,13 @@ this.DOMSnapshotRep = domplate(Firebug.Rep, {
   }
 });
 
-this.CSSSnapshot = function(change){
+this.CSSSnapshot = function(change, context){
   Snapshot.call(this, change);
-  
-  this.sheet = change.styleSheet || change.style.parentStyleSheet;
+
+  var rootPath = Path.getTopPath(change.xpath);
+  this.sheet = Path.evaluateStylePath(rootPath, context.window.document);
   this.displayTree = CSSModel.cloneCSSObject(this.sheet);
-  this.updateCloneToChange(
-      this.displayTree,
-      Path.getStylePath(this.sheet));
+  this.updateCloneToChange(this.displayTree, rootPath);
 };
 this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
