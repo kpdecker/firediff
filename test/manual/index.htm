@@ -4,9 +4,40 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Firediff Test</title>
     <style type="text/css">
-        #attrModified {
-            background-color: red;
-        }
+      #attrModified {
+        background-color: red;
+      }
+      
+      #filler1 {
+        display: block;
+      }
+      #filler2 {
+        display: block;
+      }
+      #filler3 {
+        display: block;
+      }
+      #filler4 {
+        display: block;
+      }
+      #filler5 {
+        display: block;
+      }
+      #filler6 {
+        display: block;
+      }
+      #filler7 {
+        display: block;
+      }
+      
+      div.test {
+        background-color: yellow;
+      }
+    </style>
+    <style type="text/css">
+      p.noSnapshot {
+        display: block;
+      }
     </style>
 </head>
 <body>
@@ -155,7 +186,7 @@
                         <ol>
                             <li>In HTML panel, edit element with ID "textModified".</li>
                             <li>Change the text content.</li>
-                            <li>Add an additional &gt;p&lt;edit&gt;/p&lt; element to the end of the editor.</li>
+                            <li>Add an additional &lt;p&gt;edit&lt;/p&gt; element to the end of the editor.</li>
                         </ol>
                     </td>
                     <td>
@@ -189,7 +220,7 @@
                     <td>
                         <ol>
                             <li>In CSS panel, edit background-color property on #attrModified class.</li>
-                            <li>Value: green</li>
+                            <li>Value: green !important</li>
                         </ol>
                     </td>
                     <td>
@@ -240,7 +271,184 @@
                         </ol>
                     </td>
                 </tr>
+                <tr>
+                    <th>11</th>
+                    <td>Create CSS Rule</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, create a new rule with selector "*"</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Set Rule</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>12</th>
+                    <td>Edit CSS rule selector</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, Edit the selector for the #attrModified rule, setting it to "#yellow"</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Remove Rule</li>
+                            <li>CSS Set Rule</li>
+                        </ol>
+                    </td>
+                </tr>
+                <tr>
+                    <th>13</th>
+                    <td>Delete CSS Rule</td>
+                    <td>
+                        <ol>
+                            <li>In CSS panel, set the selector for an existing rule to blank</li>
+                        </ol>
+                    </td>
+                    <td>
+                        <ol>
+                            <li>CSS Remove Rule</li>
+                        </ol>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </p>
+    
+    <h3>Snapshot Changes</h3>
+    <p>
+      The following tests should be run after the tests above have been run.
+      In all cases change navigation should be verified.
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Test</th>
+                <th>Name</th>
+                <th>Steps</th>
+                <th>Expected Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>1</th>
+                <td>DOM Snapshot on id=&quot;insertNode&quot; align attr changed</td>
+                <td>
+                    <ol>
+                        <li>Show snapshot on the id=&quot;insertNode&quot; align attr changed event</li>
+                    </ol>
+                </td>
+                <td>
+                    Show all changes:
+                    <ol>
+                        <li>insertNode align=right</li>
+                        <li>insertNode child insert change</li>
+                        <li>insertNode_innerHTML child insert change</li>
+                        <li>textModified character data change</li>
+                        <li>removeNode_innerHtml removed change</li>
+                        <li>removeNode_innerHtml text removed change (2 times, only if show whitespace is enabled)</li>
+                        <li>removeNode removed change</li>
+                    </ol>
+                    
+                    Show app changes only:
+                    <ol>
+                        <li>insertNode child insert change</li>
+                        <li>insertNode_innerHTML child insert change</li>
+                        <li>textModified character data change</li>
+                        <li>removeNode_innerHtml removed change</li>
+                        <li>removeNode_innerHtml text removed change (2 times, only if show whitespace is enabled)</li>
+                        <li>removeNode removed change</li>
+                    </ol>
+                    
+                    Show firebug changes only:
+                    <ol>
+                        <li>insertNode align=right</li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th>2</th>
+                <td>DOM Snapshot on id=&quot;removeNode&quot; removed event</td>
+                <td>
+                    <ol>
+                        <li>Show snapshot on the id=&quot;removeNode&quot; removed event</li>
+                    </ol>
+                </td>
+                <td>
+                    Show all changes:
+                    <ol>
+                        <li>insertNode child insert change</li>
+                        <li>insertNode_innerHTML child insert change</li>
+                        <li>textModified character data change</li>
+                        <li>removeNode_innerHtml removed change</li>
+                        <li>removeNode_innerHtml text removed change (2 times, only if show whitespace is enabled)</li>
+                        <li>removeNode removed change</li>
+                    </ol>
+                    
+                    Show app changes only:
+                    <ol>
+                        <li>insertNode child insert change</li>
+                        <li>insertNode_innerHTML child insert change</li>
+                        <li>textModified character data change</li>
+                        <li>removeNode_innerHtml removed change</li>
+                        <li>removeNode_innerHtml text removed change (2 times, only if show whitespace is enabled)</li>
+                    </ol>
+                    
+                    Show firebug changes only:
+                    <ol>
+                        <li>removeNode removed change</li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th>3</th>
+                <td>CSS Snapshot on the background-color set event</td>
+                <td>
+                    <ol>
+                        <li>Show snapshot for the set background-color event (On the #attrModified rule).</li>
+                    </ol>
+                </td>
+                <td>
+<pre>
+  #attrModified {
+    float: left;                          (Set)
+  }
+  div.test {
+    background-color: green !important;   (Set)
+  }
+</pre>
+                </td>
+            </tr>
+            <tr>
+                <th>4</th>
+                <td>CSS Snapshot on the remove #filler1 rule</td>
+                <td>
+                    <ol>
+                        <li>Show snapshot for the remove #filler1 rule event.</li>
+                    </ol>
+                </td>
+                <td>
+<pre>
+  #attrModified {                               (Remove rule)
+    background-color: red;
+  }
+  #yellow {                                     (Create rule)
+    float: left;
+  }
+  #filler1 {                                    (Remove rule)
+    display: block;
+  }
+  div.test {
+    background-color: green !important          (Set property)
+  }
+  * { }                                         (Create rule)
+</pre>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
 </body>
