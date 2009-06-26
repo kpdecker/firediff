@@ -248,19 +248,24 @@ FireDiff.Path.getStylePath = function(style) {
 
 FireDiff.Path.evaluateStylePath = function(path, document) {
   var parser = /\/?(.*?)\[(.*?)\]/g;
-  var component;
-  var components = [];
-  var current = document;
-  while (current && (component = parser.exec(path))) {
-    components.push(component);
-    
+  var component, current;
+  
+  // The regex appears to maintain state (due to an optimizer?) meaning that
+  // any situation where the entire string is not processed, such as an error
+  // case, could cause future calls to fail.
+  parser.lastIndex = 0;
+  while (component = parser.exec(path)) {
     var lookup = styleLookups[component[1]];
     if (!lookup) {
       return undefined;
     }
     
-    current = lookup(current, component[2]);
+    current = lookup(current || document, component[2]);
+    if (!current) {
+      return undefined;
+    }
   }
+  
   return current;
 };
 
