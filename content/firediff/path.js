@@ -202,7 +202,7 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
   nameLookup[Node.PROCESSING_INSTRUCTION_NODE] = "processing-instruction()";
 
   var paths = [];
-  for (; element && element.nodeType != Node.DOCUMENT_NODE && element.parentNode; element = element.parentNode) {
+  for (; element && element.nodeType != Node.DOCUMENT_NODE; element = element.parentNode) {
     var tagName = element.localName || nameLookup[element.nodeType];
     var index = 0;
     for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling) {
