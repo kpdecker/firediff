@@ -221,7 +221,7 @@ function runTest() {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
         FBTest.compare(change.changeType, "CSS", "Change type: " + change.changeType);
         FBTest.compare(change.subType, "insertRule", "Sub type: " + change.subType);
-        FBTest.compare(change.clone.cssText, "* {  }", "CSS Text: " + change.clone.cssText);
+        FBTest.compare(change.clone.cssText, "* { }", "CSS Text: " + change.clone.cssText);
         FBTest.compare(change.xpath, "/style()[1]/rule()[2]", "XPath: " + change.xpath);
       },
       eventCount: 1
@@ -284,11 +284,14 @@ function runTest() {
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
     FBTestFirebug.openFirebug();
-    
-    FBTestFirebug.selectPanel("stylesheet");
-    cssPanel = FBTestFirebug.getSelectedPanel();
-    cssPanel.select();
-    
-    FBTestFireDiff.executeModuleTests(tests, win);
+
+    FBTestFireDiff.enableDiffPanel(
+        function() {
+          FBTestFirebug.selectPanel("stylesheet");
+          cssPanel = FBTestFirebug.getSelectedPanel();
+          cssPanel.select();
+          
+          FBTestFireDiff.executeModuleTests(tests, win);
+        });
   });
 }

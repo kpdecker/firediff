@@ -113,6 +113,9 @@ function runTest() {
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
     FBTestFirebug.openFirebug();
-    FBTestFireDiff.executeModuleTests(tests, win);
+    FBTestFireDiff.enableDiffPanel(
+        function() {
+          FBTestFireDiff.executeModuleTests(tests, win);
+        });
   });
 }

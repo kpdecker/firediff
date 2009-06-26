@@ -426,10 +426,13 @@ function runTest() {
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
     FBTestFirebug.openFirebug();
-    
-    FBTestFirebug.selectPanel("html");
-    htmlPanel = FBTestFirebug.getSelectedPanel();
-    
-    FBTestFireDiff.executeModuleTests(tests, win);
+
+    FBTestFireDiff.enableDiffPanel(
+        function() {
+          FBTestFirebug.selectPanel("html");
+          htmlPanel = FBTestFirebug.getSelectedPanel();
+
+          FBTestFireDiff.executeModuleTests(tests, win);
+        });
   });
 }

@@ -3,6 +3,14 @@
     isFirefox30: function() {
       return navigator.userAgent.indexOf("Firefox/3.0") >= 0;
     },
+
+    enableDiffPanel: function(callback) {
+      FBTestFirebug.updateModelState(FW.Firebug.DiffModule, callback, true);
+    },
+    disableDiffPanel: function(callback) {
+      FBTestFirebug.updateModelState(FW.Firebug.DiffModule, callback, false);
+    },
+
     compareChangeList: function(expected, actual, msg) {
       FBTest.FirebugWindow.FBTrace.sysout(msg);
       FBTest.compare(expected.length, actual.length, msg + " length");
