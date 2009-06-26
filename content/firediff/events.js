@@ -637,7 +637,7 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
               || actionNode.parent instanceof CSSMediaRule) {
             Firebug.CSSModule.insertRule(actionNode.parent, this.clone.cssText, identifier.index);
           } else {
-            actionNode.parent.cssRules.splice(identifier.index, 0, this.clone);
+            actionNode.parent.cssRules.splice(identifier.index, 0, CSSModel.cloneCSSObject(this.clone));
           }
         }, this));
   },
@@ -852,6 +852,11 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
       if (this.subType == candidate.subType) {
         return [this];
       } else if (candidate.subType == "setProp") {
+        if (this.prevValue == candidate.propValue
+            && this.prevProperty == candidate.propProperty) {
+          return [];
+        }
+
         return [
                 new CSSSetPropertyEvent(
                         this.style, this.propName,
