@@ -95,6 +95,8 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
         this.setProperty(m[1], m[2], m[3]);
       }
     }
+    
+    this.__defineGetter__("cssText", this.generateCSSText);
   }
   StyleDeclarationClone.prototype = extend(CloneObject.prototype, {
     push: Array.prototype.push,
@@ -120,12 +122,13 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
       if (this.getPropIndex(propertyName) < 0) {
         this.push(propertyName);
       }
-      this.cssText = this.generateCSSText();
     },
     removeProperty: function(propertyName) {
-      this.splice(this.getPropIndex(propertyName), 1);
-      delete this.properties[propertyName];
-      this.cssText = this.generateCSSText();
+      var propIndex = this.getPropIndex(propertyName);
+      if (propIndex >= 0) {
+        this.splice(propIndex, 1);
+        delete this.properties[propertyName];
+      }
     },
     equals: function(test) {
       return CloneObject.prototype.equals.call(this.properties, test.properties);
@@ -143,7 +146,7 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
           out.push(" ");
           out.push(priority);
         }
-        out.push(";\n");
+        out.push("; ");
       }
       return out.join("");
     },
@@ -203,6 +206,8 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
     CSSRuleClone.call(this, rule);
     this.selectorText = rule.selectorText;
     this.style = new StyleDeclarationClone(rule.style);
+
+    this.__defineGetter__("cssText", function() { return this.selectorText + " { " + this.style.cssText + "}" });
   }
   CSSStyleRuleClone.prototype = extend(CSSRuleClone.prototype, {});
   
