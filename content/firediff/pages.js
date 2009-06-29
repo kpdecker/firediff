@@ -176,6 +176,8 @@ Snapshot.prototype = {
     // Reduce to one element per xpath
     var pathList = {};
     var ret = [];
+    if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Snapshot.normalizeChangeNodes prior", this.changeNodeList);
+    
     for (var i = 0; i < this.changeNodeList.length; i++) {
       var change = this.changeNodeList[i];
       var path = change.xpath || (this.cloneXPath + Path.getElementPath(change));
@@ -189,7 +191,15 @@ Snapshot.prototype = {
     
     ret.sort(function(a, b) { return Path.compareXPaths(a.lookupXPath, b.lookupXPath); });
 
+    // Since we are operating on a shared object we need to revert our tracking
+    // var for future operations.
+    for (var i = 0; i < this.changeNodeList.length; i++) {
+      var change = this.changeNodeList[i];
+      change.normalized = undefined;
+    }
+
     this.changeNodeList = ret;
+    if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Snapshot.normalizeChangeNodes post", this.changeNodeList);
   }
 };
 
@@ -211,7 +221,6 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
         panel.panelNode);
     this.ioBox.openObject(this.displayTree);
     
-    if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DOMSnapshot.changeNodeList", this.changeNodeList);
     for (var i = 0; i < this.changeNodeList.length; i++) {
       this.ioBox.openToObject(this.changeNodeList[i]);
     }
