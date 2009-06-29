@@ -62,7 +62,7 @@
       }
     },
     
-    executeModuleTests: function(tests, win) {
+    executeModuleTests: function(tests, win, finalizer) {
       var running = true, setup = false;
       var curTest = -1;
       var changeNum = 0;
@@ -91,10 +91,14 @@
         })
       };
       FBTest.FirebugWindow.Firebug.DiffModule.addListener(listener);
-      function testDone() {
+      function testDone(err) {
         FBTest.progress("Module tests done");
         FBTest.FirebugWindow.Firebug.DiffModule.removeListener(listener);
-        FBTestFirebug.testDone();
+        if (finalizer && !err) {
+          finalizer();
+        } else {
+          FBTestFirebug.testDone();
+        }
       }
       function cleanupWrapper(exec) {
         return function() {
@@ -103,7 +107,7 @@
           } catch (exc) {
             FBTest.FirebugWindow.FBTrace.sysout("runTest FAILS "+exc, exc);
             FBTest.ok(false, "runTest FAILS "+exc);
-            testDone();
+            testDone(exc);
           }
         };
       }
