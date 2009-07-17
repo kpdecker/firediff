@@ -203,7 +203,11 @@ var attributeList = domplate({
   },
   diffAttr: function(attr) {
       if (attr.change) {
-          return diffStringObj(attr.change.previousValue, attr.change.value);
+        if (diffChanes.localName == "style") {
+          return JsDiff.diffCss(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
+        } else {
+          return JsDiff.diffWords(attr.change.previousValue, attr.change.value);
+        }
       } else {
           return [ { value: attr.nodeValue } ];
       }
@@ -226,7 +230,7 @@ var propertyDefinition = domplate({
     )),
   
   diffProp: function(change) {
-      return diffStringObj(change.prevValue, change.propValue);
+      return JsDiff.diffCss(change.prevValue, change.propValue);
   },
   isPropAdded: function(change) { return !change.prevValue; },
   isPropRemoved: function(change) { return !change.propValue; },
@@ -253,7 +257,7 @@ var textChanged = domplate(FirebugReps.TextNode, {
   diffText: function(change) {
     var diffChanges = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
     if (diffChanges.changeType) {
-      return diffStringObj(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
+      return JsDiff.diffWords(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
     } else {
       return [{ value: this.getText(change.nodeValue) }];
     }
