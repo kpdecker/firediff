@@ -1,3 +1,11 @@
+6/29/200 - 0.2
+
+Changes:
+- CSS Snapshot implementation
+- HTML Snapshot implementation
+
+----
+
 4/23/2009 - 0.1a2
 Bug fix release
 
