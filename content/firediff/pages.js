@@ -180,7 +180,7 @@ Snapshot.prototype = {
     
     for (var i = 0; i < this.changeNodeList.length; i++) {
       var change = this.changeNodeList[i];
-      var path = change.xpath || (this.cloneXPath + Path.getElementPath(change));
+      var path = change.xpath || Path.getElementPath(change, false, this.cloneXPath);
       
       if (!change.normalized) {
         change.lookupXPath = path;
@@ -265,7 +265,7 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     }
   },
   getCurNode: function() {
-    var change = this.changeNodeList[this.curChange]
+    var change = this.changeNodeList[this.curChange];
     var objectBox = this.ioBox.openToObject(change);
 
     if (objectBox) {

@@ -195,7 +195,7 @@ FireDiff.Path.compareXPaths = function(path1, path2) {
   }
 };
 
-FireDiff.Path.getElementPath = function(element, useTagNames) {
+FireDiff.Path.getElementPath = function(element, useTagNames, rootPath) {
   var nameLookup = [];
   nameLookup[Node.COMMENT_NODE] = "comment()";
   nameLookup[Node.TEXT_NODE] = "text()";
@@ -216,7 +216,13 @@ FireDiff.Path.getElementPath = function(element, useTagNames) {
     paths.splice(0, 0, (useTagNames && tagName ? tagName.toLowerCase() : "node()") + pathIndex);
   }
 
-  return paths.length ? "/" + paths.join("/") : null;
+  var prefix = "/";
+  if (rootPath && paths.length) {
+    prefix = "";
+    paths[0] = rootPath;
+  }
+
+  return paths.length ? prefix + paths.join("/") : null;
 };
 
 FireDiff.Path.getStylePath = function(style) {

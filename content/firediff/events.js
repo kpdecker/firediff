@@ -125,8 +125,12 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
         if (FBTrace.DBG_ERRORS)   FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
       }
       actionNode[CHANGES] = this;
-      
-      return actionNode;
+
+      if (actionNode.nodeType == Node.TEXT_NODE) {
+        return this;
+      } else {
+        return actionNode;
+      }
     }
 });
 
@@ -591,7 +595,7 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
       FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath + " " + root, tree);
     }
     var rule = parent.cssRules[identifier.index-1];
-    rule[FireDiff.events.AnnotateAttrs.CHANGES] = this;
+    rule[CHANGES] = this;
     rule.xpath = this.xpath;
     return rule;
   },

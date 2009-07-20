@@ -56,7 +56,11 @@ function RemovedIterator(content, removed, includeFilter) {
         try {
           var ret = content.next();
           if (ret && (!includeFilter || includeFilter(ret))) {
-            return ret;
+            if (ret.nodeType == Node.TEXT_NODE && ret[FireDiff.events.AnnotateAttrs.CHANGES]) {
+              return ret[FireDiff.events.AnnotateAttrs.CHANGES];
+            } else {
+              return ret;
+            }
           }
         } catch (err) {
           // Assume this is StopIteration
@@ -203,7 +207,7 @@ var attributeList = domplate({
   },
   diffAttr: function(attr) {
       if (attr.change) {
-        if (diffChanes.localName == "style") {
+        if (attr.localName == "style") {
           return JsDiff.diffCss(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
         } else {
           return JsDiff.diffWords(attr.change.previousValue, attr.change.value);

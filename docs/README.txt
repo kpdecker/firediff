@@ -26,14 +26,10 @@ to implement.
   Displays a log of all the changes made to the page. This can be filtered by 
   Firebug and Application created changes.
   
-  This panel has been partially implemented.
-  
   Diff Snapshot:
   Displays a snapshot of the page's markup or CSS as a result of a given change.
   
-  Initial implementation of this feature has been implemented in the form of the
-  "All Modules" panel. The intent is to extend this implementation to support the
-  snapshot in time functionality.
+  This is available through the context menu in the Diff Monitor view.
   
   Unified Diff:
   Generates a unified diff for the changes made within the page. As much of a files
@@ -42,6 +38,8 @@ to implement.
   not be usable by automated diff tools such as patch, but can be used by the
   developer to make manual changes to the files in question.
 
+  This feature is currently under development in the 1.0 branch.
+
 Data Model:
 Firediff maintains an internal model of the changes that have occurred within the
 page. This model is able to combine related changes into single change as
@@ -49,4 +47,5 @@ appropriate. Each event implemented in the model supports apply and revert
 functionality on arbitrary trees.
 
 Open Issues:
-See TODO.txt
+See TODO.txt or search the Firebug Google Code project for the firediff label.
+(http://code.google.com/p/fbug/issues/list?q=label%3Afirediff)

@@ -1,7 +1,9 @@
 The release process for Firediff is as follows:
 1. Run the FBTest suite, including the manual verification sections.
 2. Update README.txt, TODO.txt and release_notes.txt
+3. Ensure that build.xml and install.rdf reflect the new release version.
 3. Build the image using ant dist target
 4. Add new entry to update.rdf and sign using the McCoy tool.
-5. Upload to incaseofstairs.com
-6. Upload the AMO
+5. Commit the updated RDF and tag the subversion version of the release.
+6. Upload to incaseofstairs.com
+7. Upload the AMO

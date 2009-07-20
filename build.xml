@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <project name="firediff" default="dist">
-  <property name="version" value="0.2" />
+  <property name="version" value="0.2.1" />
 
   <property name="src_dir" location="${basedir}" />
   <property name="dist_dir" location="${basedir}/dist" />
@@ -20,5 +20,11 @@
         <exclude name="dist/**"/>
       </zipfileset>
     </zip>
+
+    <echo>Generating SHA1 checksum</echo>
+    <checksum file="${dist_dir}/${ant.project.name}${version}.xpi" format="MD5SUM" algorithm="SHA" fileext=".sha" />
+    <concat>
+      <fileset dir="${dist_dir}" includes="*.sha" />
+    </concat>
   </target>
 </project>

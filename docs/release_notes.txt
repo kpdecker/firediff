@@ -1,4 +1,13 @@
-6/29/200 - 0.2
+7/19/2009 - 0.2.1
+
+Changes:
+- Rewrite text diff engine
+- Fix extension compatibility issue due to namespace conflicts
+- Snapshot bug fixes
+
+----
+
+6/29/2009 - 0.2
 
 Changes:
 - CSS Snapshot implementation
