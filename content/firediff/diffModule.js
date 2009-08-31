@@ -62,26 +62,26 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     onCSSInsertRule: function(styleSheet, cssText, ruleIndex) {
       styleSheet.source = "dispatch";
       this.recordChange(
-          new Events.CSSInsertRuleEvent(
+          new Events.css.CSSInsertRuleEvent(
               styleSheet.cssRules[ruleIndex],
               Events.ChangeSource.FIREBUG_CHANGE));
     },
     onCSSDeleteRule: function(styleSheet, ruleIndex) {
       styleSheet.source = "dispatch";
       this.recordChange(
-          new Events.CSSRemoveRuleEvent(
+          new Events.css.CSSRemoveRuleEvent(
               styleSheet.cssRules[ruleIndex],
               Events.ChangeSource.FIREBUG_CHANGE));
     },
     onCSSSetProperty: function(style, propName, propValue, propPriority, prevValue, prevPriority) {
         this.recordChange(
-            new Events.CSSSetPropertyEvent(
+            new Events.css.CSSSetPropertyEvent(
                 style.parentRule, propName, propValue, propPriority, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
     },
     
     onCSSRemoveProperty: function(style, propName, prevValue, prevPriority) {
         this.recordChange(
-            new Events.CSSRemovePropertyEvent(
+            new Events.css.CSSRemovePropertyEvent(
                 style.parentRule, propName, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
     },
     
@@ -121,7 +121,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       if (!this.ignoreNode(ev.target)) {
         var diffContext = this.getDiffContext(context);
         this.recordChange(
-            Events.createDOMChange(ev, diffContext.changeSource),
+            Events.dom.createDOMChange(ev, diffContext.changeSource),
             context);
       }
     },

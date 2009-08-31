@@ -20,6 +20,8 @@
   <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/cssModel.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/events.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/domEvents.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/cssEvents.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/domplate.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/pages.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffModule.js" type="application/x-javascript"/>

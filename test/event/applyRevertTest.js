@@ -60,19 +60,19 @@ function runTest() {
     var newEl = $c("p");
     newEl.setAttribute("align", "left");
     newEl.appendChild(win.document.createTextNode("insertData"));
-    var insertEvent = new Events.DOMInsertedEvent(newEl, newEl, "/node()[2]/node()[2]/node()[2]/node()[6]");
+    var insertEvent = new Events.dom.DOMInsertedEvent(newEl, newEl, "/node()[2]/node()[2]/node()[2]/node()[6]");
     testAndVerify(insertEvent, $("insertTest"), $("insertVerify"), "Insert");
     
     // DOM Node Removed
-    var removeEvent = new Events.DOMRemovedEvent($("removeEl"));
+    var removeEvent = new Events.dom.DOMRemovedEvent($("removeEl"));
     testAndVerify(removeEvent, $("removeTest"), $("removeVerify"), "Remove");
     
     // DOM Char Data Modified
-    var charDataEvent = new Events.DOMCharDataModifiedEvent($("charDataTest").lastChild, "Tested", "Test");
+    var charDataEvent = new Events.dom.DOMCharDataModifiedEvent($("charDataTest").lastChild, "Tested", "Test");
     testAndVerify(charDataEvent, $("charDataTest"), $("charDataVerify"), "Char data");
     
     // DOM Attr Modified
-    var attrInsertEvent = new Events.DOMAttrChangedEvent(
+    var attrInsertEvent = new Events.dom.DOMAttrChangedEvent(
         $("attrInsertTest").firstChild,
         MutationEvent.ADDITION,
         "align",
@@ -80,7 +80,7 @@ function runTest() {
         "");
     testAndVerify(attrInsertEvent, $("attrInsertTest"), $("attrInsertVerify"), "Attr Insert");
 
-    var attrRemoveEvent = new Events.DOMAttrChangedEvent(
+    var attrRemoveEvent = new Events.dom.DOMAttrChangedEvent(
         $("attrRemoveTest").firstChild,
         MutationEvent.REMOVAL,
         "align",
@@ -88,7 +88,7 @@ function runTest() {
         "right");
     testAndVerify(attrRemoveEvent, $("attrRemoveTest"), $("attrRemoveVerify"), "Attr Remove");
 
-    var attrChangeEvent = new Events.DOMAttrChangedEvent(
+    var attrChangeEvent = new Events.dom.DOMAttrChangedEvent(
         $("attrChangeTest").firstChild,
         MutationEvent.MODIFICATION,
         "style",
@@ -99,7 +99,7 @@ function runTest() {
     // CSS Prop Set
     var sheet = win.document.styleSheets[0];
     var rule = sheet.cssRules[0];
-    var cssSetEvent = new Events.CSSSetPropertyEvent(
+    var cssSetEvent = new Events.css.CSSSetPropertyEvent(
         rule.style,
         "overflow",
         "hidden",
@@ -110,7 +110,7 @@ function runTest() {
     
     // CSS Prop Reset
     rule = sheet.cssRules[2];
-    var cssResetEvent = new Events.CSSSetPropertyEvent(
+    var cssResetEvent = new Events.css.CSSSetPropertyEvent(
         rule.style,
         "padding-top",
         "16px",
@@ -121,7 +121,7 @@ function runTest() {
     
     // CSS Prop Remove
     rule = sheet.cssRules[4];
-    var cssRemoveEvent = new Events.CSSRemovePropertyEvent(
+    var cssRemoveEvent = new Events.css.CSSRemovePropertyEvent(
         rule.style,
         "margin-right",
         "40px",
@@ -130,7 +130,7 @@ function runTest() {
     
     // CSS Insert Rule Test
     var verifyRule = sheet.cssRules[7];
-    var cssInsertRuleEvent = new Events.CSSInsertRuleEvent(
+    var cssInsertRuleEvent = new Events.css.CSSInsertRuleEvent(
         {},
         Events.ChangeSource.FIREBUG_CHANGE,
         Path.getStylePath(sheet) + "/rule()[1]",
@@ -139,7 +139,7 @@ function runTest() {
     
     // CSS Remove Rule Test
     var verifyRule = sheet.cssRules[6];
-    var cssInsertRuleEvent = new Events.CSSRemoveRuleEvent(
+    var cssInsertRuleEvent = new Events.css.CSSRemoveRuleEvent(
         verifyRule,
         Events.ChangeSource.FIREBUG_CHANGE);
     testAndVerifyRule(cssInsertRuleEvent, verifyRule, sheet.cssRules, 6, true, "CSS Remove Rule");
@@ -149,7 +149,7 @@ function runTest() {
     // CSS @media Prop Set
     var sheet = win.document.styleSheets[0];
     var rule = sheet.cssRules[MEDIA_INDEX].cssRules[0];
-    var cssSetEvent = new Events.CSSSetPropertyEvent(
+    var cssSetEvent = new Events.css.CSSSetPropertyEvent(
         rule.style,
         "overflow",
         "hidden",
@@ -160,7 +160,7 @@ function runTest() {
     
     // CSS @media Prop Reset
     rule = sheet.cssRules[MEDIA_INDEX].cssRules[2];
-    var cssResetEvent = new Events.CSSSetPropertyEvent(
+    var cssResetEvent = new Events.css.CSSSetPropertyEvent(
         rule.style,
         "padding-top",
         "16px",
@@ -171,7 +171,7 @@ function runTest() {
     
     // CSS @media Prop Remove
     rule = sheet.cssRules[MEDIA_INDEX].cssRules[4];
-    var cssRemoveEvent = new Events.CSSRemovePropertyEvent(
+    var cssRemoveEvent = new Events.css.CSSRemovePropertyEvent(
         rule.style,
         "margin-right",
         "40px",
@@ -180,7 +180,7 @@ function runTest() {
     
     // CSS @media Insert Rule Test
     var verifyRule = sheet.cssRules[7];
-    var cssInsertRuleEvent = new Events.CSSInsertRuleEvent(
+    var cssInsertRuleEvent = new Events.css.CSSInsertRuleEvent(
         {},
         Events.ChangeSource.FIREBUG_CHANGE,
         Path.getStylePath(sheet.cssRules[MEDIA_INDEX]) + "/rule()[1]",
@@ -189,7 +189,7 @@ function runTest() {
     
     // CSS @media Remove Rule Test
     var verifyRule = sheet.cssRules[MEDIA_INDEX].cssRules[6];
-    var cssInsertRuleEvent = new Events.CSSRemoveRuleEvent(
+    var cssInsertRuleEvent = new Events.css.CSSRemoveRuleEvent(
         verifyRule,
         Events.ChangeSource.FIREBUG_CHANGE);
     testAndVerifyRule(cssInsertRuleEvent, verifyRule, sheet.cssRules[MEDIA_INDEX].cssRules, 6, true, "CSS @media Insert Rule");

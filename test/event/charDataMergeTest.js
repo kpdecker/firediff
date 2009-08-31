@@ -15,7 +15,7 @@ function runTest() {
   root.appendChild(target);
   root.appendChild(sibling);
   
-  var charDataEvent = new Events.DOMCharDataModifiedEvent(
+  var charDataEvent = new Events.dom.DOMCharDataModifiedEvent(
       target,
       "tested",
       "test");
@@ -23,12 +23,12 @@ function runTest() {
   // Next events
   // Char Data changed
   // - Self
-  eventSecond = new Events.DOMCharDataModifiedEvent(
+  eventSecond = new Events.dom.DOMCharDataModifiedEvent(
       target,
       "",
       "tested");
   FBTestFireDiff.compareChangeList(
-      [new Events.DOMCharDataModifiedEvent(
+      [new Events.dom.DOMCharDataModifiedEvent(
           target,
           "",
           "test")],
@@ -36,7 +36,7 @@ function runTest() {
       "Char data self");
   
   // - Other
-  eventSecond = new Events.DOMCharDataModifiedEvent(
+  eventSecond = new Events.dom.DOMCharDataModifiedEvent(
       prevText,
       "",
       "tested");
@@ -47,7 +47,7 @@ function runTest() {
   
   // Attribute Change
   // - Parent
-  var eventSecond = new Events.DOMAttrChangedEvent(
+  var eventSecond = new Events.dom.DOMAttrChangedEvent(
       root,
       MutationEvent.REMOVAL,
       "align",
@@ -59,7 +59,7 @@ function runTest() {
       "Char data attr parent");
   
   // - Sibling
-  var eventSecond = new Events.DOMAttrChangedEvent(
+  var eventSecond = new Events.dom.DOMAttrChangedEvent(
       prevSibling,
       MutationEvent.REMOVAL,
       "align",
@@ -72,14 +72,14 @@ function runTest() {
   
   // DOM Remove
   // - Same target
-  eventSecond = new Events.DOMRemovedEvent(target);
+  eventSecond = new Events.dom.DOMRemovedEvent(target);
   FBTestFireDiff.compareChangeList(
       [eventSecond],
       Events.merge([charDataEvent, eventSecond]),
       "Char data remove target");
   
   // - Parent
-  eventSecond = new Events.DOMRemovedEvent(root);
+  eventSecond = new Events.dom.DOMRemovedEvent(root);
   FBTestFireDiff.compareChangeList(
       [eventSecond],
       Events.merge([charDataEvent, eventSecond]),
@@ -87,9 +87,9 @@ function runTest() {
   
   // - Self not child
   //  - XPath update case
-  eventSecond = new Events.DOMRemovedEvent(prevSibling);
+  eventSecond = new Events.dom.DOMRemovedEvent(prevSibling);
   FBTestFireDiff.compareChangeList(
-      [new Events.DOMCharDataModifiedEvent(
+      [new Events.dom.DOMCharDataModifiedEvent(
           target,
           "tested",
           "test",
@@ -99,7 +99,7 @@ function runTest() {
       "Char data remove xpath update");
   
   //  - Non XPath update case
-  eventSecond = new Events.DOMRemovedEvent(sibling);
+  eventSecond = new Events.dom.DOMRemovedEvent(sibling);
   FBTestFireDiff.compareChangeList(
       [charDataEvent, eventSecond],
       Events.merge([charDataEvent, eventSecond]),
@@ -107,9 +107,9 @@ function runTest() {
   
   // DOM Insert
   // - Same target
-  eventSecond = new Events.DOMInsertedEvent(target);
+  eventSecond = new Events.dom.DOMInsertedEvent(target);
   FBTestFireDiff.compareChangeList(
-      [new Events.DOMCharDataModifiedEvent(
+      [new Events.dom.DOMCharDataModifiedEvent(
           target,
           "tested",
           "test",
@@ -119,9 +119,9 @@ function runTest() {
       "Char data insert target");
   
   // - Parent
-  eventSecond = new Events.DOMInsertedEvent(root);
+  eventSecond = new Events.dom.DOMInsertedEvent(root);
   FBTestFireDiff.compareChangeList(
-      [new Events.DOMCharDataModifiedEvent(
+      [new Events.dom.DOMCharDataModifiedEvent(
           target,
           "tested",
           "test",
@@ -132,9 +132,9 @@ function runTest() {
   
   // - Self not child
   //  - XPath update case
-  eventSecond = new Events.DOMInsertedEvent(prevSibling);
+  eventSecond = new Events.dom.DOMInsertedEvent(prevSibling);
   FBTestFireDiff.compareChangeList(
-      [new Events.DOMCharDataModifiedEvent(
+      [new Events.dom.DOMCharDataModifiedEvent(
           target,
           "tested",
           "test",
@@ -144,7 +144,7 @@ function runTest() {
       "Char data insert xpath update");
   
   //  - Non XPath update case
-  eventSecond = new Events.DOMInsertedEvent(sibling);
+  eventSecond = new Events.dom.DOMInsertedEvent(sibling);
   FBTestFireDiff.compareChangeList(
       [charDataEvent, eventSecond],
       Events.merge([charDataEvent, eventSecond]),
