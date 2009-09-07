@@ -117,11 +117,28 @@ function updateForMutate(pathUpdate, pathChanged, offset, destroyAncestor) {
   return pathUpdate;
 };
 
+/**
+ * Updates pathUpdate as if pathInserted was just inserted into the
+ * document.
+ */
 FireDiff.Path.updateForInsert = function(pathUpdate, pathInsert) {
   return updateForMutate(pathUpdate, pathInsert, 1, false);
 };
+
+/**
+ * Updates pathUpdate as if pathRemoved was just removed from the
+ * document.
+ */
 FireDiff.Path.updateForRemove = function(pathUpdate, pathRemoved) {
   return updateForMutate(pathUpdate, pathRemoved, -1, true);
+};
+
+/**
+ * Updates pathUpdate as if pathRemoved was just removed from the
+ * document due to a revert.
+ */
+FireDiff.Path.updateForRevertRemove = function(pathUpdate, pathRemoved) {
+  return updateForMutate(pathUpdate, pathRemoved, -1, false);
 };
 
 FireDiff.Path.getIdentifier = function(path) {
