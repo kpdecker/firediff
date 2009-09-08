@@ -31,9 +31,6 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       return new Reps.DOMSnapshot(this, context.window.document);
     },
     
-    isElementAdded: function() { return false; },
-    isElementRemoved: function() { return false; },
-    
     getXpath: function(target) { return Path.getElementPath(target); },
     xpathLookup: function(xpath, root) {
       var iterate = root.ownerDocument.evaluate(xpath, root, null, XPathResult.ANY_TYPE, null);
@@ -140,21 +137,21 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       // No mods to be made
       return undefined;
     },
-    mergeCancellation: function(candidate) {
-      var updatedPath = Path.updateForRemove(candidate.xpath, this.xpath);
-      if (updatedPath != candidate.xpath) {
-        return updatedPath;
+    mergeRevert: function(candidate) {
+      // On revert we want to
+      //  - Revert any changes made on this object or a child
+      if (Path.isChildOrSelf(this.xpath, candidate.xpath)) {
+        return this.merge(candidate);
       }
+    },
+    isCancellation: function(candidate) {
+      return candidate.overridesChange(this) && this.xpath == candidate.xpath;
+    },
+    affectsCancellation: function(candidate) {
+      return Path.isChildOrSelf(this.xpath, candidate.xpath);
     },
     cloneOnXPath: function(xpath) {
       return new DOMInsertedEvent(this.target, this.clone, xpath, this.displayXPath, this.changeSource);
-    },
-
-    getMergedXPath: function(prior) {
-      var updatedPath = Path.updateForInsert(prior.xpath, this.xpath);
-      if (updatedPath != prior.xpath) {
-        return updatedPath;
-      }
     }
 });
 function DOMRemovedEvent(target, clone, xpath, displayXPath, changeSource) {
@@ -202,12 +199,10 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
       
       if (this.xpath === candidate.xpath) {
-        // TODO : Can we do this without the constant?
-        if (candidate.subType == "dom_inserted") {
-          if (this.clone.isEqualNode(candidate.clone)) {
-            // Cancellation
-            return [];
-          }
+        if (candidate.isElementAdded()
+            && this.clone.isEqualNode(candidate.clone)) {
+          // Cancellation
+          return [];
         }
       } else {
         // Check overrides cases
@@ -225,22 +220,25 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
         }
       }
     },
-    mergeCancellation: function(candidate) {
-      var updatedPath = Path.updateForInsert(candidate.xpath, this.xpath);
-      if (updatedPath != candidate.xpath) {
-        return updatedPath;
+    mergeRevert: function(candidate) {
+      // The only thing that a delete might revert is an insert operation
+      // of its identity
+      if (this.isCancellation(candidate)) {
+        return [];
       }
+    },
+    isCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && candidate.isElementAdded()
+          && this.clone.isEqualNode(candidate.clone);
+    },
+    affectsCancellation: function(candidate) {
+      return this.isCancellation(candidate);
     },
     cloneOnXPath: function(xpath) {
       return new DOMRemovedEvent(this.target, this.clone, xpath, this.displayXPath, this.changeSource);
     },
 
-    getMergedXPath: function(prior) {
-      var updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
-      if (updatedPath != prior.xpath) {
-        return updatedPath;
-      }
-    },
     overridesChange: function(prior) {
       return Path.isChildOrSelf(this.xpath, prior.xpath);
     },
@@ -371,6 +369,24 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
           this.value, this.previousValue,
           xpath, this.displayXPath, this.changeSource, this.clone);
     },
+    mergeRevert: function(candidate) {
+      // On revert we want to
+      //  - Revert any changes made on this exact attr
+      if (this.xpath == candidate.xpath && this.attrName == candidate.attrName) {
+        return this.merge(candidate);
+      }
+    },
+    isCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.attrName == candidate.attrName
+          && (this.previousValue == candidate.value
+              || (this.attrChange == MutationEvent.ADDITION
+                  && candidate.attrChange == MutationEvent.REMOVAL));
+    },
+    affectsCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.attrName == candidate.attrName;
+    },
     
     apply: function(target, xpath) {
       Firebug.DiffModule.ignoreChanges(bindFixed(
@@ -446,6 +462,21 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
       
       return [ new DOMCharDataModifiedEvent(this.target, candidate.value, this.previousValue, this.xpath, this.displayXPath, this.changeSource, this.clone) ];
     },
+    mergeRevert: function(candidate) {
+      if (this.xpath == candidate.xpath) {
+        return this.merge(candidate);
+      }
+    },
+    isCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.subType == candidate.subType
+          && this.previousValue == candidate.value;
+    },
+    affectsCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.subType == candidate.subType;
+    },
+
     cloneOnXPath: function(xpath) {
       return new DOMCharDataModifiedEvent(
           this.target, this.value, this.previousValue, xpath, this.displayXPath, this.changeSource, this.clone);

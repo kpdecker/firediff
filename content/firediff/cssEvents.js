@@ -45,7 +45,14 @@ CSSRuleEvent.prototype = extend(CSSChangeEvent.prototype, {
   //
   // Since rule insert and remove events always come from Firebug we assume
   // that this change applies to the current editor
-  appliesTo: function(target) { return target; }
+  appliesTo: function(target) { return target; },
+
+  mergeRevert: function(candidate) {
+    if (Path.isChildOrSelf(this.xpath, candidate.xpath)
+        && this.subType != candidate.subType) {
+      return this.merge(candidate);
+    }
+  }
 });
 
 function CSSInsertRuleEvent(style, changeSource, xpath, clone) {
@@ -56,6 +63,7 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   getSummary: function() {
     return i18n.getString("summary.CSSInsertRule");
   },
+  isElementAdded: function() { return true; },
 
   annotateTree: function(tree, root) {
     var parent = this.getInsertActionNode(tree, root).parent;
@@ -90,14 +98,15 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
       return [ new CSSInsertRuleEvent(this.style, this.changeSource, this.xpath, clone) ];
     }
   },
+  isCancellation: function(candidate) {
+    return candidate.isElementRemoved()
+        && this.xpath == candidate.xpath;
+  },
+  affectsCancellation: function(candidate) {
+    return Path.isChildOrSelf(this.xpath, candidate.xpath);
+  },
   cloneOnXPath: function(xpath) {
     return new CSSInsertRuleEvent(this.style, this.changeSource, xpath, this.clone);
-  },
-  getMergedXPath: function(prior) {
-    var updatedPath = Path.updateForInsert(prior.xpath, this.xpath);
-    if (updatedPath != prior.xpath) {
-      return updatedPath;
-    }
   },
   
   apply: function(style, xpath) {
@@ -141,6 +150,7 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   getSummary: function() {
     return i18n.getString("summary.CSSRemoveRule");
   },
+  isElementRemoved: function() { return true; },
 
   annotateTree: function(tree, root) {
     var actionNode = this.getInsertActionNode(tree, root).parent;
@@ -172,20 +182,28 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
         && (this.subType == "setProp" || this.subType == "removeProp")){
       // TODO : Handle @media nested changes?
       // TODO : Unit test this path
+      // TODO : Why exactly are we modifying a remove event?
       var clone = this.clone.clone();
       candidate.apply(clone, this.xpath);
       
       return [ new CSSRemoveRuleEvent(this.style, this.changeSource, this.xpath, clone, this.styleSheet) ];
     }
   },
+  mergeRevert: function(candidate) {
+    if (this.isCancellation(candidate)) {
+      return [];
+    }
+  },
+  isCancellation: function(candidate) {
+    return this.xpath == candidate.xpath
+        && candidate.isElementAdded()
+        && this.clone.equals(candidate.clone);
+  },
+  affectsCancellation: function(candidate) {
+    return this.isCancellation(candidate);
+  },
   cloneOnXPath: function(xpath) {
     return new CSSRemoveRuleEvent(this.style, this.changeSource, xpath, this.clone, this.styleSheet);
-  },
-  getMergedXPath: function(prior) {
-    var updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
-    if (updatedPath != prior.xpath) {
-      return updatedPath;
-    }
   },
   
   apply: CSSInsertRuleEvent.prototype.revert,
@@ -231,16 +249,26 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
       }
       
       return this.mergeSubtype(candidate);
+  },
+  mergeRevert: function(candidate) {
+    if (this.xpath == candidate.xpath
+        && this.propName == candidate.propName) {
+      return this.merge(candidate);
+    }
+  },
+  affectsCancellation: function(candidate) {
+    return this.xpath == candidate.xpath
+        && this.propName == candidate.propName;
   }
 });
 
 function CSSSetPropertyEvent(style, propName, propValue, propPriority, prevValue, prevPriority, changeSource, xpath) {
-    CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
-    
-    this.propValue = propValue;
-    this.propPriority = propPriority;
-    this.prevValue = prevValue;
-    this.prevPriority = prevPriority;
+  CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
+  
+  this.propValue = propValue;
+  this.propPriority = propPriority;
+  this.prevValue = prevValue;
+  this.prevPriority = prevPriority;
 }
 CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     subType: "setProp",
@@ -276,6 +304,11 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
         }
       }
     },
+    isCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.prevValue == candidate.propValue
+          && this.prevPriority == candidate.propPriority;
+    },
     cloneOnXPath: function(xpath) {
       return new CSSSetPropertyEvent(
           this.style, this.propName,
@@ -306,15 +339,15 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
 });
 
 function CSSRemovePropertyEvent(style, propName, prevValue, prevPriority, changeSource, xpath) {
-    CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
+  CSSPropChangeEvent.call(this, style, propName, changeSource, xpath);
 
-    // Seed empty values for the current state. This makes the domplate
-    // display much easier
-    this.propValue = "";
-    this.propPriority = "";
-    
-    this.prevValue = prevValue;
-    this.prevPriority = prevPriority;
+  // Seed empty values for the current state. This makes the domplate
+  // display much easier
+  this.propValue = "";
+  this.propPriority = "";
+  
+  this.prevValue = prevValue;
+  this.prevPriority = prevPriority;
 }
 CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     subType: "removeProp",
@@ -339,6 +372,12 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
                         this.xpath)
                 ];
       }
+    },
+    isCancellation: function(candidate) {
+      return this.xpath == candidate.xpath
+          && this.subType != candidate.subType
+          && this.prevValue == candidate.propValue
+          && this.prevPriority == candidate.propPriority;
     },
     cloneOnXPath: function(xpath) {
       return new CSSRemovePropertyEvent(
