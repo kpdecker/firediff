@@ -5,6 +5,20 @@ FBL.ns(function() { with (FBL) {
 var Events = FireDiff.events,
     Path = FireDiff.Path;
 
+function revertChange(curChange, context) {
+  var ownerDoc, rootPath;
+  if (curChange.changeType == "CSS") {
+    rootPath = Path.getTopPath(curChange.xpath);
+    ownerDoc = Path.evaluateStylePath(rootPath, context.window.document);
+  } else {
+    ownerDoc = context.window.document.documentElement;
+    rootPath = Path.getElementPath(ownerDoc);
+  }
+
+  if (FBTrace.DBG_FIREDIFF) FBTrace.sysout("Revert change: " + i, curChange);
+  curChange.revert(ownerDoc, rootPath);
+}
+
 Firebug.DiffModule = extend(Firebug.ActivableModule, {
     panelName: "firediff",
     
@@ -40,6 +54,50 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         if (panelName != this.panelName)      return;
         
         this.unmonitorContext(context);
+    },
+    
+    //////////////////////////////////////////////
+    // Actions
+    revertAllChanges: function(change, context) {
+      var diffContext = this.getDiffContext(context);
+      var changes = diffContext.changes;
+
+      // Revert means everything, not just those that are filtered.
+      // Keeping the change model in sync for arbitrary changes is
+      // currently out of scope
+      //
+      // We also rely on filter to be designed such that the model's
+      // integrity remains.
+      for (var i = changes.length; i > 0; i--) {
+        var curChange = changes[i-1];
+
+        revertChange(curChange, context);
+        changes.splice(i-1, 1);
+
+        if (change == curChange) {
+          break;
+        }
+      }
+    },
+    revertChange: function(change, context, force) {
+      var diffContext = this.getDiffContext(context);
+      var changes = diffContext.changes;
+      
+      var tempChanges = changes.slice();
+      var revert = Events.mergeRevert(change, tempChanges);
+      if ((revert.length > 1 || changes.length - tempChanges.length > 1) && !force) {
+        return false; 
+      }
+      
+      // Perform the revert
+      for (var i = revert.length; i > 0; i--) {
+        var curChange = revert[i-1];
+
+        revertChange(curChange, context);
+      }
+      
+      diffContext.changes = tempChanges;
+      return revert;
     },
     
     //////////////////////////////////////////////

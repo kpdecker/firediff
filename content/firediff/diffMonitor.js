@@ -8,6 +8,9 @@ const Ci = Components.interfaces;
 const nsIPrefBranch2 = Ci.nsIPrefBranch2;
 const PrefService = Cc["@mozilla.org/preferences-service;1"];
 const prefs = PrefService.getService(nsIPrefBranch2);
+const PromptService = Cc["@mozilla.org/embedcomp/prompt-service;1"];
+const prompt = PromptService.getService(Ci.nsIPromptService);
+
 
 var Events = FireDiff.events,
     Path = FireDiff.Path,
@@ -104,11 +107,50 @@ DiffMonitor.prototype = extend(Panel, {
         FBTrace.sysout(err,err);
       }
     },
+    revertAllChanges: function(change) {
+      try {
+        Firebug.DiffModule.revertAllChanges(change, this.context);
+        this.updateSelection(this.lastSel);
+      } catch (err) {
+        FBTrace.sysout(err,err);
+      }
+    },
+    revertChange: function(change) {
+      try {
+        var dontPrompt = this.isDontPromptOnMultipleRevert();
+        var ret = Firebug.DiffModule.revertChange(change, this.context, dontPrompt);
+        if (!ret) {
+          var checked = { value: false };
+          var button = prompt.confirmCheck(
+              null,
+              i18n.getString("prompt.title.MultipleRevert"),
+              i18n.getString("prompt.text.MultipleRevert"),
+              i18n.getString("prompt.dontAskAgain"),
+              checked);
+          if (!button) {
+            return;
+          }
+
+          // Save the pref value
+          Firebug.setPref(Firebug.prefDomain, "firediff.revertMultiple.dontPrompt", checked.value);
+
+          // Perform a forced revert
+          Firebug.DiffModule.revertChange(change, this.context, true);
+        }
+
+        this.updateSelection(this.lastSel);
+      } catch (err) {
+        FBTrace.sysout(err,err);
+      }
+    },
     
     getContextMenuItems: function(object, target) {
       if (this.selection == Reps.Monitor) {
         return [
-            { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true }
+                { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true },
+                "-",
+                { label: i18n.getString("menu.RevertChange"), command: bindFixed(this.revertChange, this, object), nol10n: true },
+                { label: i18n.getString("menu.RevertAllChanges"), command: bindFixed(this.revertAllChanges, this, object), nol10n: true }
         ];
       }
     },
@@ -174,6 +216,9 @@ DiffMonitor.prototype = extend(Panel, {
     },
     isDisplayFirebugChanges: function() {
       return Firebug.getPref(Firebug.prefDomain, "firediff.displayFirebugChanges");
+    },
+    isDontPromptOnMultipleRevert: function() {
+      return !!Firebug.getPref(Firebug.prefDomain, "firediff.revertMultiple.dontPrompt");
     },
     
     onDiffChange: function(change, context) {
