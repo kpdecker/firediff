@@ -70,6 +70,10 @@ DiffMonitor.prototype = extend(Panel, {
     hide: function(state) {
       this.showToolbarButtons("fbDiffMonitorButtons", false);
       $("cmd_copy").removeAttribute("disabled");
+
+      var panelStatus = Firebug.chrome.getPanelStatusElements();
+      panelStatus.clear(); // clear stack on status bar
+      this.selection = undefined;
     },
 
     addStyleSheet: function(doc, uri, id) {

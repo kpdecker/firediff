@@ -45,15 +45,11 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         this.monitorContext(context);
       }
     },
-    onPanelEnable: function(context, panelName) {
-      if (panelName != this.panelName)    return;
-      
+    onEnabled: function(context) {
       this.monitorContext(context);
     },
-    onPanelDisable: function(context, panelName) {
-        if (panelName != this.panelName)      return;
-        
-        this.unmonitorContext(context);
+    onDisabled: function(context) {
+      this.unmonitorContext(context);
     },
     
     //////////////////////////////////////////////
@@ -199,6 +195,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     },
     
     monitorContext: function(context) {
+      if (FBTrace.DBG_ACTIVATION || FBTrace.DBG_FIREDIFF) { FBTrace.sysout("DiffModule.monitorContext", context); }
       var diffContext = this.getDiffContext(context);
       if (diffContext.eventLogger)    return;
 
@@ -215,6 +212,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       context.window.addEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
     },
     unmonitorContext: function(context) {
+        if (FBTrace.DBG_ACTIVATION || FBTrace.DBG_FIREDIFF) { FBTrace.sysout("DiffModule.unmonitorContext", context); }
         var diffContext = this.getDiffContext(context);
         if (!diffContext.eventLogger)    return;
         
