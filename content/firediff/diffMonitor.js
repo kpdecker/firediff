@@ -24,6 +24,7 @@ DiffMonitor.prototype = extend(Panel, {
     name: "firediff",
     title: i18n.getString("title.diffMonitor"),
     statusSeparator: ">",
+    searchable: true,
     
     initializeNode: function(panelNode) {
       if (Firebug.DiffModule.addListener) {
@@ -188,6 +189,12 @@ DiffMonitor.prototype = extend(Panel, {
           || Reps.CSSSnapshotRep.supportsObject(object))
         return 1000;
       return 0;
+    },
+
+    search: function(text, reverse) {
+      if (this.selection.search) {
+        return this.selection.search(text, reverse, this);
+      }
     },
 
     // nsIPrefObserver

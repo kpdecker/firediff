@@ -12,6 +12,31 @@ var Events = FireDiff.events,
 
 var i18n = document.getElementById("strings_firediff");
 
+function textPageSearch(text, reverse, panel) {
+  if (!text) {
+    delete this.currentSearch;
+    return false;
+  }
+
+  var row;
+  if (this.currentSearch && text == this.currentSearch.text) {
+    row = this.currentSearch.findNext(true, false, reverse, Firebug.searchCaseSensitive);
+  } else {
+    function findRow(node) { return node.nodeType == 1 ? node : node.parentNode; }
+    this.currentSearch = new TextSearch(panel.panelNode, findRow);
+    row = this.currentSearch.find(text, reverse, Firebug.searchCaseSensitive);
+  }
+
+  // TODO : What a11y events should this produce?
+  if (row) {
+    panel.document.defaultView.getSelection().selectAllChildren(row);
+    scrollIntoCenterView(row, this.panelNode);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 // Object used to define the monitor view
 this.Monitor = domplate({
   entry: DIV(
@@ -79,7 +104,8 @@ this.Monitor = domplate({
     } catch (err) {
       FBTrace.sysout("ERROR: onChange", err);
     }
-  }
+  },
+  search: textPageSearch
 });
 this.MonitorRep = domplate(Firebug.Rep,{
   supportsObject: function(object, type) {
@@ -314,6 +340,7 @@ this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   hide: function() {
     delete this.panel;
   },
+  search: textPageSearch,
   
   navigableChange: function(change) {
     return this.panel.isDisplayFirebugChanges();
