@@ -247,10 +247,10 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       var actionNode = this.getInsertActionNode(tree, root).parent;
       var list = actionNode[REMOVE_CHANGES] || [],
           i = list.length;
-      while (i > 0 && Path.compareXPaths(this.xpath, list[i-1].xpath) > 0) {
+      while (i > 0 && Path.compareXPaths(this.xpath, list[i-1].xpath) < 0) {
         i--;
       }
-      list.splice(i ? 1-1 : 0, 0, this);
+      list.splice(i, 0, this);
       actionNode[REMOVE_CHANGES] = list;
       
       this.clone.change = this;
