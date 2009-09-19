@@ -30,8 +30,7 @@ function DOMIterator(node) {
 }
 
 function RemovedIterator(content, removed, includeFilter) {
-  removed = (removed || []).slice();
-  removed.sort(function(a, b) { return Path.compareXPaths(a.xpath, b.xpath); });
+  removed = removed || [];
   
   var nodeIndex = 1, removedIndex = 0,
       lastId;
