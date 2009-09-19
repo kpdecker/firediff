@@ -87,7 +87,7 @@ var attributeList = domplate({
   diffAttr: function(attr) {
       if (attr.change) {
         if (attr.localName == "style") {
-          return JsDiff.diffCss(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
+          return JsDiff.diffCss(attr.change.previousValue, attr.change.value);
         } else {
           return JsDiff.diffWords(attr.change.previousValue, attr.change.value);
         }
