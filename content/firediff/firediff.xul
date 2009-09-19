@@ -16,6 +16,7 @@
     <stringbundle id="strings_firediff" src="chrome://firediff/locale/firediff.properties"/>
   </stringbundleset>
   
+  <script src="chrome://firediff/content/versionCompat.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diff.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/cssModel.js" type="application/x-javascript"/>

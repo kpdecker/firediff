@@ -8,7 +8,8 @@ FBL.ns(function() {
 var i18n = document.getElementById("strings_firediff");
 var Events = FireDiff.events,
     Path = FireDiff.Path,
-    CSSModel = FireDiff.CSSModel;
+    CSSModel = FireDiff.CSSModel,
+    VersionCompat = FireDiff.VersionCompat;
 
 function ArrayIterator(array) {
   var index = -1;
@@ -155,21 +156,11 @@ var DomUtil = {
     return true;
   },
 
-  // Duplicate of HTMLPanel.prototype isWhitespaceText
   isWhitespaceText: function(node) {
-    node = node.clone || node;
-    if (node instanceof HTMLAppletElement)
-      return false;
-    return node.nodeType == Node.TEXT_NODE && isWhitespace(node.nodeValue);
+    return VersionCompat.isWhitespaceText(node.clone || node);
   },
 
-  // Duplicate of HTMLPanel.prototype TODO: create a namespace for all of these functions so
-  // they can be called outside of this file.
-  isSourceElement: function(element) {
-    var tag = element.localName.toLowerCase();
-    return tag == "script" || tag == "link" || tag == "style"
-        || (tag == "link" && element.getAttribute("rel") == "stylesheet");
-  }
+  isSourceElement: VersionCompat.isSourceElement
 };
 this.DomUtil = DomUtil;
 
