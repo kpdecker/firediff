@@ -6,73 +6,11 @@ FBL.ns(function() {
 (function () { with(FBL) {
 
 var i18n = document.getElementById("strings_firediff");
-var Events = FireDiff.events,
-    Path = FireDiff.Path,
-    CSSModel = FireDiff.CSSModel,
-    VersionCompat = FireDiff.VersionCompat;
-
-function ArrayIterator(array) {
-  var index = -1;
-
-  this.next = function() {
-    if (++index >= array.length)    $break();
-    return array[index];
-  };
-}
-function DOMIterator(node) {
-  var curNode = node.firstChild;
-  this.next = function() {
-    var ret = curNode;
-    if (!curNode)    $break();
-    curNode = curNode.nextSibling;
-    return ret;
-  }
-}
-
-function RemovedIterator(content, removed, includeFilter) {
-  removed = removed || [];
-  
-  var nodeIndex = 1, removedIndex = 0,
-      lastId;
-  this.next = function() {
-    // Check for removed at the current position
-    while (true) {
-      while (removedIndex < removed.length) {
-        var curChange = removed[removedIndex];
-        lastId = lastId || FireDiff.Path.getIdentifier(curChange.xpath);
-        if (lastId.index <= nodeIndex || nodeIndex < 0) {
-          removedIndex++;   lastId = undefined;
-          if (!includeFilter || includeFilter(curChange)) {
-            return curChange;
-          }
-        } else {
-          break;
-        }
-      }
-      
-      // Read the content list
-      nodeIndex++;
-      if (content) {
-        try {
-          var ret = content.next();
-          if (ret && (!includeFilter || includeFilter(ret))) {
-            if (ret.nodeType == Node.TEXT_NODE && ret[FireDiff.events.AnnotateAttrs.CHANGES]) {
-              return ret[FireDiff.events.AnnotateAttrs.CHANGES];
-            } else {
-              return ret;
-            }
-          }
-        } catch (err) {
-          // Assume this is StopIteration
-          content = undefined;
-        }
-      } else if (removedIndex >= removed.length) {
-        // Content and removed exhausted
-        $break();
-      }
-    }
-  };
-}
+const Events = FireDiff.events,
+      Path = FireDiff.Path,
+      CSSModel = FireDiff.CSSModel,
+      VersionCompat = FireDiff.VersionCompat,
+      Search = FireDiff.search;
 
 var DomUtil = {
   getAttributes: function(change) {
@@ -337,7 +275,7 @@ var ParentChangeElement = extend(ChangeElement, {
     function includeChild(child) {
       return Firebug.showWhitespaceNodes || !DomUtil.isWhitespaceText(child);
     }
-    return new RemovedIterator(new DOMIterator(node), this.removedChanges(node), includeChild);
+    return new Search.RemovedIterator(new Search.DOMIterator(node), this.removedChanges(node), includeChild);
   }
 });
 
@@ -478,8 +416,8 @@ this.HtmlSnapshotView = function(tree, rootXPath, panelNode) {
 }
 this.HtmlSnapshotView.prototype = {
   childIterator: function(parent) {
-    return new RemovedIterator(
-        new DOMIterator(parent.clone || parent),
+    return new Search.RemovedIterator(
+        new Search.DOMIterator(parent.clone || parent),
         parent[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES],
         this.includeChild);
   },
@@ -534,7 +472,7 @@ this.HtmlSnapshotView.prototype = {
 var CSSChangeElement = {
   getCSSRules: function(change) {
     var removed = change[FireDiff.events.AnnotateAttrs.REMOVE_CHANGES] || [];
-    return new RemovedIterator(new ArrayIterator(change.cssRules), removed);
+    return new Search.RemovedIterator(new Search.ArrayIterator(change.cssRules), removed);
   },
   
   getNodeTag: function(cssRule) {
