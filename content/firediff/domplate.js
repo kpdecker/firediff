@@ -82,7 +82,7 @@ var DomUtil = {
     var el = change.clone || change;
 
     var changes = el[FireDiff.events.AnnotateAttrs.ATTR_CHANGES] || {};
-    if (change.clone) {
+    if (change.clone && change.attrName) {
       changes = {};
       changes[change.attrName] = change;
     }
