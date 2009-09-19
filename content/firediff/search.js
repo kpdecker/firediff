@@ -6,7 +6,8 @@ var FireDiff  = FireDiff || {};
  */
 FireDiff.search = FBL.ns(function() { with (FBL) {
 
-const Events = FireDiff.events;
+const Events = FireDiff.events,
+      Search = this;
 
 /**
  * @class Search for use in pages where all content is available and visible at all times.
@@ -48,6 +49,176 @@ this.PageSearch = function() {
   };
 };
 
+/**
+ * Constructs a DOMDiffWalker instance.
+ * 
+ * @constructor
+ * @class Implements an ordered traveral of the document, including diff events, 
+ *        attributes and iframe contents within the results.
+ *
+ *        Note that the order for attributes is not defined. This will follow the
+ *        same order as the Element.attributes accessor.
+ * @param {Element} root Element to traverse
+ */
+this.DOMDiffWalker = function(root) {
+  var stack = [];
+  var pastStart, pastEnd;
+
+  function pushStack(currentNode, reverse) {
+    if (currentNode) {
+      var attrs = Search.getAttributes(currentNode),
+          children = [];
+
+      // Precache the child elements to make the logic easier. If this becomes
+      // a performance issue then this can be revisited using an inline selection
+      // algorithm
+      try {
+        var baseIter;
+        var removeIter = new Search.RemovedIterator(
+            new Search.DOMIterator(currentNode.clone || currentNode),
+            currentNode[Events.AnnotateAttrs.REMOVE_CHANGES]);
+        while (1) {
+          children.push(removeIter.next());
+        }
+      } catch (err) {
+        /* NOP */
+      }
+
+      stack.unshift({
+        node: currentNode,
+        attrs: attrs,
+        attrIndex: reverse ? attrs.length-1 : -1,
+        children: children,
+        childIndex: reverse ? children.length-1 : -1
+      });
+      return stack[0];
+    }
+  }
+
+  function pushDescendents(el) {
+    while (el) {
+      pushStack(el, true);
+      if (((el.nodeName || "").toUpperCase() == "IFRAME")) {
+        el = el.contentDocument.documentElement;
+      } else {
+        el = stack[0].children[stack[0].children.length-1];
+      }
+    }
+  }
+
+  /**
+   * Move to the next node.
+   * 
+   * @return The next node if one exists, otherwise undefined.
+   */
+  this.nextNode = function() {
+    if (pastEnd) {
+      return undefined;
+    }
+
+    if (!stack.length) {
+      // We are working with a new tree walker
+      pushStack(root);
+    } else {
+      var stackEl = stack[0];
+
+      // First check attributes
+      if (stackEl.attrIndex < stackEl.attrs.length-1) {
+        stackEl.attrIndex++;
+      } else if ((stackEl.node.nodeName || "").toUpperCase() == "IFRAME"
+          && stackEl.node.contentDocument) {
+        // Attributes have completed, check for iframe contents
+        pushStack(stackEl.node.contentDocument.documentElement);
+      } else {
+        while (stack.length) {
+          stackEl = stack[0];
+          stackEl.childIndex++;
+          if (stackEl.childIndex < stackEl.children.length) {
+            pushStack(stackEl.children[stackEl.childIndex]);
+            break;
+          } else {
+            // The end, pop
+            stack.shift();
+          }
+        }
+      }
+    }
+
+    if (!stack.length) {
+      pastEnd = true;
+    } else {
+      pastStart = false;
+    }
+
+    return this.currentNode();
+  };
+
+  /**
+   * Move to the previous node.
+   * 
+   * @return The previous node if one exists, undefined otherwise.
+   */
+  this.previousNode = function() {
+    if (pastStart) {
+      return undefined;
+    }
+
+    var stackEl = stack[0];
+    if (!stackEl) {
+      // Generate the stack up to the last element
+      pushDescendents(root);
+    } else if (stackEl.childIndex >= 0) {
+      stackEl.childIndex--;
+      pushDescendents(stackEl.children[stackEl.childIndex]);
+    } else if (stackEl.attrIndex >= 0) {
+      stackEl.attrIndex--;
+    } else {
+      stack.shift();
+      stackEl = stack[0];
+      if (stackEl && stackEl.childIndex >= 0) {
+        stackEl.childIndex--;
+        pushDescendents(stackEl.children[stackEl.childIndex]);
+      }
+    }
+
+    if (!stack.length) {
+      pastStart = true;
+    } else {
+      pastEnd = false;
+    }
+
+    return this.currentNode();
+  };
+
+  /**
+   * Retrieves the current node.
+   * 
+   * @return The current node, if not past the beginning or end of the iteration.
+   */
+  this.currentNode = function() {
+    var stackEl = stack[0];
+    FBTrace.sysout("currentNode: stack", stack.slice());
+    if (stackEl) {
+      FBTrace.sysout("currentNode: stackEl ChildIndex: " + stackEl.childIndex + " attrIndex: " + stackEl.attrIndex, stackEl);
+      if (stackEl.attrIndex >= 0) {
+        return stackEl.attrs[stackEl.attrIndex];
+      } else {
+        return stackEl.node;
+      }
+    }
+  };
+
+  /**
+   * Resets the walker position back to the initial position.
+   */
+  this.reset = function() {
+    pastStart = false;
+    pastEnd = false;
+    stack = [];
+  };
+
+  this.reset();
+};
 
 /**
  * @class Iterates over the contents of an array
@@ -191,7 +362,7 @@ this.getAttributes = function(change) {
     if (changes.hasOwnProperty(i) && !attrSeen.hasOwnProperty(i)) {
       attrs.push({
           localName: i,
-          nodeValue: "",
+          nodeValue: changes[i].previousValue,
           change: changes[i]
       });
     }
