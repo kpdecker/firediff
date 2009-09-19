@@ -13,67 +13,6 @@ const Events = FireDiff.events,
       Search = FireDiff.search;
 
 var DomUtil = {
-  getAttributes: function(change) {
-    var attrs = [], attrSeen = {};
-    var idAttr, classAttr, changeAttr;
-    var el = change.clone || change;
-
-    var changes = el[FireDiff.events.AnnotateAttrs.ATTR_CHANGES] || {};
-    if (change.clone && change.attrName) {
-      changes = {};
-      changes[change.attrName] = change;
-    }
-
-    if (el.attributes) {
-      for (var i = 0; i < el.attributes.length; ++i) {
-        var attr = el.attributes[i];
-        if (attr.localName.indexOf("firebug-") != -1)
-           continue;
-
-        // We need to include the change object as domplate does not have an easy way
-        // to pass multiple arguments to a processing method
-        var curChange = changes[attr.localName];
-        if (curChange) {
-            changeAttr = {
-                localName: attr.localName,
-                nodeValue: attr.nodeValue,
-                change: curChange
-            };
-            attr = changeAttr;
-        }
-
-        attrSeen[attr.localName] = true;
-        if (attr.localName == "id") {
-          idAttr = attr;
-        }
-        else if (attr.localName == "class") {
-         classAttr = attr;
-        }
-        else {
-          attrs.push(attr);
-        }
-      }
-    }
-    if (classAttr) {
-      attrs.splice(0, 0, classAttr);
-    }
-    if (idAttr) {
-      attrs.splice(0, 0, idAttr);
-    }
-
-    // Handle any removed attributes
-    for (var i in changes) {
-      if (changes.hasOwnProperty(i) && !attrSeen.hasOwnProperty(i)) {
-        attrs.push({
-            localName: i,
-            nodeValue: "",
-            change: changes[i]
-        });
-      }
-    }
-
-    return attrs;
-  },
   isEmptyElement: function(element) {
     return !element.firstChild && !element[Events.AnnotateAttrs.REMOVE_CHANGES];
   },
@@ -130,7 +69,7 @@ var attributeList = domplate({
   },
 
   attrIterator: function(change) {
-    return DomUtil.getAttributes(change);
+    return Search.getAttributes(change);
   },
 
   isAttrAdded: function(attr) {
