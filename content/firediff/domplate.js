@@ -13,6 +13,29 @@ const Events = FireDiff.events,
       Search = FireDiff.search;
 
 var DomUtil = {
+  diffText: function(change) {
+    function getText(value) {
+      return Firebug.showWhitespaceNodes ? value : value.replace(/(?:^\s+)|(?:\s+$)/g, "");
+    }
+
+    var diffChanges = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
+    if (diffChanges.changeType) {
+      return JsDiff.diffWords(getText(diffChanges.previousValue), getText(diffChanges.value));
+    } else {
+      return [{ value: getText(change.nodeValue) }];
+    }
+  },
+  diffAttr: function(attr) {
+    if (attr.change) {
+      if (attr.localName == "style") {
+        return JsDiff.diffCss(attr.change.previousValue, attr.change.value);
+      } else {
+        return JsDiff.diffWords(attr.change.previousValue, attr.change.value);
+      }
+    } else {
+        return [ { value: attr.nodeValue } ];
+    }
+  },
   isEmptyElement: function(element) {
     return !element.firstChild && !element[Events.AnnotateAttrs.REMOVE_CHANGES];
   },
@@ -85,15 +108,7 @@ var attributeList = domplate({
     return attr.change && attr.change.changeSource == Events.ChangeSource.APP_CHANGE;
   },
   diffAttr: function(attr) {
-      if (attr.change) {
-        if (attr.localName == "style") {
-          return JsDiff.diffCss(attr.change.previousValue, attr.change.value);
-        } else {
-          return JsDiff.diffWords(attr.change.previousValue, attr.change.value);
-        }
-      } else {
-          return [ { value: attr.nodeValue } ];
-      }
+    return DomUtil.diffAttr(attr);
   }
 });
 
@@ -134,16 +149,8 @@ var textChanged = domplate(FirebugReps.TextNode, {
         FOR("block", "$change|diffText",
             SPAN({$removedClass: "$block.removed", $addedClass: "$block.added"}, "$block.value")
         )),
-  getText: function(value) {
-    return Firebug.showWhitespaceNodes ? value : value.replace(/(?:^\s+)|(?:\s+$)/g, "");
-  },
   diffText: function(change) {
-    var diffChanges = change[FireDiff.events.AnnotateAttrs.CHANGES] || change;
-    if (diffChanges.changeType) {
-      return JsDiff.diffWords(this.getText(diffChanges.previousValue), this.getText(diffChanges.value));
-    } else {
-      return [{ value: this.getText(change.nodeValue) }];
-    }
+    return DomUtil.diffText(change);
   },
   isElementAdded: function(change) {
     change = change || change[FireDiff.events.AnnotateAttrs.CHANGES];
