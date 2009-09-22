@@ -90,7 +90,6 @@ this.DOMDiffNodeSearch = function(text, root, panelNode, ioBox) {
     } else if (originalNode.subType == "char_data_modified") {
       var diff = DiffDomplate.DomUtil.diffText(originalNode);
       diff = diff.reduce(function(prev, current) { return prev + current.value; }, "");
-      FBTrace.sysout("Char Diff: " + diff, originalNode);
 
       checkOrder = [{value: diff, isValue: false, caseSensitive: caseSensitive }];
     } else if (node.nodeType != Node.TEXT_NODE) {
