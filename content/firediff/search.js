@@ -7,6 +7,8 @@ var FireDiff  = FireDiff || {};
 FireDiff.search = FBL.ns(function() { with (FBL) {
 
 const Events = FireDiff.events,
+      VersionCompat = FireDiff.VersionCompat,
+      DiffDomplate = FireDiff.domplate,
       Search = this;
 
 /**
@@ -50,10 +52,83 @@ this.PageSearch = function() {
 };
 
 /**
- * Constructs a DOMDiffWalker instance.
- * 
+ * Constructs a NodeSearch instance.
+ *
+ * @class Class used to search a DOM tree for the given text. Will display
+ *        the search results in a IO Box.
+ *
  * @constructor
- * @class Implements an ordered traveral of the document, including diff events, 
+ * @param {String} text Text to search for
+ * @param {Object} root Root of search. This may be an element or a document
+ * @param {Object} panelNode Panel node containing the IO Box representing the DOM tree.
+ * @param {Object} ioBox IO Box to display the search results in
+ */
+this.DOMDiffNodeSearch = function(text, root, panelNode, ioBox) {
+  VersionCompat.NodeSearch.call(
+      this, text, root, panelNode, ioBox, new Search.DOMDiffWalker(root));
+  var re = new ReversibleRegExp(text, "m");
+
+  /**
+   * Checks a given node for a search match.
+   *
+   * @private
+   */
+  this.checkNode = function(node, reverse, caseSensitive, firstStep) {
+    var originalNode = node;
+    node = node.clone || node;
+
+    var checkOrder, checkValues = [];
+    if (originalNode.attrNode) {
+      originalNode = node.attrNode;
+
+      var diff = DiffDomplate.DomUtil.diffAttr(node);
+      diff = diff.reduce(function(prev, current) { return prev + current.value; }, "");
+
+      var nameCheck = { value: originalNode.nodeName, isValue: false, caseSensitive: false };
+      var valueCheck = { value: diff, isValue: true, caseSensitive: caseSensitive };
+      checkOrder = reverse ? [ valueCheck, nameCheck ] : [ nameCheck, valueCheck ];
+    } else if (originalNode.subType == "char_data_modified") {
+      var diff = DiffDomplate.DomUtil.diffText(originalNode);
+      diff = diff.reduce(function(prev, current) { return prev + current.value; }, "");
+      FBTrace.sysout("Char Diff: " + diff, originalNode);
+
+      checkOrder = [{value: diff, isValue: false, caseSensitive: caseSensitive }];
+    } else if (node.nodeType != Node.TEXT_NODE) {
+      var nameCheck = { value: node.nodeName, isValue: false, caseSensitive: false };
+      var valueCheck = { value: node.nodeValue, isValue: true, caseSensitive: caseSensitive };
+      checkOrder = reverse ? [ valueCheck, nameCheck ] : [ nameCheck, valueCheck ];
+    } else {
+      checkOrder = [{value: node.nodeValue, isValue: false, caseSensitive: caseSensitive }];
+    }
+
+    for (var i = firstStep || 0; i < checkOrder.length; i++) {
+      var m = re.exec(checkOrder[i].value, reverse, checkOrder[i].caseSensitive);
+      if (m) {
+        return {
+            node: originalNode,
+            isValue: checkOrder[i].isValue,
+            match: m
+        };
+      }
+    }
+  };
+
+  var super_openToNode = this.openToNode;
+  this.openToNode = function(node, isValue) {
+    var ret = super_openToNode.call(this, node, isValue);
+    if (!ret) {
+      // Fail over to the node if it's not supported by the base impl
+      ret = ioBox.openToObject(node);
+    }
+    return ret;
+  };
+};
+
+/**
+ * Constructs a DOMDiffWalker instance.
+ *
+ * @constructor
+ * @class Implements an ordered traveral of the document, including diff events,
  *        attributes and iframe contents within the results.
  *
  *        Note that the order for attributes is not defined. This will follow the
@@ -108,7 +183,7 @@ this.DOMDiffWalker = function(root) {
 
   /**
    * Move to the next node.
-   * 
+   *
    * @return The next node if one exists, otherwise undefined.
    */
   this.nextNode = function() {
@@ -155,7 +230,7 @@ this.DOMDiffWalker = function(root) {
 
   /**
    * Move to the previous node.
-   * 
+   *
    * @return The previous node if one exists, undefined otherwise.
    */
   this.previousNode = function() {
@@ -192,14 +267,12 @@ this.DOMDiffWalker = function(root) {
 
   /**
    * Retrieves the current node.
-   * 
+   *
    * @return The current node, if not past the beginning or end of the iteration.
    */
   this.currentNode = function() {
     var stackEl = stack[0];
-    FBTrace.sysout("currentNode: stack", stack.slice());
     if (stackEl) {
-      FBTrace.sysout("currentNode: stackEl ChildIndex: " + stackEl.childIndex + " attrIndex: " + stackEl.attrIndex, stackEl);
       if (stackEl.attrIndex >= 0) {
         return stackEl.attrs[stackEl.attrIndex];
       } else {
@@ -333,6 +406,7 @@ this.getAttributes = function(change) {
           changeAttr = {
               localName: attr.localName,
               nodeValue: attr.nodeValue,
+              attrNode: attr,
               change: curChange
           };
           attr = changeAttr;

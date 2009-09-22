@@ -244,6 +244,25 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     
     delete this.panel;
   },
+  search: function(text, reverse, panel) {
+    if (!text)  { return; }
+
+    var search;
+    if (text == this.searchText && this.lastSearch) {
+      search = this.lastSearch;
+    } else {
+      search = this.lastSearch = new Search.DOMDiffNodeSearch(text, this.displayTree, panel.panelNode, this.ioBox);
+      this.searchText = text;
+    }
+
+    var loopAround = search.find(reverse, Firebug.searchCaseSensitive);
+    if (loopAround) {
+      delete this.lastSearch;
+      return this.search(text, reverse, panel);
+    }
+
+    return !search.noMatch;
+  },
 
   navigableChange: function(changeNode) {
     var displayedTypes = {};
