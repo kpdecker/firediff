@@ -182,6 +182,71 @@ var JsDiff = (function() {
 
     diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
 
+    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
+      var ret = [];
+      
+      ret.push("Index: " + fileName);
+      ret.push("===================================================================");
+      ret.push("--- " + fileName + "\t" + oldHeader);
+      ret.push("+++ " + fileName + "\t" + newHeader);
+      
+      var diff = LineDiff.diff(oldStr, newStr);
+      diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
+      
+      var oldRangeStart = 0, newRangeStart = 0, curRange = [],
+          oldLine = 1, newLine = 1;
+      for (var i = 0; i < diff.length; i++) {
+        var current = diff[i],
+            lines = current.lines || current.value.replace(/\n$/, "").split("\n");
+        current.lines = lines;
+        
+        if (current.added || current.removed) {
+          if (!oldRangeStart) {
+            var prev = diff[i-1];
+            oldRangeStart = oldLine;
+            newRangeStart = newLine;
+            
+            if (prev) {
+              curRange.push.apply(curRange, prev.lines.slice(-4).map(function(entry) { return " " + entry; }));
+              oldRangeStart -= 4;
+              newRangeStart -= 4;
+            }
+          }
+          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
+          if (current.added) {
+            newLine += lines.length;
+          } else {
+            oldLine += lines.length;
+          }
+        } else {
+          if (oldRangeStart) {
+            if (lines.length <= 8 && i < diff.length-1) {
+              // Overlapping 
+              curRange.push.apply(curRange, lines.map(function(entry) { return " " + entry; }));
+            } else {
+              // end the range and output
+              var contextSize = Math.min(lines.length, 4);
+              ret.push(
+                  "@@ -" + oldRangeStart + "," + (oldLine-oldRangeStart+contextSize)
+                  + " +" + newRangeStart + "," + (newLine-newRangeStart+contextSize)
+                  + " @@");
+              ret.push.apply(ret, curRange);
+              ret.push.apply(ret, lines.slice(0, contextSize).map(function(entry) { return " " + entry; }));
+
+              oldRangeStart = 0;  newRangeStart = 0; curRange = [];
+            }
+          }
+          oldLine += lines.length;
+          newLine += lines.length;
+        }
+      }
+      if (diff.length > 1 && !/\n$/.test(diff[diff.length-2].value)) {
+        ret.push("\\ No newline at end of file\n");
+      }
+      
+      return ret.join("\n");
+    },
+
     convertChangesToXML: function(changes){
       var ret = [];
       for ( var i = 0; i < changes.length; i++) {
