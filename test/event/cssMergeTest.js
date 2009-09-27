@@ -378,6 +378,7 @@ function runTest() {
       Events.merge([removeEvent, eventSecond]),
       "CSS remove rule insert rule after");
   
+  // TODO : Test the cancellation case
   // TODO : Merge w/ insert/remove of style and link nodes
   // TODO : Merge w/ @media changes
   

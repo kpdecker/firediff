@@ -19,6 +19,12 @@ function runTest() {
   root.appendChild(sibling);
   
   var removeEvent = new Events.dom.DOMRemovedEvent(target);
+  var eventIndependent = new Events.dom.DOMAttrChangedEvent(
+      root,
+      MutationEvent.ADDITION,
+      "align",
+      "right",
+      "");
   
   // Next events
   // Attribute Change
@@ -80,6 +86,10 @@ function runTest() {
       [removeEvent, eventSecond],
       Events.merge([removeEvent, eventSecond]),
       "Remove char data child");
+  FBTestFireDiff.compareChangeList(
+      [eventIndependent, removeEvent],
+      Events.merge([eventSecond, eventIndependent, removeEvent]),
+      "Remove char data child");
   
   // - Other
   eventSecond = new Events.dom.DOMCharDataModifiedEvent(
@@ -111,6 +121,10 @@ function runTest() {
   FBTestFireDiff.compareChangeList(
       [removeEvent, eventSecond],
       Events.merge([removeEvent, eventSecond]),
+      "Remove remove child");
+  FBTestFireDiff.compareChangeList(
+      [eventIndependent, removeEvent],
+      Events.merge([eventSecond, eventIndependent, removeEvent]),
       "Remove remove child");
   
   // - Self not child
@@ -149,6 +163,10 @@ function runTest() {
       [removeEvent, eventSecond],
       Events.merge([removeEvent, eventSecond]),
       "Remove insert child");
+  FBTestFireDiff.compareChangeList(
+      [eventIndependent, removeEvent],
+      Events.merge([eventSecond, eventIndependent, removeEvent]),
+      "Remove insert child cancel");
   
   // - Parent
   eventSecond = new Events.dom.DOMInsertedEvent(document.createElement("div"));

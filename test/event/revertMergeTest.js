@@ -43,9 +43,9 @@ function runTest() {
     
     reverts[0] = reverts[0] || {};
     if (revertOffset < 0) {
-      FBTest.compare(Path.updateForRevertRemove(revertXpath, originalXpath), reverts[0].xpath, msg + " Updated revert xpath");
+      FBTest.compare(Path.updateForRevertRemove(revertXpath, originalXpath), reverts[0].xpath, msg + " Updated revert xpath, remove");
     } else if (revertOffset > 0) {
-      FBTest.compare(Path.updateForInsert(revertXpath, originalXpath), reverts[0].xpath, msg + " Updated revert xpath");
+      FBTest.compare(Path.updateForInsert(revertXpath, originalXpath), reverts[0].xpath, msg + " Updated revert xpath, insert");
     } else {
       FBTest.compare(revertXpath, reverts[0].xpath, msg + " revert xpath");
     }
