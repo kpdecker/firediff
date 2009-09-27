@@ -30,10 +30,10 @@ CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
       var targetXpath = target && (target.xpath || this.getXpath(target));
       return targetXpath && Path.getTopPath(targetXpath) == Path.getTopPath(this.xpath);
     },
-    getSnapshotRep: function(context) {
+    getSnapshot: function(context) {
       return new Reps.CSSSnapshot(this, context);
     },
-    getBaseSnapshotRep: function(context) {
+    getBaseSnapshot: function(context) {
       var rootPath = Path.getTopPath(this.xpath);
       var sheet = Path.evaluateStylePath(rootPath, context.window.document);
       return new Reps.CSSSnapshot(sheet, context);

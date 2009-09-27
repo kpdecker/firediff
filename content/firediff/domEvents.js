@@ -27,10 +27,10 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       return this.target.ownerDocument == target.ownerDocument
           || (target.target && this.target.ownerDocument == target.target.ownerDocument);
     },
-    getSnapshotRep: function(context) {
+    getSnapshot: function(context) {
       return new Reps.DOMSnapshot(this, context.window.document);
     },
-    getBaseSnapshotRep: function(context) {
+    getBaseSnapshot: function(context) {
       return new Reps.DOMSnapshot(null, context.window.document);
     },
     getDocumentName: function() {

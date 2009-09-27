@@ -52,8 +52,8 @@ ChangeEvent.prototype = {
      * style sheet, DOM document, etc.
      */
     sameFile: function(otherChange) {},
-    getSnapshotRep: function(context) {},
-    getBaseSnapshotRep: function(context) {},
+    getSnapshot: function(context) {},
+    getBaseSnapshot: function(context) {},
     getDocumentName: function(context) {},
     
     apply: function() {},

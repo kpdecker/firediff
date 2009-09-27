@@ -114,7 +114,7 @@ DiffMonitor.prototype = extend(Panel, {
     selectSnapshot: function(change) {
       try {
         // We run this here to defer change processing
-        this.select(change.getSnapshotRep(this.context));
+        this.select(change.getSnapshot(this.context));
       } catch (err) {
         FBTrace.sysout(err,err);
       }
@@ -158,7 +158,7 @@ DiffMonitor.prototype = extend(Panel, {
     saveSnapshot: function(change) {
       var file = this.promptForFileName(i18n.getString("menu.SaveSnapshot"), change.changeType);
       if (file) {
-        var snapshot = change.getSnapshotRep(this.context);
+        var snapshot = change.getSnapshot(this.context);
         this.writeString(file, snapshot.getText());
       }
     },
@@ -166,8 +166,8 @@ DiffMonitor.prototype = extend(Panel, {
       try {
         var file = this.promptForFileName(i18n.getString("menu.SaveDiff"), "diff");
         if (file) {
-          var snapshot = change.getSnapshotRep(this.context),
-              base = change.getBaseSnapshotRep(this.context),
+          var snapshot = change.getSnapshot(this.context),
+              base = change.getBaseSnapshot(this.context),
               snapshotText = snapshot.getText(),
               baseText = base.getText(),
               diff = JsDiff.createPatch(
