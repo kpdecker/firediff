@@ -1,0 +1,36 @@
+@charset "ISO-8859-1";
+@import url("import.css");
+@import url("import.css");
+
+/* Not supported by Firefox 3.0 */
+@font-face {
+  font-family: "Robson Celtic";
+  src: url("http://site/fonts/rob-celt");
+}
+
+/*
+Not supported by firefox
+@page { size: 8.5in 11in; margin: 2cm }
+*/
+
+/* Not supported by firefox 3.0 */
+@media tv, print {
+  #div2 {
+    overflow: hidden;
+  }
+  
+  #div3 {
+    overflow: hidden;
+  }
+}
+
+@media screen {
+  #div2 {
+    overflow: visible;
+  }
+}
+
+#div2 {
+  font-weight: bold;
+  color: green;
+}

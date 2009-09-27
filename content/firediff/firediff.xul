@@ -19,6 +19,7 @@
   <script src="chrome://firediff/content/versionCompat.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diff.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/formatter.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/cssModel.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/events.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/domEvents.js" type="application/x-javascript"/>
