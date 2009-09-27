@@ -53,6 +53,8 @@ ChangeEvent.prototype = {
      */
     sameFile: function(otherChange) {},
     getSnapshotRep: function(context) {},
+    getBaseSnapshotRep: function(context) {},
+    getDocumentName: function(context) {},
     
     apply: function() {},
     revert: function() {},

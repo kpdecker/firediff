@@ -23,12 +23,18 @@ function DOMChangeEvent(target, xpath, displayXPath, changeSource) {
   this.target = target;
 }
 DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
-    sameFile: function(otherChange) {
-      return this.getChangeType() == otherChange.getChangeType()
-          && this.target.ownerDocument == otherChange.target.ownerDocument;
+    sameFile: function(target) {
+      return this.target.ownerDocument == target.ownerDocument
+          || (target.target && this.target.ownerDocument == target.target.ownerDocument);
     },
     getSnapshotRep: function(context) {
       return new Reps.DOMSnapshot(this, context.window.document);
+    },
+    getBaseSnapshotRep: function(context) {
+      return new Reps.DOMSnapshot(null, context.window.document);
+    },
+    getDocumentName: function() {
+      return this.target.ownerDocument.URL;
     },
     
     getXpath: function(target) { return Path.getElementPath(target); },

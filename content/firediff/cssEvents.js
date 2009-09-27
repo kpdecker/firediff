@@ -27,10 +27,23 @@ CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
       return Path.evaluateStylePath(xpath, root);
     },
     sameFile: function(target) {
-      return target && Path.getTopPath(target.xpath) == Path.getTopPath(this.xpath);
+      var targetXpath = target && (target.xpath || this.getXpath(target));
+      return targetXpath && Path.getTopPath(targetXpath) == Path.getTopPath(this.xpath);
     },
     getSnapshotRep: function(context) {
       return new Reps.CSSSnapshot(this, context);
+    },
+    getBaseSnapshotRep: function(context) {
+      var rootPath = Path.getTopPath(this.xpath);
+      var sheet = Path.evaluateStylePath(rootPath, context.window.document);
+      return new Reps.CSSSnapshot(sheet, context);
+    },
+    getDocumentName: function(context) {
+      var rootPath = Path.getTopPath(this.xpath);
+      var sheet = Path.evaluateStylePath(rootPath, context.window.document);
+      
+      FBTrace.sysout("cssChange.getDocumentName: style", this.style);
+      return rootPath.href;
     }
 });
 

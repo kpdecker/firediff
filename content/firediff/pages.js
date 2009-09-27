@@ -9,7 +9,8 @@ var Events = FireDiff.events,
     Path = FireDiff.Path,
     CSSModel = FireDiff.CSSModel,
     DiffDomplate = FireDiff.domplate,
-    Search = FireDiff.search;
+    Search = FireDiff.search,
+    Formatter = FireDiff.formatter;
 
 var i18n = document.getElementById("strings_firediff");
 
@@ -95,6 +96,15 @@ this.MonitorRep = domplate(Firebug.Rep,{
   }
 });
 
+/**
+ * Initializes the base snapshot datastructures. The passed parameter may be a
+ * change event to generate a snapshot for a single document at a given point in
+ * time or it may be a document to generate the base snapshot for that document.
+ * 
+ * @constructor
+ * @class Base class for snapshots of a document state at a given point of time.
+ * @param {Object} change The change event of document to create a snapshot for.
+ */
 function Snapshot(change) {
   var changes = Firebug.DiffModule.getChanges();
   var displayChanges = [], revertChanges = [];
@@ -103,9 +113,15 @@ function Snapshot(change) {
     if (changes[i] == change) {
       displayChanges.push(changes[i]);
       foundChange = true;
-    } else if (change.sameFile(changes[i])) {
+    } else if (changes[i].sameFile(change)) {
       (foundChange ? revertChanges : displayChanges).push(changes[i]);
     }
+  }
+  if (!foundChange) {
+    // If the change was not in the list then we assume that this is the revert
+    // to base case
+    revertChanges = displayChanges;
+    displayChanges = [];
   }
   displayChanges = Events.merge(displayChanges);
   
@@ -209,7 +225,7 @@ Snapshot.prototype = {
 };
 
 this.DOMSnapshot = function(change, document){
-  Snapshot.call(this, change);
+  Snapshot.call(this, change || document.documentElement);
   
   this.displayTree = document.documentElement.cloneNode(true);
   this.cloneXPath = Path.getElementPath(document.documentElement);
@@ -262,6 +278,12 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     }
 
     return !search.noMatch;
+  },
+
+  getText: function() {
+    var writer = new Formatter.Writer("  ");
+    new Formatter.DOMFormatter(writer).printNode(this.displayTree);
+    return writer.toString();
   },
 
   navigableChange: function(changeNode) {
@@ -322,7 +344,7 @@ this.DOMSnapshotRep = domplate(Firebug.Rep, {
 this.CSSSnapshot = function(change, context){
   Snapshot.call(this, change);
 
-  var rootPath = Path.getTopPath(change.xpath);
+  var rootPath = Path.getTopPath(change.xpath || Path.getStylePath(change));
   this.sheet = Path.evaluateStylePath(rootPath, context.window.document);
   this.displayTree = CSSModel.cloneCSSObject(this.sheet);
   this.updateCloneToChange(this.displayTree, rootPath);
@@ -341,6 +363,12 @@ this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   search: function(text, reverse, panel) {
     this.searchHelper = this.searchHelper || new Search.PageSearch();
     return this.searchHelper.search(text, reverse, panel);
+  },
+  
+  getText: function() {
+    var writer = new Formatter.Writer("  ");
+    new Formatter.CSSFormatter(writer).printSheet(this.displayTree);
+    return writer.toString();
   },
   
   navigableChange: function(change) {
