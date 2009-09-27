@@ -15,7 +15,7 @@ function revertChange(curChange, context) {
     rootPath = Path.getElementPath(ownerDoc);
   }
 
-  if (FBTrace.DBG_FIREDIFF) FBTrace.sysout("Revert change: " + i, curChange);
+  if (FBTrace.DBG_FIREDIFF) FBTrace.sysout("Revert change", curChange);
   curChange.revert(ownerDoc, rootPath);
 }
 
