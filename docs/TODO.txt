@@ -5,8 +5,7 @@ The following are items that need further work:
     combinations into distinct changes within the data rather than 2 events.
 - CSS Changes merged with editor changes due to "race" condition
 - Diff Monitor
- - Search
  - CSS Rep Links
-- Unified Diff Panel
- - CSS and DOM formatter
+- Enhanced CSS and DOM formatter
 - Manual test for revert UI
+- Manual test for save snapshot and diff
