@@ -40,6 +40,11 @@ ChangeEvent.prototype = {
      * Determines if a candidate change cancels the effects of this change.
      */
     isCancellation: function(candidate) {},
+    
+    /**
+     * Determines if this change negates any effect of a prior change.
+     */
+    overridesChange: function(prior) {},
     cloneOnXPath: function(xpath) {},
     appliesTo: function(target) {
       // Any change that is made to the target or a child
@@ -61,10 +66,12 @@ ChangeEvent.prototype = {
 
     getMergedXPath: function(prior) {
       var updatedPath;
-      if (this.isElementAdded()) {
-        updatedPath = Path.updateForInsert(prior.xpath, this.xpath);
-      } else if (this.isElementRemoved()) {
-        updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
+      if (!prior.isElementRemoved() || this.xpath != prior.xpath) {
+        if (this.isElementAdded()) {
+          updatedPath = Path.updateForInsert(prior.xpath, this.xpath);
+        } else if (this.isElementRemoved()) {
+          updatedPath = Path.updateForRemove(prior.xpath, this.xpath);
+        }
       }
 
       if (updatedPath && updatedPath != prior.xpath) {
@@ -209,17 +216,23 @@ function mergeChange(changes, change, changeIndex) {
   for (var outerIter = changeIndex + 1; change && outerIter < changes.length; outerIter++) {
     var candidate = changes[outerIter],
         mergeValue;
-    if (!candidate) {
+    if (!candidate || candidate.changeType != change.changeType) {
       continue;
     }
 
-    mergeValue = change.merge(changes[outerIter]);
+    if (change.isCancellation(candidate)) {
+      mergeValue = [];
+    } else if (candidate.overridesChange(change)) {
+      mergeValue = [undefined, candidate];
+    } else {
+      mergeValue = change.merge(changes[outerIter]);
+    }
     if (!mergeValue) {
       continue;
     }
     if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge change " + changeIndex + " " + outerIter, mergeValue);
 
-    if (!mergeValue[0]) {
+    if (mergeValue.length == 0 && !mergeValue[0]) {
       // Cancellation special case:
       updateXPathFromCancellation(changes, change, changeIndex, outerIter);
     }

@@ -43,13 +43,13 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
       return iterate.iterateNext();
     },
     
-    /* Merge Helper Routines */
-    overridesChange: function(prior) {},
-    
     annotateTree: function(tree, root) {
       var actionNode = this.getActionNode(tree, root);
       if (!actionNode) {
-        if (FBTrace.DBG_ERRORS)   FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
+        if (FBTrace.DBG_ERRORS) {
+          FBTrace.sysout("ERROR: annotateTree: actionNode is undefined tree: " + root, tree);
+          FBTrace.sysout("annotateTree: change", this);
+        }
       }
       actionNode[CHANGES] = this;
 
@@ -97,27 +97,11 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
     },
 
     merge: function(candidate) {
-      if (candidate.changeType != this.changeType) {
-        // We don't touch if it's not dom
-        return undefined;
-      }
-      
       // Only changes that affect us are:
       // - Remove on same xpath (Overrides)
       // - Modification of self (by attr or char data change)
       // - Any modification of children
       // - XPath updates
-      
-      // Check overrides cases
-      if (candidate.overridesChange(this)) {
-        // Special case here. The only thing that can override us
-        // is our inverse or an action on our parent.
-        if (candidate.xpath == this.xpath) {
-          return [];
-        } else {
-          return [candidate];
-        }
-      }
       
       var updateXPath = candidate.getMergedXPath(this);
       
@@ -147,7 +131,19 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       // On revert we want to
       //  - Revert any changes made on this object or a child
       if (Path.isChildOrSelf(this.xpath, candidate.xpath)) {
-        return this.merge(candidate);
+        var ret = this.merge(candidate);
+        if (ret) {
+          return ret;
+        }
+        
+        // XPath modification
+        var updateXPath = candidate.getMergedXPath(this);
+        if (updateXPath) {
+          return [
+              this.cloneOnXPath(updateXPath),
+              candidate
+          ];
+        }
       }
     },
     isCancellation: function(candidate) {
@@ -194,28 +190,11 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     },
     
     merge: function(candidate) {
-      if (candidate.changeType != this.changeType) {
-        // We don't touch if it's not dom
-        return undefined;
-      }
-      
       if (Path.isChild(this.xpath, candidate.xpath)) {
         // If this is a child WRT to xpath, we don't touch it.
         return undefined;
       }
       
-      if (this.xpath === candidate.xpath) {
-        if (candidate.isElementAdded()
-            && this.clone.isEqualNode(candidate.clone)) {
-          // Cancellation
-          return [];
-        }
-      } else {
-        // Check overrides cases
-        if (candidate.overridesChange(this)) {
-          return [candidate];
-        }
-        
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
@@ -224,7 +203,6 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
               candidate
           ];
         }
-      }
     },
     mergeRevert: function(candidate) {
       // The only thing that a delete might revert is an insert operation
@@ -246,7 +224,8 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
     },
 
     overridesChange: function(prior) {
-      return Path.isChildOrSelf(this.xpath, prior.xpath);
+      return (!prior.isElementRemoved() && this.xpath == prior.xpath)
+          || Path.isChild(this.xpath, prior.xpath);
     },
     
     annotateTree: function(tree, root) {
@@ -291,19 +270,9 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
     isRemoval: function() { return this.attrChange == MutationEvent.REMOVAL; },
     
     merge: function(candidate) {
-      if (candidate.changeType != this.changeType) {
-        // We don't touch if it's not dom
-        return undefined;
-      }
-      
       if (this.subType != candidate.subType
               || this.xpath != candidate.xpath
               || this.attrName != candidate.attrName) {
-        // Check overrides cases
-        if (candidate.overridesChange(this)) {
-          return [candidate];
-        }
-        
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
@@ -447,18 +416,8 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
       return i18n.getString("summary.DOMCharDataModified");
     },
     merge: function(candidate) {
-      if (candidate.changeType != this.changeType) {
-        // We don't touch if it's not dom
-        return undefined;
-      }
-      
       if (this.subType != candidate.subType
               || this.xpath != candidate.xpath) {
-        // Check overrides cases
-        if (candidate.overridesChange(this)) {
-          return [candidate];
-        }
-        
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
         if (updateXpath) {
