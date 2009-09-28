@@ -22,6 +22,9 @@ function CSSChangeEvent(style, changeSource, xpath) {
 CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
     changeType: "CSS",
 
+    isPropSet: function() {},
+    isPropRemoval: function() {},
+
     getXpath: function(target) { return Path.getStylePath(target); },
     xpathLookup: function(xpath, root) {
       return Path.evaluateStylePath(xpath, root);
@@ -41,9 +44,8 @@ CSSChangeEvent.prototype = extend(ChangeEvent.prototype, {
     getDocumentName: function(context) {
       var rootPath = Path.getTopPath(this.xpath);
       var sheet = Path.evaluateStylePath(rootPath, context.window.document);
-      
-      FBTrace.sysout("cssChange.getDocumentName: style", this.style);
-      return rootPath.href;
+
+      return sheet.href;
     }
 });
 
@@ -91,9 +93,8 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     return rule;
   },
   merge: function(candidate) {
-    if (candidate.subType == "removeRule"
-        && this.xpath == candidate.xpath) {
-      return this.clone.equals(candidate.clone) ? [] : undefined;
+    if (candidate.isElementRemoved() && this.xpath == candidate.xpath) {
+      return;
     }
     
     var updateXpath = candidate.getMergedXPath(this);
@@ -103,7 +104,7 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
           candidate
         ];
     } else if (Path.isChildOrSelf(this.xpath, candidate.xpath)
-        && (candidate.subType == "setProp" || candidate.subType == "removeProp")){
+        && (candidate.isPropSet() || candidate.isPropRemoval())){
       // TODO : Handle @media nested changes?
       var clone = this.clone.clone();
       candidate.apply(clone, this.xpath);
@@ -113,7 +114,8 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
   },
   isCancellation: function(candidate) {
     return candidate.isElementRemoved()
-        && this.xpath == candidate.xpath;
+        && this.xpath == candidate.xpath
+        && this.clone.equals(candidate.clone);
   },
   affectsCancellation: function(candidate) {
     return Path.isChildOrSelf(this.xpath, candidate.xpath);
@@ -176,13 +178,8 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     return this;
   },
   merge: function(candidate) {
-    if (candidate.subType == "insertRule"
-        && this.xpath == candidate.xpath) {
-      if (this.clone.equals(candidate.clone)) {
-        return [];
-      } else {
-        return [this, candidate];
-      }
+    if (candidate.isElementAdded() && this.xpath == candidate.xpath) {
+      return;
     }
     
     var updateXpath = candidate.getMergedXPath(this);
@@ -191,21 +188,15 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
           this.cloneOnXPath(updateXpath),
           candidate
         ];
-    } else if (this.xpath == candidate.xpath
-        && (this.subType == "setProp" || this.subType == "removeProp")){
-      // TODO : Handle @media nested changes?
-      // TODO : Unit test this path
-      // TODO : Why exactly are we modifying a remove event?
-      var clone = this.clone.clone();
-      candidate.apply(clone, this.xpath);
-      
-      return [ new CSSRemoveRuleEvent(this.style, this.changeSource, this.xpath, clone, this.styleSheet) ];
     }
   },
   mergeRevert: function(candidate) {
     if (this.isCancellation(candidate)) {
       return [];
     }
+  },
+  overridesChange: function(prior) {
+    return !prior.isElementRemoved() && this.xpath == prior.xpath;
   },
   isCancellation: function(candidate) {
     return this.xpath == candidate.xpath
@@ -243,11 +234,6 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
   },
   
   merge: function(candidate) {
-    if (candidate.subType == "removeRule"
-        && this.xpath == candidate.xpath) {
-      return [undefined, candidate];
-    }
-    
     var updateXpath = candidate.getMergedXPath(this);
     if (updateXpath) {
       return [
@@ -255,13 +241,27 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
           candidate
         ];
     }
-      if (this.changeType != candidate.changeType
-              || this.xpath != candidate.xpath
-              || this.propName != candidate.propName) {
-          return undefined;
-      }
-      
-      return this.mergeSubtype(candidate);
+    if (this.xpath != candidate.xpath
+        || this.propName != candidate.propName) {
+      return;
+    }
+
+    if (candidate.isPropSet()) {
+      return [
+        new CSSSetPropertyEvent(
+              this.style, this.propName,
+              candidate.propValue, candidate.propPriority,
+              this.prevValue, this.prevPriority, this.changeSource,
+              this.xpath)
+      ];
+    } else {
+      return [
+        new CSSRemovePropertyEvent(
+              this.style, this.propName,
+              this.prevValue, this.prevPriority,
+              this.changeSource, this.xpath)
+      ];
+    }
   },
   mergeRevert: function(candidate) {
     if (this.xpath == candidate.xpath
@@ -289,34 +289,7 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     getSummary: function() {
         return i18n.getString("summary.CSSSetProperty");
     },
-    mergeSubtype: function(candidate) {
-      if (this.subType == candidate.subType) {
-        if (this.prevValue != candidate.propValue
-            || this.prevPriority != candidate.propPriority) {
-          return [
-              new CSSSetPropertyEvent(
-                      this.style, this.propName,
-                      candidate.propValue, candidate.propPriority,
-                      this.prevValue, this.prevPriority, this.changeSource,
-                      this.xpath)
-              ];
-        } else {
-          return [];
-        }
-      } else if (candidate.subType == "removeProp"){
-        if (this.prevValue != candidate.propValue
-            || this.prevPriority != candidate.propPriority) {
-          return [
-              new CSSRemovePropertyEvent(
-                      this.style, this.propName,
-                      this.prevValue, this.prevPriority,
-                      this.changeSource, this.xpath)
-              ];
-        } else {
-          return [];
-        }
-      }
-    },
+    isPropSet: function() { return true; },
     isCancellation: function(candidate) {
       return this.xpath == candidate.xpath
           && this.prevValue == candidate.propValue
@@ -368,24 +341,7 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     getSummary: function() {
         return i18n.getString("summary.CSSRemoveProperty");
     },
-    mergeSubtype: function(candidate) {
-      if (this.subType == candidate.subType) {
-        return [this];
-      } else if (candidate.subType == "setProp") {
-        if (this.prevValue == candidate.propValue
-            && this.prevProperty == candidate.propProperty) {
-          return [];
-        }
-
-        return [
-                new CSSSetPropertyEvent(
-                        this.style, this.propName,
-                        candidate.propValue, candidate.propPriority,
-                        this.prevValue, this.prevPriority, this.changeSource,
-                        this.xpath)
-                ];
-      }
-    },
+    isPropRemoval: function() { return true; },
     isCancellation: function(candidate) {
       return this.xpath == candidate.xpath
           && this.subType != candidate.subType
