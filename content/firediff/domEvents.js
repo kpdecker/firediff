@@ -281,65 +281,22 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
               candidate
           ];
         }
-        return undefined;
+        return;
       }
-      
+
+      var attrChange = this.attrChange;
       if (candidate.attrChange == MutationEvent.REMOVAL) {
-        if (this.attrChange == MutationEvent.ADDITION) {
-          // These events cancel, remove.
-          return [];
-        } else {
-          // Anything followed by removal: Removal, merging previous value
-          return [
-              new DOMAttrChangedEvent(
-                  this.target,
-                  MutationEvent.REMOVAL, this.attrName,
-                  candidate.value, this.previousValue,
-                  this.xpath, this.displayXPath, this.changeSource, this.clone)
-              ];
-        }
+        attrChange = candidate.attrChange;
       } else if (this.attrChange == MutationEvent.REMOVAL) {
-        if (candidate.attrChange == MutationEvent.ADDITION) {
-          // Removal followed by addition: one of two cases. Modification or cancellation
-          if (this.previousValue == candidate.value) {
-            return [];
-          } else {
-            return [
-                new DOMAttrChangedEvent(
-                    this.target,
-                    MutationEvent.MODIFICATION, this.attrName,
-                    candidate.value, this.previousValue,
-                    this.xpath, this.displayXPath, this.changeSource, this.clone)
-                ];
-          }
-        } else {
-          if (this.previousValue == candidate.value) {
-            return [];
-          } else {
-            // Removal following by anything else is that other thing w/ prev set to our value
-            return [
-                new DOMAttrChangedEvent(
-                    this.target,
-                    candidate.attrChange, this.attrName,
-                    candidate.value, this.previousValue,
-                    this.xpath, this.displayXPath, this.changeSource, this.clone)
-                ];
-          }
-        }
-      } else {
-        // Any other events (even those that don't make sense) just result in a merge
-        if (this.previousValue == candidate.value) {
-          return [];
-        } else {
-          return [
-              new DOMAttrChangedEvent(
-                  this.target,
-                  this.attrChange, this.attrName,
-                  candidate.value, this.previousValue,
-                  this.xpath, this.displayXPath, this.changeSource, this.clone)
-              ];
-        }
+        attrChange = MutationEvent.MODIFICATION;
       }
+      return [
+        new DOMAttrChangedEvent(
+            this.target,
+            attrChange, this.attrName,
+            candidate.value, this.previousValue,
+            this.xpath, this.displayXPath, this.changeSource, this.clone)
+      ];
     },
     cloneOnXPath: function(xpath) {
       return new DOMAttrChangedEvent(
