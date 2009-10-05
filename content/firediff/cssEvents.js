@@ -292,6 +292,7 @@ CSSSetPropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     isPropSet: function() { return true; },
     isCancellation: function(candidate) {
       return this.xpath == candidate.xpath
+          && this.propName == candidate.propName
           && this.prevValue == candidate.propValue
           && this.prevPriority == candidate.propPriority;
     },
@@ -345,6 +346,7 @@ CSSRemovePropertyEvent.prototype = extend(CSSPropChangeEvent.prototype, {
     isCancellation: function(candidate) {
       return this.xpath == candidate.xpath
           && this.subType != candidate.subType
+          && this.propName == candidate.propName
           && this.prevValue == candidate.propValue
           && this.prevPriority == candidate.propPriority;
     },
