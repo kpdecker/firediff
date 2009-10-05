@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <project name="firediff" default="dist">
-  <property name="version" value="0.2.1" />
+  <property name="version" value="1.0a1" />
 
   <property name="src_dir" location="${basedir}" />
   <property name="dist_dir" location="${basedir}/dist" />
