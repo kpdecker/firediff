@@ -18,10 +18,15 @@ const prefs = PrefService.getService(nsIPrefBranch2);
 const PromptService = Cc["@mozilla.org/embedcomp/prompt-service;1"];
 const prompt = PromptService.getService(Ci.nsIPromptService);
 
-
 var Events = FireDiff.events,
     Path = FireDiff.Path,
-    Reps = FireDiff.reps;
+    Reps = FireDiff.reps,
+    Fireformat = {};
+
+try {
+  Components.utils.import("resource://fireformat/formatters.jsm", Fireformat);
+} catch (err) {
+}
 
 var i18n = document.getElementById("strings_firediff");
 var Panel = Firebug.ActivablePanel || Firebug.Panel;
@@ -219,15 +224,20 @@ DiffMonitor.prototype = extend(Panel, {
 
     getContextMenuItems: function(object, target) {
       if (this.selection == Reps.Monitor) {
-        return [
-                { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true },
-                "-",
-                { label: i18n.getString("menu.SaveSnapshot"), command: bindFixed(this.saveSnapshot, this, object), nol10n: true },
-                { label: i18n.getString("menu.SaveDiff"), command: bindFixed(this.saveDiff, this, object), nol10n: true },
-                "-",
-                { label: i18n.getString("menu.RevertChange"), command: bindFixed(this.revertChange, this, object), nol10n: true },
-                { label: i18n.getString("menu.RevertAllChanges"), command: bindFixed(this.revertAllChanges, this, object), nol10n: true }
+        var ret = [
+           { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object), nol10n: true },
+           "-"
         ];
+
+        if (Fireformat.Formatters) {
+          ret.push({ label: i18n.getString("menu.SaveSnapshot"), command: bindFixed(this.saveSnapshot, this, object), nol10n: true });
+          ret.push({ label: i18n.getString("menu.SaveDiff"), command: bindFixed(this.saveDiff, this, object), nol10n: true });
+          ret.push("-");
+        }
+
+        ret.push({ label: i18n.getString("menu.RevertChange"), command: bindFixed(this.revertChange, this, object), nol10n: true });
+        ret.push({ label: i18n.getString("menu.RevertAllChanges"), command: bindFixed(this.revertAllChanges, this, object), nol10n: true });
+        return ret;
       }
     },
     

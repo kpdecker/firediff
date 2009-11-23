@@ -3,14 +3,20 @@ var FireDiff  = FireDiff || {};
 
 FireDiff.reps = FBL.ns(function() { with (FBL) {
 
+var Fireformat = {};
+
+try {
+  Components.utils.import("resource://fireformat/formatters.jsm", Fireformat);
+} catch (err) {
+}
+
 const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptableDateFormat");
 
 var Events = FireDiff.events,
     Path = FireDiff.Path,
     CSSModel = FireDiff.CSSModel,
     DiffDomplate = FireDiff.domplate,
-    Search = FireDiff.search,
-    Formatter = FireDiff.formatter;
+    Search = FireDiff.search;
 
 var i18n = document.getElementById("strings_firediff");
 
@@ -281,9 +287,7 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
   },
 
   getText: function() {
-    var writer = new Formatter.Writer("  ");
-    new Formatter.DOMFormatter(writer).printNode(this.displayTree);
-    return writer.toString();
+    return Fireformat.Formatters.getHTMLFormatter().format(this.displayTree);
   },
 
   navigableChange: function(changeNode) {
@@ -366,9 +370,7 @@ this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
   },
   
   getText: function() {
-    var writer = new Formatter.Writer("  ");
-    new Formatter.CSSFormatter(writer).printSheet(this.displayTree);
-    return writer.toString();
+    return Fireformat.Formatters.getCSSFormatter().format(this.displayTree);
   },
   
   navigableChange: function(change) {
