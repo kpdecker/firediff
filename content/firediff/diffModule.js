@@ -127,16 +127,44 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
               styleSheet.cssRules[ruleIndex],
               Events.ChangeSource.FIREBUG_CHANGE));
     },
-    onCSSSetProperty: function(style, propName, propValue, propPriority, prevValue, prevPriority) {
+    onCSSSetProperty: function(style, propName, propValue, propPriority, prevValue, prevPriority, parent, baseText) {
+      if (!style.parentRule) {
+        // If we are dealing with an older version of firebug, protect ourselves from this failure and
+        // just drop the change completely
+        if (!parent)
+          return;
+        
+        // This is a change to the inline style of a particular element, handle this.
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=338679
+        this.recordChange(
+            new Events.dom.DOMAttrChangedEvent(
+                parent, MutationEvent.MODIFICATION, "style", style.cssText, baseText,
+                undefined, undefined, Events.ChangeSource.FIREBUG_CHANGE));
+      } else {
         this.recordChange(
             new Events.css.CSSSetPropertyEvent(
                 style.parentRule, propName, propValue, propPriority, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
+      }
     },
     
-    onCSSRemoveProperty: function(style, propName, prevValue, prevPriority) {
+    onCSSRemoveProperty: function(style, propName, prevValue, prevPriority, parent, baseText) {
+      if (!style.parentRule) {
+        // If we are dealing with an older version of firebug, protect ourselves from this failure and
+        // just drop the change completely
+        if (!parent)
+          return;
+        
+        // This is a change to the inline style of a particular element, handle this.
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=338679
+        this.recordChange(
+            new Events.dom.DOMAttrChangedEvent(
+                parent, MutationEvent.MODIFICATION, "style", style.cssText, baseText,
+                undefined, undefined, Events.ChangeSource.FIREBUG_CHANGE));
+      } else {
         this.recordChange(
             new Events.css.CSSRemovePropertyEvent(
                 style.parentRule, propName, prevValue, prevPriority, Events.ChangeSource.FIREBUG_CHANGE));
+      }
     },
     
     //////////////////////////////////////////////
