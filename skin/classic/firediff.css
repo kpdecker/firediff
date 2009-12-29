@@ -109,6 +109,10 @@
   white-space: pre;
 }
 
+.nodeInternalSubset {
+  white-space: pre;
+}
+
 /* Customized Rules for CSS Display. All others reuse the standard CSS styles */
 .cssRuleDiff, .cssMediaRuleDiff {
   position: relative;
