@@ -239,7 +239,7 @@ FireDiff.Path.getElementPath = function(element, useTagNames, rootPath) {
     paths[0] = rootPath;
   }
 
-  return paths.length ? prefix + paths.join("/") : null;
+  return prefix + paths.join("/");
 };
 
 FireDiff.Path.getStylePath = function(style) {
