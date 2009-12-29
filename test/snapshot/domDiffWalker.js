@@ -10,6 +10,7 @@ function runTest() {
   
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "snapshot/domDiffWalker.htm", function(win) {
+    // TODO : Test coverage for iframes
     FBTestFirebug.openFirebug();
 
     var textModified = win.document.getElementById("textModified");
@@ -32,8 +33,11 @@ function runTest() {
     removeNode.removeChild(removeNode.getElementsByTagName("p")[0]);
 
     var expected = [
+      { nodeType: Node.DOCUMENT_NODE },
+      { nodeType: Node.DOCUMENT_TYPE_NODE },
       { tagName: "HTML" },
       { tagName: "HEAD" },
+      { nodeValue: "\n" },
       { tagName: "TITLE" },
       { nodeValue: "Firediff Test" },
       { tagName: "BODY" },
