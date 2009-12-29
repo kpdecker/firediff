@@ -191,6 +191,7 @@ var ChangeElement = extend(FirebugReps.Element, {
   },
   
   getElementName: function(change) {
+    // TODO : XML Handling
     change = change.clone || change;
     return (change.localName || "").toLowerCase();
   },
@@ -216,6 +217,7 @@ var ParentChangeElement = extend(ChangeElement, {
   childIterator: function(node) {
     node = node.clone || node;
     if (node.contentDocument)
+      // TODO : Should this use contentDocument.childNodes?
       return [node.contentDocument.documentElement];
     
     function includeChild(child) {
@@ -239,17 +241,109 @@ var allChanges = {
         else
           return allChanges.Element.tag;
       }
+      else if (node instanceof CDATASection)  // Must occur before instanceof Text
+        return allChanges.CDATANode.tag;
       else if (node instanceof Text)
         return inline ? allChanges.InlineTextNode.tag : allChanges.TextNode.tag;
-      else if (node instanceof CDATASection)
-        return allChanges.CDATANode.tag;
+      else if (node instanceof ProcessingInstruction)
+        return allChanges.ProcessingInstruction.tag;
       else if (node instanceof Comment && Firebug.showCommentNodes)
         return allChanges.CommentNode.tag;
       else if (node instanceof SourceText)
         return FirebugReps.SourceText.tag;
+      else if (node instanceof Document)
+        return allChanges.Document.tag;
+      else if (node instanceof DocumentType)
+        return allChanges.DocType.tag;
+      else if (node instanceof DocumentFragment)
+        return allChanges.Document.tag;
       else
         return FirebugReps.Nada.tag;
     },
+
+    Document: domplate(ParentChangeElement, {
+      tag:
+        DIV({class: "nodeBox containerNodeBox repIgnore", _repObject: "$change" }, DIV({class: "nodeChildBox"}))
+    }),
+
+    DocType: domplate(ChangeElement, {
+      tag: DIV({class: "nodeBox emptyNodeBox repIgnore", _repObject: "$change",
+        $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+        $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
+      DIV({class: "nodeLabel"},
+        SPAN({class: "nodeLabelBox repTarget"},
+          "&lt;!DOCTYPE&nbsp;",
+          SPAN({class: "nodeTag"}, "$change|getDocTypeName"),
+
+          SPAN({$collapsed: "$change|hidePublicId"}, "&nbsp;PUBLIC&nbsp;"),
+          SPAN({class: "nodeValue", $collapsed: "$change|hidePublicId"}, "&quot;", "$change|getPublicId", "&quot;"),
+
+          SPAN({$collapsed: "$change|hideSystemIdTag"}, "&nbsp;SYSTEM&nbsp;"),
+          SPAN({class: "nodeValue", $collapsed: "$change|hideSystemId"}, "&quot;", "$change|getSystemId", "&quot;"),
+
+          SPAN({class: "nodeInternalSubset", $collapsed: "$change|hideInternalSubset"},
+              "&nbsp;[", "$change|getInternalSubset", "]"),
+          SPAN({class: "nodeBracket"}, "&gt;")
+          )
+        )
+      ),
+
+      getDocTypeName: function(change) {
+        // TODO : XML Handling
+        var docType = change.clone || change;
+        return (docType.name || docType).toLowerCase();
+      },
+
+      hidePublicId: function(change) {
+        return !this.getPublicId(change);
+      },
+      getPublicId: function(change) {
+        var docType = change.clone || change;
+        return docType.publicId;
+      },
+
+      hideSystemId: function(change) {
+        return !this.getSystemId(change);
+      },
+      hideSystemIdTag: function(change) {
+        return this.hideSystemId(change) || !this.hidePublicId(change);
+      },
+      getSystemId: function(change) {
+        var docType = change.clone || change;
+        return docType.systemId;
+      },
+
+      hideInternalSubset: function(change) {
+        return !this.getInternalSubset(change);
+      },
+      getInternalSubset: function(change) {
+        var docType = change.clone || change;
+        return docType.internalSubset;
+      }
+    }),
+
+    ProcessingInstruction: domplate(ChangeElement, {
+      tag: DIV({class: "nodeBox emptyNodeBox repIgnore", _repObject: "$change",
+        $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
+        $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
+      DIV({class: "nodeLabel"},
+        SPAN({class: "nodeLabelBox repTarget"},
+          "&lt;?",
+          SPAN({class: "nodeTag"}, "xslt-param"),
+          SPAN({class: "nodeValue", $collapsed: "$change|hideContent"}, "&nbsp;", "$change|getContent"),
+          SPAN({class: "nodeBracket"}, "?&gt;")
+          )
+        )
+      ),
+
+      hideContent: function(change) {
+        return !this.getContent(change);
+      },
+      getContent: function(change) {
+        var instruct = change.clone || change;
+        return instruct.nodeValue;
+      }
+    }),
 
     Element: domplate(ChangeElement, {
       tag:
@@ -331,25 +425,23 @@ var allChanges = {
           SPAN({class: "nodeText"}, TAG(textChanged.tag, {change: "$change"}))
         )
     }),
-    
-    // TODO : Determine how CDATA can be changed, if it can
+
     CDATANode: domplate(ChangeElement, {
       tag: DIV({class: "nodeBox", _repObject: "$change",
           $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
           $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
         "&lt;![CDATA[",
-        SPAN({class: "nodeText"}, TAG(textChanged, {change: "$change"})),
+        SPAN({class: "nodeText"}, TAG(textChanged.tag, {change: "$change"})),
         "]]&gt;"
         )
     }),
-    
-    // TODO : Determine how comments can be changed, if they can
+
     CommentNode: domplate(ChangeElement, {
       tag: DIV({class: "nodeBox", _repObject: "$change",
           $removedClass: "$change|isElementRemoved", $addedClass: "$change|isElementAdded",
           $firebugDiff: "$change|isFirebugDiff", $appDiff: "$change|isAppDiff"},
         DIV({class: "nodeComment"},
-          "&lt;!--", TAG(textChanged, {change: "$change"}), "--&gt;"
+          "&lt;!--", TAG(textChanged.tag, {change: "$change"}), "--&gt;"
           )
         )
     })
