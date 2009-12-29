@@ -39,7 +39,7 @@ DOMChangeEvent.prototype = extend(ChangeEvent.prototype, {
     
     getXpath: function(target) { return Path.getElementPath(target); },
     xpathLookup: function(xpath, root) {
-      var iterate = root.ownerDocument.evaluate(xpath, root, null, XPathResult.ANY_TYPE, null);
+      var iterate = (root.ownerDocument || root).evaluate(xpath, root, null, XPathResult.ANY_TYPE, null);
       return iterate.iterateNext();
     },
     
