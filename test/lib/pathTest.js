@@ -291,6 +291,16 @@ function runTest() {
         win.document.getElementById("p1").lastChild,
         "getElementPath - p1 - text2");
 
+    compareXPath(
+        "/",
+        win.document,
+        "getElementPath - document",
+        true);
+    compareXPath(
+        "/",
+        win.document,
+        "getElementPath - document");
+
     FBTest.compare(-1, Path.compareXPaths("/", "/node()[1]"), "Child path");
     FBTest.compare(0, Path.compareXPaths("/node()[1]", "/node()[1]"), "Identity");
     FBTest.compare(1, Path.compareXPaths("/node()[1]", "/"), "Parent path path");
