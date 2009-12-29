@@ -233,8 +233,9 @@ Snapshot.prototype = {
 this.DOMSnapshot = function(change, document){
   Snapshot.call(this, change || document.documentElement);
   
-  this.displayTree = document.documentElement.cloneNode(true);
-  this.cloneXPath = Path.getElementPath(document.documentElement);
+  // This requires Firefox 3.5
+  this.displayTree = document.cloneNode(true);
+  this.cloneXPath = Path.getElementPath(document);
   this.updateCloneToChange(this.displayTree, this.cloneXPath);
   
   this.onMouseDown = bind(this.onMouseDown, this);
