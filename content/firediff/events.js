@@ -46,9 +46,9 @@ ChangeEvent.prototype = {
      */
     overridesChange: function(prior) {},
     cloneOnXPath: function(xpath) {},
-    appliesTo: function(target) {
+    appliesTo: function(target, cachedXpath) {
       // Any change that is made to the target or a child
-      return target && Path.isChildOrSelf(this.getXpath(target), this.xpath);
+      return target && Path.isChildOrSelf(cachedXpath || this.getXpath(target), this.xpath);
     },
     
     /**

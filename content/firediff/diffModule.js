@@ -173,6 +173,9 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       var diffContext = this.getDiffContext(context);
       
       diffContext.editTarget = node;
+      
+      var rep = Firebug.getRepObject(node);
+      diffContext.editTargetXpath = rep ? Path.getElementPath(rep) : undefined;
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.onBeginFirebugChange", diffContext.editTarget);
       
       diffContext.editEvents = [];
@@ -193,6 +196,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       }
       
       delete diffContext.editTarget;
+      delete diffContext.editTargetXpath;
       delete diffContext.editEvents;
       delete diffContext.htmlEditPath;
     },
@@ -233,9 +237,6 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       
       context.window.addEventListener("DOMNodeInserted", diffContext.eventLogger, true);
       context.window.addEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
-      // TODO : Do we want to use the from document events? Need to verify what the distinction is
-      context.window.addEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
-      context.window.addEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
       context.window.addEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
       context.window.addEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
     },
@@ -246,9 +247,6 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         
         context.window.removeEventListener("DOMNodeInserted", diffContext.eventLogger, true);
         context.window.removeEventListener("DOMNodeRemoved", diffContext.eventLogger, true);
-        // TODO : Do we want to use the from document events? Need to verify what the distinction is
-        context.window.removeEventListener("DOMNodeRemovedFromDocument", diffContext.eventLogger, true);
-        context.window.removeEventListener("DOMNodeInsertedIntoDocument", diffContext.eventLogger, true);
         context.window.removeEventListener("DOMAttrModified", diffContext.attrEventLogger, true);
         context.window.removeEventListener("DOMCharacterDataModified", diffContext.charDataEventLogger, true);
         
@@ -262,9 +260,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       return node.firebugIgnore
           || unwrapObject(node).firebugIgnore
           || (node.className || "").indexOf("firebug") > -1
-          ||        (node.id || "").indexOf("firebug") > -1
-          || (node.parentNode == node.ownerDocument
-              && node != node.ownerDocument.documentElement);
+          ||        (node.id || "").indexOf("firebug") > -1;
     },
     
     getHtmlEditorPaths: function(editor) {
@@ -346,7 +342,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
             return;
           }
         }
-        if (!change.appliesTo(Firebug.getRepObject(diffContext.editTarget) || diffContext.editTarget)) {
+        if (!change.appliesTo(Firebug.getRepObject(diffContext.editTarget) || diffContext.editTarget, diffContext.editTargetXpath)) {
             this.dispatchChange(change, context);
         } else {
             diffContext.editEvents.push(change);
