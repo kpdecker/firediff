@@ -175,7 +175,14 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       diffContext.editTarget = node;
       
       var rep = Firebug.getRepObject(node);
-      diffContext.editTargetXpath = rep ? Path.getElementPath(rep) : undefined;
+      if (rep instanceof Node) {
+        diffContext.editTargetXpath = Path.getElementPath(rep);
+      } else if (rep instanceof CSSRule || rep instanceof StyleSheet) {
+        diffContext.editTargetXpath = Path.getStylePath(rep);
+      } else {
+        diffContext.editTargetXpath = undefined;
+      }
+
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.onBeginFirebugChange", diffContext.editTarget);
       
       diffContext.editEvents = [];
