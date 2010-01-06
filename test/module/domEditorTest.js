@@ -16,6 +16,9 @@ function runTest() {
     FBTest.compare(change.isAddition(), false, "Is Addition: " + change.isAddition());
     FBTest.compare(change.isRemoval(), false, "Is Removal: " + change.isRemoval());
   }
+  function getEditor(htmlPanel, editNode) {
+    return htmlPanel.localEditors[FBTest.FirebugWindow.FBL.getElementType(editNode)];
+  }
   function setEditorValue(editor, value) {
     var editorInput = editor.input;
     editorInput.value = value;
@@ -243,7 +246,7 @@ function runTest() {
         var textNodeBox = nodeBox.getElementsByClassName("nodeText")[0];
         
         Firebug.Editor.startEditing(textNodeBox, textNodeBox.textContent);
-        var textEditor = htmlPanel.textEditor;
+        var textEditor = htmlPanel.textNodeEditor;
         setEditorValue(textEditor, "test");
         
         var attrMod = win.document.getElementById("removeNode");
@@ -285,7 +288,7 @@ function runTest() {
         var textNodeBox = nodeBox.getElementsByClassName("nodeText")[0];
         
         Firebug.Editor.startEditing(textNodeBox, textNodeBox.textContent);
-        var textEditor = htmlPanel.textEditor;
+        var textEditor = htmlPanel.textNodeEditor;
         setEditorValue(textEditor, "test");
         
         var attrMod = win.document.getElementById("removeNode");
@@ -324,7 +327,7 @@ function runTest() {
         htmlPanel.select(editNode);
         htmlPanel.toggleEditing();
         
-        var textEditor = htmlPanel.htmlEditor;
+        var textEditor = getEditor(htmlPanel, editNode);
         setEditorValue(textEditor, "<div id=\"insertNode\"><p>test2</p></div>");
         
         var attrMod = win.document.getElementById("removeNode");
@@ -361,7 +364,7 @@ function runTest() {
         htmlPanel.select(editNode);
         htmlPanel.toggleEditing();
         
-        var textEditor = htmlPanel.htmlEditor;
+        var textEditor = getEditor(htmlPanel, editNode);
         setEditorValue(textEditor, "<p>before</p><div id=\"insertNode\"><p>test2</p></div><p>after</p>");
         
         var attrMod = win.document.getElementById("removeNode");
@@ -398,7 +401,7 @@ function runTest() {
         htmlPanel.select(editNode);
         htmlPanel.toggleEditing();
         
-        var textEditor = htmlPanel.htmlEditor;
+        var textEditor = getEditor(htmlPanel, editNode);
         setEditorValue(textEditor, "<p>before</p><div id=\"insertNode\"><p>test2</p></div>");
         
         var attrMod = win.document.getElementById("removeNode");
