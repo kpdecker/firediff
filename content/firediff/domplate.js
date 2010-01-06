@@ -475,7 +475,7 @@ this.HtmlSnapshotView.prototype = {
     if (child.xpath) {
       var components = Path.getRelativeComponents(Path.getParentPath(child.xpath), this.rootXPath);
       if (!components.right) {
-        var iterate = this.tree.ownerDocument.evaluate(components.left, this.tree, null, XPathResult.ANY_TYPE, null);
+        var iterate = (this.tree.ownerDocument || this.tree).evaluate(components.left, this.tree, null, XPathResult.ANY_TYPE, null);
         var ret = iterate.iterateNext();
         return ret;
       }

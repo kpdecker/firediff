@@ -318,8 +318,13 @@ this.DOMIterator = function(node) {
    */
   this.next = function() {
     var ret = curNode;
-    if (!curNode)    $break();
+
     curNode = curNode.nextSibling;
+    while (curNode && Firebug.DiffModule.ignoreNode(curNode)) {
+      curNode = curNode.nextSibling;
+    }
+
+    if (!ret)  $break();
     return ret;
   }
 }

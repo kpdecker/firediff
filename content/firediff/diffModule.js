@@ -267,7 +267,8 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       return node.firebugIgnore
           || unwrapObject(node).firebugIgnore
           || (node.className || "").indexOf("firebug") > -1
-          ||        (node.id || "").indexOf("firebug") > -1;
+          ||        (node.id || "").indexOf("firebug") > -1
+          || (node.hasAttribute && node.hasAttribute("firebugIgnore"));
     },
     
     getHtmlEditorPaths: function(editor) {
