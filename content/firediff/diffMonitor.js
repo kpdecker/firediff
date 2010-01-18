@@ -98,12 +98,21 @@ DiffMonitor.prototype = extend(Panel, {
         addStyleSheet(doc, styleSheet);
     },
     getOptionsMenuItems: function(context) {
+      var ret = [];
       if (Firebug.DiffModule.supportsFirebugEdits) {
-        return [
+        ret.push(
             this.optionsMenu("option.showAppChanges", "firediff.displayAppChanges"),
-            this.optionsMenu("option.showFirebugChanges", "firediff.displayFirebugChanges")
-          ];
+            this.optionsMenu("option.showFirebugChanges", "firediff.displayFirebugChanges"),
+            "-"
+        );
       }
+      ret.push({
+          label: i18n.getString("option.formatterOptions"),
+          nol10n: true,
+          command: bindFixed(this.showFormatterOptions, this)
+      });
+      
+      return ret;
     },
     optionsMenu: function(label, option) {
       var value = Firebug.getPref(Firebug.prefDomain, option);
@@ -114,6 +123,17 @@ DiffMonitor.prototype = extend(Panel, {
           checked: value,
           command: bindFixed(Firebug.setPref, this, Firebug.prefDomain, option, !value)
       };
+    },
+    showFormatterOptions: function() {
+      // See cmd_options in extensions.js
+      var features= "chrome,titlebar,toolbar,centerscreen,";
+      try {
+        var instantApply = gPref.getBoolPref("browser.preferences.instantApply");
+        features += (instantApply ? "dialog=no" : "modal");
+      } catch (e) {
+        features += "modal";
+      }
+      window.openDialog("chrome://fireformat/content/options.xul", "", features);
     },
     
     selectSnapshot: function(change) {
