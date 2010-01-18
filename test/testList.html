@@ -8,46 +8,13 @@
     <link rel="stylesheet" href="chrome://fbtest/skin/tabView.css" type="text/css"/>
 </head>
 <body>
-<div id="testList"></div>
-<script type="text/javascript">
-/**
- * Root directory of the test tree. If it's empty, the parent directory of this file
- * is used as the test root directory.
- */
-var driverBaseURI = "chrome://firediff-test/content/";
-var serverURI = "chrome://firediff-test/content/";
-
-/**
- * List of registered tests.
- * @param: {String} group       Name of the group where the test belongs to.
- * @param: {String} uri         Relative location of the test file.
- * @param: {String} desc        Test description.
- * @param: {String} category    Test category, this can be set to: 
- *                              "passes": (default) - a test must pass, otherwise it's a blocking bug.
- *                              "fails": - it's not blocking bug if the test fails.
- */
-var testList = [
-    {group: "module", uri: "module/appChangeTest.js",               desc: "Diff Module: Application Generated Events" },
-    {group: "module", uri: "module/domEditorTest.js",               desc: "Diff Module: DOM Editor Generated Events" },
-    {group: "module", uri: "module/cssEditorTest.js",               desc: "Diff Module: CSS Editor Generated Events" },
-
-    {group: "lib",    uri: "lib/jsDiffTest.js",                     desc: "Lib: JS Diff" },
-    {group: "lib",    uri: "lib/pathTest.js",                       desc: "Lib: Custom XPath Test" },
-    {group: "lib",    uri: "lib/cssPathTest.js",                   desc: "Lib: CSS Path Test" },
-    {group: "lib",    uri: "lib/cssModelTest.js",                   desc: "Lib: CSS Model Test" },
-
-    {group: "event",  uri: "event/applyRevertTest.js",              desc: "Events: Apply Revert Test" },
-    {group: "event",  uri: "event/attrMergeTest.js",                desc: "Events: Attribute Change Merge Test" },
-    {group: "event",  uri: "event/charDataMergeTest.js",            desc: "Events: Char Data Change Merge Test" },
-    {group: "event",  uri: "event/insertMergeTest.js",              desc: "Events: Insert Node Merge Test" },
-    {group: "event",  uri: "event/removeMergeTest.js",              desc: "Events: Remove Node Merge Test" },
-    {group: "event",  uri: "event/cssMergeTest.js",                 desc: "Events: CSS Merge Test" },
-    {group: "event",  uri: "event/revertMergeTest.js",                desc: "Events: Revert Merge Test" },
-
-    {group: "snapshot", uri: "snapshot/domDiffWalker.js",          desc: "Snapshot: DOM Diff Walker Test" },
-
-    {group: "manual", uri: "manual/manualAutomation.js",            desc: "Manual: Manual display test with scripted setup" }
-];
-</script>
+  <div id="testList"></div>
+  <script type="text/javascript">
+    var testList = [];
+    var driverBaseURI = "chrome://firediff-test/content/";
+    var serverURI = "chrome://firediff-test/content/";
+  </script>
+  <script type="text/javascript" src="firediffTestList.js"></script>
+  <script type="text/javascript" src="fireformatTestList.js"></script>
 </body>
 </html>
