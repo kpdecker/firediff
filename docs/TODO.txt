@@ -4,8 +4,8 @@ The following are items that need further work:
  - Implement more complex diffing on insert and remove. I.e. expand insert and remove
     combinations into distinct changes within the data rather than 2 events.
 - CSS Changes merged with editor changes due to "race" condition
+- Application-level CSS Changes
 - Diff Monitor
  - CSS Rep Links
-- Enhanced CSS and DOM formatter
 - Manual test for revert UI
 - Manual test for save snapshot and diff
