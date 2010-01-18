@@ -5,7 +5,10 @@ function runTest() {
   var htmlPanel, cssPanel;
   
   FBTest.loadScript("FBTestFireDiff.js", this);
-  
+
+  function getEditor(htmlPanel, editNode) {
+    return htmlPanel.localEditors[FBTest.FirebugWindow.FBL.getElementType(editNode)];
+  }
   function setEditorValue(editor, value) {
     var editorInput = editor.input;
     editorInput.value = value;
@@ -105,8 +108,8 @@ function runTest() {
         var editNode = win.document.getElementById("textModified");
         htmlPanel.select(editNode);
         htmlPanel.toggleEditing();
-        
-        var textEditor = htmlPanel.htmlEditor;
+
+        var textEditor = getEditor(htmlPanel, editNode);
         setEditorValue(textEditor, "<div id=\"textModified\">New ValueMoreData</div>\n<p>edit</p>");
         Firebug.Editor.stopEditing();
       },
