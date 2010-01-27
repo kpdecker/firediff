@@ -109,6 +109,38 @@ function runTest() {
       eventCount: 2
     },
     {
+      name: "styleAttribute",
+      setup: function(win) {
+        var attrMod = win.document.getElementById("attrModified");
+        attrMod.setAttribute("style", "background-color: red;");
+      },
+      execute: function(win) {
+        // Force a page refresh as the style attribute change is not always picked up
+        // TODO : Unit test for this within firebug?
+        htmlPanel.select(document.createElement("div"));
+
+        var attrMod = win.document.getElementById("attrModified");
+        htmlPanel.select(attrMod, true);
+        htmlPanel.editAttribute(attrMod, "style");
+        
+        var attrEditor = htmlPanel.attrEditor;
+        FBTrace.sysout("styleAttr attrEditor", attrEditor);
+        setEditorValue(attrEditor, "background-color: green;");
+        Firebug.Editor.stopEditing();
+      },
+      verify: function(win, number, change) {
+        FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
+        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
+        FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
+        FBTest.compare(change.attrName, "style", "Attribute Name: " + change.attrName);
+        FBTest.compare(change.value, "background-color: green;", "Value: " + change.value);
+        FBTest.compare(change.previousValue, "background-color: red;", "Prev Value: " + change.previousValue);
+        FBTest.compare(change.isAddition(), false, "Is Addition: " + change.isAddition());
+        FBTest.compare(change.isRemoval(), false, "Is Removal: " + change.isRemoval());
+      },
+      eventCount: 1
+    },
+    {
       name: "deleteAttributeValue",
       setup: function(win) {
         var attrMod = win.document.getElementById("attrModified");
@@ -118,6 +150,10 @@ function runTest() {
         attrMod.setAttribute("align", "center");
       },
       execute: function(win) {
+        // Force a page refresh as the style attribute change is not always picked up
+        // TODO : Unit test for this within firebug?
+        htmlPanel.select(document.createElement("div"));
+
         var attrMod = win.document.getElementById("attrModified");
         htmlPanel.select(attrMod);
         htmlPanel.editAttribute(attrMod, "align");
@@ -154,6 +190,7 @@ function runTest() {
       setup: function(win) {
         var attrMod = win.document.getElementById("attrModified");
         attrMod.setAttribute("align", "right");
+        attrMod.removeAttribute("style");
         
         var attrMod = win.document.getElementById("removeNode");
         attrMod.setAttribute("align", "center");
@@ -423,7 +460,7 @@ function runTest() {
         FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
       },
       eventCount: 3
-    }
+    },
   ];
   
   var urlBase = FBTest.getHTTPURLBase();
