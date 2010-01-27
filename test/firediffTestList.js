@@ -4,6 +4,7 @@ testList.push.apply(testList, [
     {group: "module", uri: "module/domEditorTest.js",               desc: "Diff Module: DOM Editor Generated Events" },
     {group: "module", uri: "module/cssEditorTest.js",               desc: "Diff Module: CSS Editor Generated Events" },
     {group: "module", uri: "module/stylesEditorTest.js",            desc: "Diff Module: Styles Editor Generated Events" },
+    {group: "module", uri: "module/disabledChangeTest.js",          desc: "Diff Module: Disabled Events" },
 
     {group: "lib",    uri: "lib/jsDiffTest.js",                     desc: "Lib: JS Diff" },
     {group: "lib",    uri: "lib/pathTest.js",                       desc: "Lib: Custom XPath Test" },

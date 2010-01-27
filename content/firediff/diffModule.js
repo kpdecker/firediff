@@ -336,7 +336,9 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     recordChange: function(change, context) {
         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.recordChange", change);
         var diffContext = this.getDiffContext(context);
-        if (!diffContext || diffContext.ignore)   return;
+        
+        // Ignore if a context does not exist, we are in ignore mode, or the context is not attached
+        if (!diffContext || diffContext.ignore || !diffContext.eventLogger)   return;
         
         if (diffContext.htmlEditPath) {
           // Special case for HTML free edit. It's not pretty but it gets the
