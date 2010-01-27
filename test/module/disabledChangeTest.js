@@ -28,8 +28,17 @@ function runTest() {
     FBTestFirebug.openFirebug();
     FBTestFireDiff.enableDiffPanel(
         function() {
+          // Simple action to make sure that the context is cleared on disable
+          var insertNode = win.document.getElementById("insertNode");
+          var p = document.createElement("p");
+          p.setAttribute("align", "left");
+          insertNode.appendChild(p);
+          FBTest.compare(1, Firebug.DiffModule.getChanges().length, "Enabled Expected number of events");
+
           FBTestFireDiff.disableDiffPanel(
               function() {
+                FBTest.compare(0, Firebug.DiffModule.getChanges().length, "Disabled Expected number of events");
+
                 // App Changes
                 var insertNode = win.document.getElementById("insertNode");
                 var p = document.createElement("p");
@@ -75,7 +84,7 @@ function runTest() {
                 Firebug.Editor.stopEditing();
 
                 setTimeout(function() {
-                  FBTest.compare(0, Firebug.DiffModule.getChanges().length, "Expected number of events");
+                  FBTest.compare(0, Firebug.DiffModule.getChanges().length, "Disabled Actions Expected number of events");
                   testDone();
                 }, 100);
               });
