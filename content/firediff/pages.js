@@ -139,16 +139,22 @@ Snapshot.prototype = {
     this.changeNodeList = [];
     if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Revert changes", this.revertChanges);
     
-    for (var i = this.revertChanges.length; i > 0; i--) {
+    var i = this.revertChanges.length;
+    while (i--) {
       try {
-        this.revertChanges[i-1].revert(clone, cloneXPath);
+        this.revertChanges[i].revert(clone, cloneXPath);
       } catch (err) {
-        FBTrace.sysout("Snapshot.updateCloneToChane: revert " + i + " " + err, this.revertChanges[i-1]);
+        FBTrace.sysout("Snapshot.updateCloneToChane: revert " + i + " " + err, this.revertChanges[i]);
         throw err;
       }
     }
     for (var i = 0; i < this.displayChanges.length; i++) {
-      this.changeNodeList.push(this.displayChanges[i].annotateTree(clone, cloneXPath));
+      try {
+        this.changeNodeList.push(this.displayChanges[i].annotateTree(clone, cloneXPath));
+      } catch (err) {
+        FBTrace.sysout("ERROR: Failed to annotate tree: " + i, this.displayChanges[i]);
+        throw err;
+      }
     }
     this.normalizeChangeNodes();
   },
