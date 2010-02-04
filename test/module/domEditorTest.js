@@ -92,7 +92,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number == 1) {
           verifyAppChange(change);
           return;
         }
@@ -151,7 +151,6 @@ function runTest() {
       },
       execute: function(win) {
         // Force a page refresh as the style attribute change is not always picked up
-        // TODO : Unit test for this within firebug?
         htmlPanel.select(document.createElement("div"));
 
         var attrMod = win.document.getElementById("attrModified");
@@ -169,7 +168,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -211,7 +210,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -293,7 +292,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number == 1) {
           verifyAppChange(change);
           return;
         }
@@ -303,8 +302,8 @@ function runTest() {
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
         FBTest.compare(change.value, number>1 ? "test2" : "", "Value: " + change.value);
         FBTest.compare(change.previousValue, number>1 ? "" : "Text Value", "Prev Value: " + change.previousValue);
-        FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
-        FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
+        FBTest.compare(change.isElementAdded(), number!==0, "Is Addition: " + change.isElementAdded());
+        FBTest.compare(change.isElementRemoved(), number===0, "Is Removal: " + change.isElementRemoved());
       },
       eventCount: 3
     },
@@ -335,7 +334,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -374,7 +373,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -382,8 +381,8 @@ function runTest() {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
         FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
-        FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
-        FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
+        FBTest.compare(change.isElementAdded(), number!==0, "Is Addition: " + change.isElementAdded());
+        FBTest.compare(change.isElementRemoved(), number===0, "Is Removal: " + change.isElementRemoved());
       },
       eventCount: 3
     },
@@ -411,7 +410,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -419,8 +418,8 @@ function runTest() {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
         FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
-        FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
-        FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
+        FBTest.compare(change.isElementAdded(), number!==0, "Is Addition: " + change.isElementAdded());
+        FBTest.compare(change.isElementRemoved(), number===0, "Is Removal: " + change.isElementRemoved());
       },
       eventCount: 5
     },
@@ -448,7 +447,7 @@ function runTest() {
         Firebug.Editor.stopEditing();
       },
       verify: function(win, number, change) {
-        if (number == 0) {
+        if (number === 1) {
           verifyAppChange(change);
           return;
         }
@@ -456,8 +455,8 @@ function runTest() {
         FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
         FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
         FBTest.compare(change.subType, number>1 ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
-        FBTest.compare(change.isElementAdded(), number!=1, "Is Addition: " + change.isElementAdded());
-        FBTest.compare(change.isElementRemoved(), number==1, "Is Removal: " + change.isElementRemoved());
+        FBTest.compare(change.isElementAdded(), number!==0, "Is Addition: " + change.isElementAdded());
+        FBTest.compare(change.isElementRemoved(), number===0, "Is Removal: " + change.isElementRemoved());
       },
       eventCount: 3
     },

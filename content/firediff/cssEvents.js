@@ -92,13 +92,13 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     rule.xpath = this.xpath;
     return rule;
   },
-  merge: function(candidate) {
+  merge: function(candidate, simplifyOnly) {
     if (candidate.isElementRemoved() && this.xpath == candidate.xpath) {
       return;
     }
     
     var updateXpath = candidate.getMergedXPath(this);
-    if (updateXpath) {
+    if (!simplifyOnly && updateXpath) {
       return [
           this.cloneOnXPath(updateXpath),
           candidate
@@ -177,13 +177,13 @@ CSSRemoveRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
     
     return this;
   },
-  merge: function(candidate) {
+  merge: function(candidate, simplifyOnly) {
     if (candidate.isElementAdded() && this.xpath == candidate.xpath) {
       return;
     }
     
     var updateXpath = candidate.getMergedXPath(this);
-    if (updateXpath) {
+    if (!simplifyOnly && updateXpath) {
       return [
           this.cloneOnXPath(updateXpath),
           candidate
@@ -233,9 +233,9 @@ CSSPropChangeEvent.prototype = extend(CSSChangeEvent.prototype, {
     return parent;
   },
   
-  merge: function(candidate) {
+  merge: function(candidate, simplifyOnly) {
     var updateXpath = candidate.getMergedXPath(this);
-    if (updateXpath) {
+    if (!simplifyOnly && updateXpath) {
       return [
           this.cloneOnXPath(updateXpath),
           candidate

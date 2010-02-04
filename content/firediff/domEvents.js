@@ -96,7 +96,7 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
           }, this));
     },
 
-    merge: function(candidate) {
+    merge: function(candidate, simplifyOnly) {
       // Only changes that affect us are:
       // - Remove on same xpath (Overrides)
       // - Modification of self (by attr or char data change)
@@ -117,15 +117,12 @@ DOMInsertedEvent.prototype = extend(DOMChangeEvent.prototype, {
       }
       
       // XPath modification
-      if (updateXPath) {
+      if (!simplifyOnly && updateXPath) {
         return [
                 this.cloneOnXPath(updateXPath),
                 candidate
             ];
       }
-      
-      // No mods to be made
-      return undefined;
     },
     mergeRevert: function(candidate) {
       // On revert we want to
@@ -189,7 +186,7 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
           }, this));
     },
     
-    merge: function(candidate) {
+    merge: function(candidate, simplifyOnly) {
       if (Path.isChild(this.xpath, candidate.xpath)) {
         // If this is a child WRT to xpath, we don't touch it.
         return undefined;
@@ -197,7 +194,7 @@ DOMRemovedEvent.prototype = extend(DOMChangeEvent.prototype, {
       
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
-        if (updateXpath) {
+        if (!simplifyOnly && updateXpath) {
           return [
               this.cloneOnXPath(updateXpath),
               candidate
@@ -269,13 +266,13 @@ DOMAttrChangedEvent.prototype = extend(DOMChangeEvent.prototype, {
     isAddition: function() { return this.attrChange == MutationEvent.ADDITION; },
     isRemoval: function() { return this.attrChange == MutationEvent.REMOVAL; },
     
-    merge: function(candidate) {
+    merge: function(candidate, simplifyOnly) {
       if (this.subType != candidate.subType
               || this.xpath != candidate.xpath
               || this.attrName != candidate.attrName) {
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
-        if (updateXpath) {
+        if (!simplifyOnly && updateXpath) {
           return [
               this.cloneOnXPath(updateXpath),
               candidate
@@ -372,12 +369,12 @@ DOMCharDataModifiedEvent.prototype = extend(DOMChangeEvent.prototype, {
     getSummary: function() {
       return i18n.getString("summary.DOMCharDataModified");
     },
-    merge: function(candidate) {
+    merge: function(candidate, simplifyOnly) {
       if (this.subType != candidate.subType
               || this.xpath != candidate.xpath) {
         // Check for xpath modifications
         var updateXpath = candidate.getMergedXPath(this);
-        if (updateXpath) {
+        if (!simplifyOnly && updateXpath) {
           return [
               this.cloneOnXPath(updateXpath),
               candidate

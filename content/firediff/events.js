@@ -26,7 +26,7 @@ function ChangeEvent(changeSource) {
 ChangeEvent.prototype = {
     getChangeType: function() { return this.changeType; },
     getSummary: function() {},
-    merge: function(candidate) {},
+    merge: function(candidate, simplifyOnly) {},
     
     /**
      * Determines if a candidate change needs to be reverted or
@@ -153,17 +153,28 @@ FireDiff.events = {
       REMOVE_CHANGES: REMOVE_CHANGES
     },
 
-    merge: function(changes) {
+    /**
+     * Simplifies the given change set to a reduced form, optionally updating
+     * all changes to the current point in time.
+     * 
+     * simplifyOnly:
+     *    truthy: Do not merge change xpaths. Change sets merged in this mode can be integrated with
+     *        other change sets without xpath corruption.
+     *    falsy: Merge change xpaths. This will update all changes so their xpaths reflect the current
+     *        state of the document. Change sets merged in this mode can not be merged with other
+     *        change sets.
+     */
+    merge: function(changes, simplifyOnly) {
       if (!changes.length) {
         return changes;
       }
 
-      if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge prior", changes);
+      if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("Merge prior simplifyOnly: " + simplifyOnly, changes);
       changes = changes.slice();
 
       var ret = [];
       for (var i = 0; i < changes.length; i++) {
-        var changeMerge = mergeChange(changes, changes[i], i);
+        var changeMerge = mergeChange(changes, changes[i], i, simplifyOnly);
         if (changeMerge) {
           ret.push(changeMerge);
         }
@@ -208,7 +219,7 @@ FireDiff.events = {
     }
 };
 
-function mergeChange(changes, change, changeIndex) {
+function mergeChange(changes, change, changeIndex, simplifyOnly) {
   if (!change) {
     return;
   }
@@ -225,7 +236,7 @@ function mergeChange(changes, change, changeIndex) {
     } else if (candidate.overridesChange(change)) {
       mergeValue = [undefined, candidate];
     } else {
-      mergeValue = change.merge(changes[outerIter]);
+      mergeValue = change.merge(changes[outerIter], simplifyOnly);
     }
     if (!mergeValue) {
       continue;

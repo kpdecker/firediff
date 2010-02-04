@@ -174,7 +174,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       
       diffContext.editTarget = node;
       
-      var rep = Firebug.getRepObject(node);
+      var rep = Firebug.getRepObject(node) || node;
       if (rep instanceof Node) {
         diffContext.editTargetXpath = Path.getElementPath(rep);
       } else if (rep instanceof CSSRule || rep instanceof StyleSheet) {
@@ -194,11 +194,27 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       
       var editEvents = diffContext.editEvents;
       if (editEvents.length) {
-        editEvents = Events.merge(editEvents);
+        editEvents = Events.merge(editEvents, true);
         
         for (var i = 0; i < editEvents.length; i++) {
-            editEvents[i].changeSource = Events.ChangeSource.FIREBUG_CHANGE;
-            this.dispatchChange(editEvents[i]);
+          var change = editEvents[i];
+          // Special case for HTML free edit. It's not pretty but it gets the
+          // job done. In the future we may want to consider executing changes
+          // in the Firebug editors within ignore blocks, and generating events
+          // for the final states, but for now we want to keep the coupling
+          // low
+          function htmlEditChange() {
+            return diffContext.htmlEditPath
+                && diffContext.htmlEditPath[0] <= change.xpath
+                && change.xpath <= diffContext.htmlEditPath[1];
+          }
+          function changeApplies() {
+            return change.appliesTo(Firebug.getRepObject(diffContext.editTarget) || diffContext.editTarget, diffContext.editTargetXpath);
+          }
+          if (htmlEditChange() || changeApplies()) {
+            change.changeSource = Events.ChangeSource.FIREBUG_CHANGE;
+          }
+          this.dispatchChange(change);
         }
       }
       
@@ -340,22 +356,10 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
         // Ignore if a context does not exist, we are in ignore mode, or the context is not attached
         if (!diffContext || diffContext.ignore || !diffContext.eventLogger)   return;
         
-        if (diffContext.htmlEditPath) {
-          // Special case for HTML free edit. It's not pretty but it gets the
-          // job done. In the future we may want to consider executing changes
-          // in the Firebug editors within ignore blocks, and generating events
-          // for the final states, but for now we want to keep the coupling
-          // low
-          if (diffContext.htmlEditPath[0] <= change.xpath
-              && change.xpath <= diffContext.htmlEditPath[1]) {
-            diffContext.editEvents.push(change);
-            return;
-          }
-        }
-        if (!change.appliesTo(Firebug.getRepObject(diffContext.editTarget) || diffContext.editTarget, diffContext.editTargetXpath)) {
-            this.dispatchChange(change, context);
+        if (!diffContext.editTarget) {
+          this.dispatchChange(change, context);
         } else {
-            diffContext.editEvents.push(change);
+          diffContext.editEvents.push(change);
         }
     },
     dispatchChange: function(change, context) {
