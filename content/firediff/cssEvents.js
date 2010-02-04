@@ -88,6 +88,9 @@ CSSInsertRuleEvent.prototype = extend(CSSRuleEvent.prototype, {
       FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup parent " + this.xpath + " " + root, tree);
     }
     var rule = parent.cssRules[identifier.index-1];
+    if (!rule && FBTrace.DBG_ERRORS) {
+      FBTrace.sysout("CSSRuleEvent.annotateTree: Failed to lookup rule: " + identifier.index + " " + parent, unwrapObject(parent));
+    }
     rule[CHANGES] = this;
     rule.xpath = this.xpath;
     return rule;
