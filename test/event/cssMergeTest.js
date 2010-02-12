@@ -6,7 +6,6 @@ function runTest() {
   
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "event/index.htm", function(win) {
-    try {
     FBTest.loadScript("FBTestFireDiff.js", this);
     
     var doc = win.document;
@@ -378,13 +377,43 @@ function runTest() {
       Events.merge([removeEvent, eventSecond]),
       "CSS remove rule insert rule after");
   
-  // TODO : Test the cancellation case
-  // TODO : Merge w/ insert/remove of style and link nodes
-  // TODO : Merge w/ @media changes
+  // Cancellation
+  // - Update
+  var insertCancel = new Events.css.CSSInsertRuleEvent(elZero);
+  var removeCancel = new Events.css.CSSRemoveRuleEvent(elZero);
+  eventSecond = new Events.css.CSSInsertRuleEvent(elOne);
+  FBTestFireDiff.compareChangeList(
+      [new Events.css.CSSInsertRuleEvent(elOne, Events.ChangeSource.APP_CHANGE, "/style()[1]/rule()[1]")],
+      Events.merge([insertCancel, eventSecond, removeCancel]),
+      "Insert cancellation update");
   
-    } catch (err) {
-      FBTrace.sysout(err,err);
-    }
+  // - No Update
+  insertCancel = new Events.css.CSSInsertRuleEvent(elOne);
+  removeCancel = new Events.css.CSSRemoveRuleEvent(elOne, Events.ChangeSource.APP_CHANGE, "/style()[1]/rule()[3]");   // This will cancel the first insert after the first step
+  eventSecond = new Events.css.CSSInsertRuleEvent(elZero);
+  FBTestFireDiff.compareChangeList(
+      [eventSecond],
+      Events.merge([insertCancel, eventSecond, removeCancel]),
+      "Insert cancellation no update");
+
+  // - Update
+  removeCancel = new Events.css.CSSRemoveRuleEvent(elZero);
+  insertCancel = new Events.css.CSSInsertRuleEvent(elZero);
+  eventSecond = new Events.css.CSSInsertRuleEvent(elOne);
+  FBTestFireDiff.compareChangeList(
+      [new Events.css.CSSInsertRuleEvent(elOne, Events.ChangeSource.APP_CHANGE, "/style()[1]/rule()[3]")],
+      Events.merge([removeCancel, eventSecond, insertCancel]),
+      "Remove cancellation update");
+
+  // - No Update
+  removeCancel = new Events.css.CSSRemoveRuleEvent(elOne);
+  insertCancel = new Events.css.CSSInsertRuleEvent(elOne, Events.ChangeSource.APP_CHANGE, "/style()[1]/rule()[3]");
+  eventSecond = new Events.css.CSSInsertRuleEvent(elZero);
+  FBTestFireDiff.compareChangeList(
+      [eventSecond],
+      Events.merge([removeCancel, eventSecond, insertCancel]),
+      "Remove cancellation no update");
+
     FBTestFirebug.testDone();
   });
 }
