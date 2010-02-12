@@ -157,16 +157,6 @@ function runTest() {
         htmlPanel.select(attrMod);
         htmlPanel.deleteAttribute(attrMod, "align");
       },
-      verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.FIREBUG_CHANGE, "Change source: " + change.changeSource);
-        FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.compare(change.subType, "attr_changed", "Sub type: " + change.subType);
-        FBTest.compare(change.attrName, "align", "Attribute Name: " + change.attrName);
-        FBTest.compare(change.value, "", "Value: " + change.value);
-        FBTest.compare(change.previousValue, "right", "Prev Value: " + change.previousValue);
-        FBTest.compare(change.isAddition(), false, "Is Addition: " + change.isAddition());
-        FBTest.compare(change.isRemoval(), true, "Is Removal: " + change.isRemoval());
-      },
       eventCount: 1
     },
     {
@@ -352,17 +342,12 @@ function runTest() {
           var removeNode = removeNodeHtml.getElementsByTagName("p")[0];
           removeNodeHtml.innerHTML = "";
 
-          // Force injection of the inspector sheets
-          //Firebug.Inspector.highlightObject(removeNodeHtml, FBTest.FirebugWindow.FirebugContext);
-          //Firebug.Inspector.highlightObject(null);
-
           FBTestFireDiff.executeModuleTests(tests, win,
               function() {
                 FBTestFirebug.selectPanel("firediff");
                 var diffPanel = FBTestFirebug.getSelectedPanel(),
                     changes = diffPanel.context.diffContext.changes;
-                
-                // TODO : Verify that all of these are correct
+
                 FBTestFireDiff.fileOutTest(
                     function() {
                       diffPanel.saveSnapshot(changes[changes.length-1]);

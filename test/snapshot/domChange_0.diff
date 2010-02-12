@@ -1,7 +1,7 @@
-Index: chrome://firediff-test/content/module/index.htm
+Index: chrome://firediff-test/content/snapshot/index.htm
 ===================================================================
---- chrome://firediff-test/content/module/index.htm	(Base File)
-+++ chrome://firediff-test/content/module/index.htm	(Snapshot)
+--- chrome://firediff-test/content/snapshot/index.htm	(Base File)
++++ chrome://firediff-test/content/snapshot/index.htm	(Snapshot)
 @@ -17,14 +17,12 @@
      <div id="insertNode_innerHTML"></div>
      <div id="attrModified">

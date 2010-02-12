@@ -1,7 +1,7 @@
-Index: chrome://firediff-test/content/module/index.htm
+Index: chrome://firediff-test/content/snapshot/index.htm
 ===================================================================
---- chrome://firediff-test/content/module/index.htm	(Base File)
-+++ chrome://firediff-test/content/module/index.htm	(Snapshot)
+--- chrome://firediff-test/content/snapshot/index.htm	(Base File)
++++ chrome://firediff-test/content/snapshot/index.htm	(Snapshot)
 @@ -12,19 +12,13 @@
          content: &quot;test&quot;;
        }
