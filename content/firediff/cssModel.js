@@ -53,8 +53,14 @@ FireDiff.CSSModel = FBL.ns(function() { with (FBL) {
       }
       return true;
     },
+    isEqualNode: function(node) {
+      return this.equals(node);
+    },
     clone: function() {
       return cloneCSSObject(this);
+    },
+    cloneNode: function() {
+      return this.clone();
     }
   }
   function ArrayCloneObject(array) {
