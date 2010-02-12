@@ -320,7 +320,7 @@ function runTest() {
   FBTest.loadScript("FBTestFireDiff.js", this);
 
   var urlBase = FBTest.getHTTPURLBase();
-  FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
+  FBTestFirebug.openNewTab(urlBase + "snapshot/index.htm", function(win) {
     FBTestFirebug.openFirebug();
     FBTestFireDiff.enableDiffPanel(
         function() {
