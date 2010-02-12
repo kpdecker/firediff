@@ -1,4 +1,15 @@
 (function() {
+  const Cc = Components.classes;
+  const Ci = Components.interfaces;
+
+  const ScriptableInputStream = Cc["@mozilla.org/scriptableinputstream;1"];
+  const nsIScriptableInputStream = Ci.nsIScriptableInputStream;
+
+  const ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService)
+
+  const DiffModule = FBTest.FirebugWindow.Firebug.DiffModule,
+        FBTrace = FBTest.FirebugWindow.FBTrace;
+
   FBTestFireDiff = {
     isFirefox30: function() {
       return navigator.userAgent.indexOf("Firefox/3.0") >= 0;
@@ -77,7 +88,9 @@
             return;
           }
           
-          tests[curTest].verify(win, changeNum, change);
+          if (tests[curTest].verify) {
+            tests[curTest].verify(win, changeNum, change);
+          }
           
           changeNum++;
           if (tests[curTest].eventCount == changeNum) {
@@ -143,6 +156,41 @@
       }
       
       cleanupWrapper(executeTest)();
+    },
+
+    fileOutTest: function(execCallback, verifyPath, msg) {
+      var DiffMonitor = FBTestFirebug.getPanel("firediff"),
+          originalPickFile = DiffMonitor.promptForFileName,
+          originalWriteString = DiffMonitor.writeString,
+          run = false;
+      try {
+        DiffMonitor.promptForFileName = function() {
+          return "testFile";
+        };
+        DiffMonitor.writeString = function(file, text) {
+          var channel = ios.newChannel(verifyPath, null, ios.newURI(FBTest.getHTTPURLBase(), null, null)),
+              istream = channel.open();
+
+          var scriptStream = ScriptableInputStream.createInstance(nsIScriptableInputStream); 
+          scriptStream.init(istream);
+          var fileContent = "",
+              len;
+          while ((len = scriptStream.available())) {
+            fileContent += scriptStream.read(len);
+          }
+          scriptStream.close();
+          istream.close();
+
+          FBTest.compare(fileContent, text, msg + " - Output");
+          run = true;
+        };
+        execCallback();
+        
+        FBTest.ok(run, msg + " - Write string run");
+      } finally {
+        DiffMonitor.promptForFileName = originalPickFile;
+        DiffMonitor.writeString = originalWriteString;
+      }
     }
   };
 })();

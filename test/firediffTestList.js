@@ -20,6 +20,7 @@ testList.push.apply(testList, [
     {group: "event",  uri: "event/revertMergeTest.js",                desc: "Events: Revert Merge Test" },
 
     {group: "snapshot", uri: "snapshot/domDiffWalker.js",          desc: "Snapshot: DOM Diff Walker Test" },
+    {group: "snapshot", uri: "snapshot/domChangeTest.js",          desc: "Snapshot: DOM Diff+Snapshot Test" },
 
     {group: "manual", uri: "manual/manualAutomation.js",            desc: "Manual: Manual display test with scripted setup" }
 ]);

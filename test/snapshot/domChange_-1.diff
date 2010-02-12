@@ -1,0 +1,32 @@
+Index: chrome://firediff-test/content/module/index.htm
+===================================================================
+--- chrome://firediff-test/content/module/index.htm	(Base File)
++++ chrome://firediff-test/content/module/index.htm	(Snapshot)
+@@ -12,19 +12,13 @@
+         content: &quot;test&quot;;
+       }
+     </style>
+ </head><body>
++    <p>before</p> <p>after</p>
++    <div id="insertNode_innerHTML"><p>test</p></div>
++    
++    <div id="textModified"></div>
++    <div id="removeNode_innerHTML"></div>
++    <div id="removeNode" align="left">
++        
+-    <div id="insertNode"></div>
+-    <div id="insertNode_innerHTML"></div>
+-    <div id="attrModified">
+-        Text Value
+     </div>
+-    <div id="textModified">
+-        Text Value
+-    </div>
+-    <div id="removeNode_innerHTML">
+-        <p>Test InnerHTML</p>
+-    </div>
+-    <div id="removeNode">
+-        <p>Test</p>
+-    </div>
+ </body></html>
+\ No newline at end of file
