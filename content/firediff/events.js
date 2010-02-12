@@ -42,6 +42,13 @@ ChangeEvent.prototype = {
     isCancellation: function(candidate) {},
     
     /**
+     * Determines if this change affects the cancellation of another change.
+     * 
+     * I.e. this change must be reverted to revert the candidate change.
+     */
+    affectsCancellation: function(candidate) {},
+    
+    /**
      * Determines if this change negates any effect of a prior change.
      */
     overridesChange: function(prior) {},
@@ -327,6 +334,11 @@ function revertChange(changes, change, changeIndex, parentDeletes) {
 
   return change;
 }
+
+/**
+ * Lookup the next change that we may have to revert to fully revert the
+ * element in question to the previous state.
+ */
 function processRevertCancel(changes, change, curIndex, parentDeletes) {
   for (; curIndex < changes.length; curIndex++) {
     var candidate = changes[curIndex];
