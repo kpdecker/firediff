@@ -1,6 +1,12 @@
 function runTest() {
   var Events = FBTest.FirebugWindow.FireDiff.events;
   
+  function compareChange(subType, change, type) {
+    FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
+    FBTest.compare(change.changeType, type || "DOM", "Change type: " + change.changeType);
+    FBTest.compare(change.subType, subType, "Sub type: " + change.subType);
+  }
+
   FBTest.loadScript("FBTestFireDiff.js", this);
   var tests = [
     {
@@ -10,9 +16,7 @@ function runTest() {
         textModified.innerHTML = "New Value";
       },
       verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == change ? "dom_inserted" : "dom_removed", "Sub type: " + change.subType);
+        compareChange(number ? "dom_inserted" : "dom_removed", change);
       },
       eventCount: 2
     },
@@ -23,9 +27,7 @@ function runTest() {
         textModified.firstChild.appendData("More Data");
       },
       verify: function(win, number,change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == "char_data_modified", "Sub type: " + change.subType);
+        compareChange("char_data_modified", change);
       },
       eventCount: 1
     },
@@ -36,9 +38,7 @@ function runTest() {
         attrModified.align = "right";
       },
       verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
+        compareChange("attr_changed", change);
         FBTest.ok(change.isAddition(), "change.isAddition");
         FBTest.ok(!change.isRemoval(), "!change.isRemoval");
       },
@@ -51,9 +51,7 @@ function runTest() {
         attrModified.setAttribute("align", "left");
       },
       verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
+        compareChange("attr_changed", change);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
         FBTest.ok(!change.isRemoval(), "!change.isRemoval");
       },
@@ -66,9 +64,7 @@ function runTest() {
         attrModified.removeAttribute("align");
       },
       verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == "attr_changed", "Sub type: " + change.subType);
+        compareChange("attr_changed", change);
         FBTest.ok(!change.isAddition(), "!change.isAddition");
         FBTest.ok(change.isRemoval(), "change.isRemoval");
       },
@@ -83,33 +79,50 @@ function runTest() {
         insertNode.appendChild(p);
       },
       verify: function(win, number, change) {
-        FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
-        FBTest.ok(change.changeType, "DOM", "Change type: " + change.changeType);
-        FBTest.ok(change.subType == "dom_inserted", "Sub type: " + change.subType);
+        compareChange("dom_inserted", change);
       },
       eventCount: 1
+    },
+    {
+      name: "insertNode_innerHTML",
+      execute: function(win) {
+        var insertNodeHtml = win.document.getElementById("insertNode_innerHTML");
+        insertNodeHtml.innerHTML = "<p>test</p>";
+      },
+      verify: function(win, number, change) {
+        compareChange("dom_inserted", change);
+      },
+      eventCount: 1
+    },
+    {
+      name: "removeNode",
+      execute: function(win) {
+        var removeNode = win.document.getElementById("removeNode").getElementsByTagName("p")[0];
+        removeNode.parentNode.removeChild(removeNode);
+        removeNode.setAttribute("class", "testClass");
+      },
+      verify: function(win, number, change) {
+        compareChange("dom_removed", change);
+      },
+      eventCount: 1
+    },
+    {
+      name: "removeNode_innerHTML",
+      execute: function(win) {
+        var removeNodeHtml = win.document.getElementById("removeNode_innerHTML");
+        var removeNode = removeNodeHtml.getElementsByTagName("p")[0];
+        removeNodeHtml.innerHTML = "";
+
+        removeNode.setAttribute("class", "testClass");
+      },
+      verify: function(win, number, change) {
+        compareChange("dom_removed", change);
+      },
+      eventCount: 3
     }
-    
-    // TODO : Test Insert + Modify attr
-    // TODO : Test Remove + Modify attr (Need to implement eventCount = 0 handler
-    
   ];
-  /*
-  var insertNode = document.getElementById("insertNode");
-  var p = document.createElement("p");
-  p.setAttribute("align", "left");
-  insertNode.appendChild(p);
 
-  var insertNodeHtml = document.getElementById("insertNode_innerHTML");
-  insertNodeHtml.innerHTML = "<p>test</p>";
 
-  var removeNodeHtml = document.getElementById("removeNode_innerHTML");
-  removeNodeHtml.innerHTML = "";
-
-  var removeNode = document.getElementById("removeNode");
-  removeNode.removeChild(removeNode.getElementsByTagName("p")[0]);
-*/
-  
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "module/index.htm", function(win) {
     FBTestFirebug.openFirebug();

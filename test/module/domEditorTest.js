@@ -116,7 +116,6 @@ function runTest() {
       },
       execute: function(win) {
         // Force a page refresh as the style attribute change is not always picked up
-        // TODO : Unit test for this within firebug?
         htmlPanel.select(document.createElement("div"));
 
         var attrMod = win.document.getElementById("attrModified");
