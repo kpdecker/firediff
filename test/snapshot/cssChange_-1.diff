@@ -1,0 +1,18 @@
+Index: null
+===================================================================
+--- null	(Base File)
++++ null	(Snapshot)
+@@ -1,8 +1,8 @@
+-#insertNode {
+-  background-color: green;
+-}
+-
+ div:after {
+   content: "test";
+ }
++
++* {
++
++}
+ 
+\ No newline at end of file

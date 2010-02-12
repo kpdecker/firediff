@@ -1,0 +1,11 @@
+#insertNode {
+  background-color: green;
+}
+
+div:after {
+  content: "test";
+}
+
+* {
+
+}

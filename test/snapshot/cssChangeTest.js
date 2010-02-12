@@ -1,0 +1,233 @@
+function runTest() {
+  var Events = FBTest.FirebugWindow.FireDiff.events,
+    Firebug = FBTest.FirebugWindow.Firebug,
+    FBTrace = FBTest.FirebugWindow.FBTrace;
+  var cssPanel;
+  
+  FBTest.loadScript("FBTestFireDiff.js", this);
+  
+  function setEditorValue(editor, value) {
+    var editorInput = editor.input;
+    editorInput.value = value;
+    Firebug.Editor.update(true);
+  }
+  function resetCSS(win, inline) {
+    var style = win.document.getElementsByTagName(inline ? "style" : "link")[0];
+    cssPanel.navigate(style.sheet);
+  }
+  function resetInlineCSS(win) {
+    resetCSS(win, true);
+  }
+  
+  var tests = [
+    {
+      name: "newProperty",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssRule")[0];
+        
+        cssPanel.insertPropertyRow(rule);
+        
+        var editor = cssPanel.editor;
+        setEditorValue(editor, "whitespace");
+        setEditorValue(editor, "display");
+        Firebug.Editor.tabNextEditor();
+        
+        setEditorValue(editor, "inline");
+        setEditorValue(editor, "block");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 1
+    },
+    {
+      name: "editProperty",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssPropValue")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.editor;
+        setEditorValue(editor, "yellow");
+        setEditorValue(editor, "blue !important");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 1
+    },
+    {
+      name: "renameProperty",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssPropName")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.editor;
+        setEditorValue(editor, "border-color");
+        setEditorValue(editor, "color");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 2
+    },
+    {
+      name: "deleteProperty_name",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssPropName")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.editor;
+        setEditorValue(editor, "border-color");
+        setEditorValue(editor, "");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 1
+    },
+    {
+      name: "disableProperty",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssProp")[0];
+        
+        cssPanel.disablePropertyRow(rule);
+        cssPanel.disablePropertyRow(rule);
+      },
+      eventCount: 2
+    },
+    {
+      name: "deleteProperty_menu",
+      setup: resetCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssProp")[0];
+        
+        cssPanel.deletePropertyRow(rule);
+      },
+      eventCount: 1
+    },
+
+    {
+      name: "newRule",
+      setup: resetInlineCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var sheet = panelNode.getElementsByClassName("cssSheet")[0];
+        
+        cssPanel.insertRule(sheet);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "div");
+        setEditorValue(editor, "*");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 1
+    },
+    {
+      name: "editRule",
+      setup: resetInlineCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssSelector")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "div");
+        setEditorValue(editor, "#yellow");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 2
+    },
+    {
+      name: "deleteRule",
+      setup: resetInlineCSS,
+      execute: function(win) {
+        var panelNode = cssPanel.panelNode;
+        var rule = panelNode.getElementsByClassName("cssSelector")[0];
+        
+        Firebug.Editor.startEditing(rule, rule.textContent);
+        
+        var editor = cssPanel.ruleEditor;
+        setEditorValue(editor, "border-color");
+        setEditorValue(editor, "");
+        Firebug.Editor.stopEditing();
+      },
+      eventCount: 1
+    }
+  ];
+  
+  var urlBase = FBTest.getHTTPURLBase();
+  FBTestFirebug.openNewTab(urlBase + "snapshot/index.htm", function(win) {
+    FBTestFirebug.openFirebug();
+
+    FBTestFireDiff.enableDiffPanel(
+        function() {
+          FBTestFirebug.selectPanel("stylesheet");
+          cssPanel = FBTestFirebug.getSelectedPanel();
+          cssPanel.select();
+          
+          FBTestFireDiff.executeModuleTests(tests, win,
+              function() {
+                FBTestFirebug.selectPanel("firediff");
+                var diffPanel = FBTestFirebug.getSelectedPanel(),
+                    changes = diffPanel.context.diffContext.changes;
+    
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveSnapshot(changes[changes.length-1]);
+                    },
+                    "snapshot/cssChange_-1.css",
+                    "-1 Snapshot");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveDiff(changes[changes.length-1]);
+                    },
+                    "snapshot/cssChange_-1.diff",
+                    "-1 Diff");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveSnapshot(changes[changes.length-4]);
+                    },
+                    "snapshot/cssChange_-4.css",
+                    "-4 Snapshot");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveDiff(changes[changes.length-4]);
+                    },
+                    "snapshot/cssChange_-4.diff",
+                    "-4 Diff");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveSnapshot(changes[changes.length-6]);
+                    },
+                    "snapshot/cssChange_-6.css",
+                    "-4 Snapshot");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveDiff(changes[changes.length-6]);
+                    },
+                    "snapshot/cssChange_-6.diff",
+                    "-6 Diff");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveSnapshot(changes[0]);
+                    },
+                    "snapshot/cssChange_0.css",
+                    "0 Snapshot");
+                FBTestFireDiff.fileOutTest(
+                    function() {
+                      diffPanel.saveDiff(changes[0]);
+                    },
+                    "snapshot/cssChange_0.diff",
+                    "0 Diff");
+                FBTestFirebug.testDone();
+              });
+        });
+  });
+}

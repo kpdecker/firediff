@@ -1,0 +1,7 @@
+#insertNode {
+  display: block;
+}
+
+div:after {
+  content: "test";
+}

@@ -21,6 +21,7 @@ testList.push.apply(testList, [
 
     {group: "snapshot", uri: "snapshot/domDiffWalker.js",          desc: "Snapshot: DOM Diff Walker Test" },
     {group: "snapshot", uri: "snapshot/domChangeTest.js",          desc: "Snapshot: DOM Diff+Snapshot Test" },
+    {group: "snapshot", uri: "snapshot/cssChangeTest.js",          desc: "Snapshot: CSS Diff+Snapshot Test" },
 
     {group: "manual", uri: "manual/manualAutomation.js",            desc: "Manual: Manual display test with scripted setup" }
 ]);

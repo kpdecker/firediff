@@ -1,0 +1,8 @@
+#insertNode {
+  display: block;
+  background-color: green;
+}
+
+div:after {
+  content: "test";
+}
