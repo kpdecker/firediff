@@ -162,35 +162,40 @@
       var DiffMonitor = FBTestFirebug.getPanel("firediff"),
           originalPickFile = DiffMonitor.promptForFileName,
           originalWriteString = DiffMonitor.writeString,
-          run = false;
+          run = false,
+          self = this;
       try {
         DiffMonitor.promptForFileName = function() {
           return "testFile";
         };
         DiffMonitor.writeString = function(file, text) {
-          var channel = ios.newChannel(verifyPath, null, ios.newURI(FBTest.getHTTPURLBase(), null, null)),
-              istream = channel.open();
-
-          var scriptStream = ScriptableInputStream.createInstance(nsIScriptableInputStream); 
-          scriptStream.init(istream);
-          var fileContent = "",
-              len;
-          while ((len = scriptStream.available())) {
-            fileContent += scriptStream.read(len);
-          }
-          scriptStream.close();
-          istream.close();
-
-          FBTest.compare(fileContent, text, msg + " - Output");
+          self.verifyFile(verifyPath, text, msg + " - Output");
           run = true;
         };
         execCallback();
-        
+
         FBTest.ok(run, msg + " - Write string run");
       } finally {
         DiffMonitor.promptForFileName = originalPickFile;
         DiffMonitor.writeString = originalWriteString;
       }
+    },
+    
+    verifyFile: function(verifyPath, text, msg) {
+      var channel = ios.newChannel(verifyPath, null, ios.newURI(FBTest.getHTTPURLBase(), null, null)),
+          istream = channel.open();
+
+      var scriptStream = ScriptableInputStream.createInstance(nsIScriptableInputStream); 
+      scriptStream.init(istream);
+      var fileContent = "",
+          len;
+      while ((len = scriptStream.available())) {
+        fileContent += scriptStream.read(len);
+      }
+      scriptStream.close();
+      istream.close();
+
+      FBTest.compare(fileContent, text, msg);
     }
   };
 })();
