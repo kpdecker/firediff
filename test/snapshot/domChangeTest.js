@@ -344,8 +344,13 @@ function runTest() {
 
           FBTestFireDiff.executeModuleTests(tests, win,
               function() {
+                var Format = {};
+                Components.utils.import("resource://fireformat/formatters.jsm", Format);
+
                 FBTestFirebug.selectPanel("firediff");
                 var diffPanel = FBTestFirebug.getSelectedPanel(),
+                    formatter = Format.Formatters.getFormatter("com.incaseofstairs.fireformatHTMLFormatter"),
+                    doc = win.document,
                     changes = diffPanel.context.diffContext.changes;
 
                 FBTestFireDiff.fileOutTest(
@@ -384,6 +389,19 @@ function runTest() {
                     },
                     "snapshot/domChange_0.diff",
                     "0 Diff");
+
+                Firebug.DiffModule.revertChange(changes[changes.length-3], diffPanel.context, true);
+                FBTestFireDiff.verifyFile(
+                    "snapshot/domChange_revert-4.html",
+                    formatter.format(doc),
+                    "Verify Revert - -4");
+
+                Firebug.DiffModule.revertChange(changes[0], diffPanel.context, true);
+                FBTestFireDiff.verifyFile(
+                    "snapshot/domChange_revert0.html",
+                    formatter.format(doc),
+                    "Verify Revert - 0");
+
                 FBTestFirebug.testDone();
               });
         });
