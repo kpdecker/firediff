@@ -174,10 +174,15 @@ function runTest() {
           
           FBTestFireDiff.executeModuleTests(tests, win,
               function() {
+                var Format = {};
+                Components.utils.import("resource://fireformat/formatters.jsm", Format);
+
                 FBTestFirebug.selectPanel("firediff");
                 var diffPanel = FBTestFirebug.getSelectedPanel(),
+                    formatter = Format.Formatters.getFormatter("com.incaseofstairs.fireformatCSSFormatter"),
+                    doc = win.document,
                     changes = diffPanel.context.diffContext.changes;
-    
+
                 FBTestFireDiff.fileOutTest(
                     function() {
                       diffPanel.saveSnapshot(changes[changes.length-1]);
@@ -226,6 +231,39 @@ function runTest() {
                     },
                     "snapshot/cssChange_0.diff",
                     "0 Diff");
+
+                var secondRevert = changes[changes.length-3];
+
+                Firebug.DiffModule.revertChange(changes[1], diffPanel.context, true);
+                FBTestFireDiff.verifyFile(
+                    "snapshot/cssChange_-1.css",
+                    formatter.format(doc.styleSheets[1]),
+                    "Verify Revert - Sheet");
+                FBTestFireDiff.verifyFile(
+                    "snapshot/cssChange_revert1.css",
+                    formatter.format(doc.styleSheets[0]),
+                    "Verify Revert - Inline");
+
+                Firebug.DiffModule.revertChange(secondRevert, diffPanel.context, true);
+                FBTestFireDiff.verifyFile(
+                    "snapshot/cssChange_-4.css",
+                    formatter.format(doc.styleSheets[1]),
+                    "Verify Revert - Sheet");
+                FBTestFireDiff.verifyFile(
+                    "snapshot/cssChange_revert1.css",
+                    formatter.format(doc.styleSheets[0]),
+                    "Verify Revert - Inline");
+
+                Firebug.DiffModule.revertChange(changes[0], diffPanel.context, true);
+                FBTestFireDiff.verifyFile(
+                    "snapshot/cssChange_-4.css",
+                    formatter.format(doc.styleSheets[1]),
+                    "Verify Revert - Sheet");
+                FBTestFireDiff.verifyFile(
+                    "snapshot/external.css",
+                    formatter.format(doc.styleSheets[0]),
+                    "Verify Revert - Inline");
+
                 FBTestFirebug.testDone();
               });
         });
