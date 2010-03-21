@@ -5,7 +5,8 @@ The following are items that need further work:
     combinations into distinct changes within the data rather than 2 events.
 - CSS Changes merged with editor changes due to "race" condition
 - Application-level CSS Changes
+- Sheet-level CSS events (Insert/Remove due to DOM event modification)
 - Diff Monitor
  - CSS Rep Links
-- Manual test for revert UI
-- Manual test for save snapshot and diff
+- Diff + Snapshot with CSS changes on inline stylesheets
+- Remove Firebug objects from snapshots + diff

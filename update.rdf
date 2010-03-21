@@ -77,13 +77,31 @@
             </em:targetApplication>
           </RDF:Description>
         </RDF:li>
+        <RDF:li>
+          <RDF:Description>
+            <em:version>1.0</em:version>
+
+            <!-- Firefox -->
+            <em:targetApplication>
+              <RDF:Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>1.5</em:minVersion>
+                <em:maxVersion>3.6.*</em:maxVersion>
+
+                <em:updateLink>http://www.incaseofstairs.com/download/firediff/firediff1.0.xpi</em:updateLink>
+                <em:updateInfoURL>http://www.incaseofstairs.com/2010/03/firediff-10-released/</em:updateInfoURL>
+                <em:updateHash>sha1:00860600198e7a12eae019f507f8037da961888d</em:updateHash>
+              </RDF:Description>
+            </em:targetApplication>
+          </RDF:Description>
+        </RDF:li>
       </RDF:Seq>
     </em:updates>
 
     <em:signature>
-      MIGTMA0GCSqGSIb3DQEBDQUAA4GBACaspFYc/bTPuQWfcystWP68OY16vN1tQvgxhUtZbHyDRx
-      VCBurT4C+ix6V1TmF8AUf9aZ0ntyfOK3J8kVivBdEjj7Z1uQGf080b2H4wCcPmiwT3QenvMc13
-      qysC7r52fVxSQMY3acmuOXw+PjDs+ASoxhu/Ql/F1jUSDRAmujGU
+      MIGTMA0GCSqGSIb3DQEBDQUAA4GBAGvVdVGolwwuW7nuNIVBX95zWNt6+6b6+eizgrlm5LAyHt
+      GqI4Su6xb4wkDIOiOaguhRFnmya1eIHmwzGCxQjxRzz+0/aqwKejy0WqPDjiV7uWtUZd10ofW1
+      GOxlU51coxFo84q0vqRlmua4nsl3DFO+RZ2ELrBB4x/rgJPeRJS+
     </em:signature>
   </RDF:Description>
 </RDF:RDF>
