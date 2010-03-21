@@ -4,6 +4,8 @@ content firediff-test test/
 skin	firediff	classic/1.0	skin/classic/
 skin	firediff-os	classic/1.0	skin/classic/win/
 
+locale  firediff de-DE       locale/de-DE/
 locale  firediff en-US       locale/en-US/
+locale  firediff pt-BR       locale/pt-BR/
 
 overlay chrome://firebug/content/firebugOverlay.xul         chrome://firediff/content/firediff.xul
