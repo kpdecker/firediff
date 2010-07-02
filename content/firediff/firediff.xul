@@ -15,7 +15,7 @@
   <stringbundleset id="stringbundleset">
     <stringbundle id="strings_firediff" src="chrome://firediff/locale/firediff.properties"/>
   </stringbundleset>
-  
+
   <script src="chrome://firediff/content/versionCompat.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diff.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/path.js" type="application/x-javascript"/>
@@ -28,19 +28,19 @@
   <script src="chrome://firediff/content/pages.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffModule.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffMonitor.js" type="application/x-javascript"/>
-  
+
   <commandset id="mainCommandSet">
     <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(FirebugContext)"/>
     <command id="cmd_prevChange" oncommand="Firebug.DiffModule.navPrevChange(FirebugContext)"/>
     <command id="cmd_nextChange" oncommand="Firebug.DiffModule.navNextChange(FirebugContext)"/>
   </commandset>
-  
+
   <toolbar id="fbToolbar" align="center">
     <hbox id="fbToolbarInner" insertbefore="fbDetachButton" flex="1" align="center">
       <hbox id="fbDiffMonitorButtons" insertafter="fbNetButtons" collapsed="true">
         <toolbarseparator/>
-        <toolbarbutton label="&firebug.Clear;" class="toolbar-text-button"
-                       tooltiptext="&firebug.ClearTooltip;" command="cmd_clearDiffMonitor"/>
+        <toolbarbutton label="firebug.Clear" class="toolbar-text-button"
+                       tooltiptext="firebug.ClearTooltip" command="cmd_clearDiffMonitor"/>
         <hbox id="fbDiffSnapshotNav" collapsed="true">
           <toolbarseparator/>
           <toolbarbutton label="&firediff.PrevChange;" command="cmd_prevChange" class="toolbar-text-button"/>
