@@ -59,7 +59,7 @@ DiffMonitor.prototype = extend(Panel, {
       
       var enabled = Firebug.DiffModule.isAlwaysEnabled();
       if (enabled) {
-           Firebug.DiffModule.disabledPanelPage.hide(this);
+           Firebug.DiffModule.disabledPanelPage && Firebug.DiffModule.disabledPanelPage.hide(this);
 
            this.showToolbarButtons("fbDiffMonitorButtons", true);
            $("cmd_copy").setAttribute("disabled", true);
@@ -69,7 +69,7 @@ DiffMonitor.prototype = extend(Panel, {
            }
       } else {
           this.hide();
-          Firebug.DiffModule.disabledPanelPage.show(this);
+          Firebug.DiffModule.disabledPanelPage && Firebug.DiffModule.disabledPanelPage.show(this);
       }
     },
     enablePanel: function(module) {
