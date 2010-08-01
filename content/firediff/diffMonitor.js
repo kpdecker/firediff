@@ -357,7 +357,25 @@ DiffMonitor.prototype = extend(Panel, {
       if (this.selection.showPrev) {
         this.selection.showPrev();
       }
-    }
+    },
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    // extends ActivablePanel
+
+    /**
+     * Support for panel activation.
+     */
+    onActivationChanged: function(enable)
+    {
+        if (FBTrace.DBG_FIREDIFF || FBTrace.DBG_ACTIVATION)
+            FBTrace.sysout("console.ScriptPanel.onActivationChanged; " + enable);
+
+        if (enable) {
+            Firebug.DiffModule.addObserver(this);
+        } else {
+            Firebug.DiffModule.removeObserver(this);
+        }
+    },
 });
 
 Firebug.registerPanel(DiffMonitor);

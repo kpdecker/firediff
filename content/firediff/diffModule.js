@@ -51,7 +51,14 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     onDisabled: function(context) {
       this.unmonitorContext(context);
     },
-    
+    onObserverChange: function(observer) {
+        if (!this.hasObservers()) {
+            TabWatcher.iterateContexts(this.onEnabled);
+        } else {
+            TabWatcher.iterateContexts(this.onDisabled);
+        }
+    },
+
     //////////////////////////////////////////////
     // Actions
     revertAllChanges: function(change, context) {
