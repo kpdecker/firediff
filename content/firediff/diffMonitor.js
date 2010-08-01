@@ -61,6 +61,10 @@ DiffMonitor.prototype = extend(Panel, {
       if (enabled) {
            Firebug.DiffModule.disabledPanelPage && Firebug.DiffModule.disabledPanelPage.hide(this);
 
+           var el = document.querySelector("[command='cmd_clearDiffMonitor']");
+           FBL.internationalize(el, "label");
+           FBL.internationalize(el, "tooltiptext");
+
            this.showToolbarButtons("fbDiffMonitorButtons", true);
            $("cmd_copy").setAttribute("disabled", true);
 
