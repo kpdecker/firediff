@@ -46,14 +46,14 @@
 .showFirebugChanges .firebugDiff.addedClass,
 .showAppChanges .appDiff .addedClass,
 .showAppChanges .appDiff.addedClass {
-  background: green;
-  color: white;
+  background: #9bff8a;
+  color: black;
 }
 .showFirebugChanges .firebugDiff .removedClass,
 .showFirebugChanges .firebugDiff.removedClass,
 .showAppChanges .appDiff .removedClass,
 .showAppChanges .appDiff.removedClass {
-  background: red;
+  background: #ff8986;
   color: black;
 }
 
