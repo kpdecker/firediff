@@ -3,8 +3,6 @@ function runTest() {
     Firebug = FBTest.FirebugWindow.Firebug,
     FBTrace = FBTest.FirebugWindow.FBTrace;
   var htmlPanel, cssPanel;
-  
-  FBTest.loadScript("FBTestFireDiff.js", this);
 
   function getEditor(htmlPanel, editNode) {
     return htmlPanel.localEditors[FBTest.FirebugWindow.FBL.getElementType(editNode)];

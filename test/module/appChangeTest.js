@@ -7,7 +7,6 @@ function runTest() {
     FBTest.compare(change.subType, subType, "Sub type: " + change.subType);
   }
 
-  FBTest.loadScript("FBTestFireDiff.js", this);
   var tests = [
     {
       name: "textModified_innerHTML",

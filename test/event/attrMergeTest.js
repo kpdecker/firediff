@@ -1,9 +1,7 @@
 function runTest() {
   var Events = FBTest.FirebugWindow.FireDiff.events,
       Path = FBTest.FirebugWindow.FireDiff.Path;
-  
-  FBTest.loadScript("FBTestFireDiff.js", this);
-  
+
   var root = document.createElement("div");
   var prevSibling = document.createElement("div");
   var target = document.createElement("div");

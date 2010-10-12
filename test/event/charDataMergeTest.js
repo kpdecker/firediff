@@ -3,8 +3,6 @@ function runTest() {
   var Events = FBTest.FirebugWindow.FireDiff.events,
       Path = FBTest.FirebugWindow.FireDiff.Path;
   
-  FBTest.loadScript("FBTestFireDiff.js", this);
-  
   var root = document.createElement("div");
   var prevText = document.createTextNode("prevText");
   var prevSibling = document.createElement("div");

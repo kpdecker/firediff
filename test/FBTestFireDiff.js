@@ -16,10 +16,10 @@
     },
 
     enableDiffPanel: function(callback) {
-      FBTestFirebug.updateModelState(FW.Firebug.DiffModule, callback, true);
+        FBTestFirebug.setPanelState(FW.Firebug.DiffModule, "firediff", callback, true);
     },
     disableDiffPanel: function(callback) {
-      FBTestFirebug.updateModelState(FW.Firebug.DiffModule, callback, false);
+        FBTestFirebug.setPanelState(FW.Firebug.DiffModule, "firediff", callback, false);
     },
 
     compareChangeList: function(expected, actual, msg) {

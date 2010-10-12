@@ -53,8 +53,6 @@ function runTest() {
   
   var urlBase = FBTest.getHTTPURLBase();
   FBTestFirebug.openNewTab(urlBase + "event/index.htm", function(win) {
-    FBTest.loadScript("FBTestFireDiff.js", this);
-    
     var doc = win.document;
     
     var root = doc.createElement("div");

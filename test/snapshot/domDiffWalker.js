@@ -4,8 +4,6 @@ function runTest() {
       Firebug = FBTest.FirebugWindow.Firebug,
       FBTrace = FBTest.FirebugWindow.FBTrace;
   var htmlPanel, cssPanel;
-  
-  FBTest.loadScript("FBTestFireDiff.js", this);
   FBTestFirebug.enableAllPanels();
   
   var urlBase = FBTest.getHTTPURLBase();

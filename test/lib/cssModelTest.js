@@ -2,8 +2,7 @@ function runTest() {
   var urlBase = FBTest.getHTTPURLBase();
   var CSSModel = FBTest.FirebugWindow.FireDiff.CSSModel,
       FBTrace = FBTest.FirebugWindow.FBTrace;
-  
-  FBTest.loadScript("FBTestFireDiff.js", this);
+
   FBTestFirebug.openNewTab(urlBase + "lib/cssModel.htm", function(win) {
     var doc = win.document;
     

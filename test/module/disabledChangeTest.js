@@ -3,8 +3,6 @@ function runTest() {
       Firebug = FBTest.FirebugWindow.Firebug,
       FBTrace = FBTest.FirebugWindow.FBTrace;
 
-  FBTest.loadScript("FBTestFireDiff.js", this);
-
   var listener = {
     onDiffChange: function(change) {
       FBTest.fail("Change event occurred");

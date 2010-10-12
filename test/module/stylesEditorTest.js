@@ -4,8 +4,6 @@ function runTest() {
     FBTrace = FBTest.FirebugWindow.FBTrace;
   var cssPanel;
 
-  FBTest.loadScript("FBTestFireDiff.js", this);
-
   function setEditorValue(editor, value) {
     var editorInput = editor.input;
     editorInput.value = value;
@@ -147,8 +145,11 @@ function runTest() {
 
     FBTestFireDiff.enableDiffPanel(
         function() {
-          FBTestFirebug.selectPanel("css");
-          cssPanel = FBTestFirebug.getSelectedPanel();
+          FBTestFirebug.selectPanel("html");
+          cssPanel = FW.FirebugChrome.selectSidePanel("css");
+          //FBTestFirebug.selectPanel("css");
+          //cssPanel = FBTestFirebug.getSelectedPanel();
+          FW.FBTrace.sysout("cssPanel", cssPanel);
           cssPanel.select(win.document.getElementById("attrModified"));
           
           FBTestFireDiff.executeModuleTests(tests, win);

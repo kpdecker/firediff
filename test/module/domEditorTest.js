@@ -4,8 +4,6 @@ function runTest() {
     FBTrace = FBTest.FirebugWindow.FBTrace;
   var htmlPanel;
   
-  FBTest.loadScript("FBTestFireDiff.js", this);
-  
   function verifyAppChange(change) {
     FBTest.compare(change.changeSource, Events.ChangeSource.APP_CHANGE, "Change source: " + change.changeSource);
     FBTest.compare(change.changeType, "DOM", "Change type: " + change.changeType);

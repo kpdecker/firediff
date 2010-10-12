@@ -1,4 +1,6 @@
-﻿var testList = testList || [];
+﻿testIncludes.push("FBTestFireDiff.js");
+
+var testList = testList || [];
 testList.push.apply(testList, [
     {group: "module", uri: "module/appChangeTest.js",               desc: "Diff Module: Application Generated Events" },
     {group: "module", uri: "module/domEditorTest.js",               desc: "Diff Module: DOM Editor Generated Events" },

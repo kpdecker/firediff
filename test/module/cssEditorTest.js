@@ -5,9 +5,7 @@ function runTest() {
     Firebug = FBTest.FirebugWindow.Firebug,
     FBTrace = FBTest.FirebugWindow.FBTrace;
   var cssPanel;
-  
-  FBTest.loadScript("FBTestFireDiff.js", this);
-  
+
   function setEditorValue(editor, value) {
     var editorInput = editor.input;
     editorInput.value = value;

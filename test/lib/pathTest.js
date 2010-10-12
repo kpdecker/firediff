@@ -1,7 +1,6 @@
 function runTest() {
   try {
   var urlBase = FBTest.getHTTPURLBase();
-  FBTest.loadScript("FBTestFireDiff.js", this);
   FBTestFirebug.openNewTab(urlBase + "lib/path.htm", function(win) {
     var Path = FBTest.FirebugWindow.FireDiff.Path,
         FBL = FBTest.FirebugWindow.FBL;
