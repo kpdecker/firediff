@@ -43,7 +43,6 @@ DiffMonitor.prototype = extend(Panel, {
         Firebug.DiffModule.addListener(this);
       }
 
-      this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
       this.applyDisplayPrefs();
 
       if (Firebug.DiffModule.supportsFirebugEdits) {
@@ -63,6 +62,7 @@ DiffMonitor.prototype = extend(Panel, {
 
            // TODO: Remove after dropping support for Firebug 1.5
            Firebug.DiffModule.internationalizeUI(this.document);
+           this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
 
            this.showToolbarButtons("fbDiffMonitorButtons", true);
            $("cmd_copy").setAttribute("disabled", true);
