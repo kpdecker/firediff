@@ -45,7 +45,7 @@ DiffMonitor.prototype = extend(Panel, {
 
       this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
       this.applyDisplayPrefs();
-      
+
       if (Firebug.DiffModule.supportsFirebugEdits) {
         prefs.addObserver(Firebug.prefDomain, this, false);
       }
@@ -61,9 +61,8 @@ DiffMonitor.prototype = extend(Panel, {
       if (enabled) {
            Firebug.DiffModule.disabledPanelPage && Firebug.DiffModule.disabledPanelPage.hide(this);
 
-           var el = document.querySelector("[command='cmd_clearDiffMonitor']");
-           FBL.internationalize(el, "label");
-           FBL.internationalize(el, "tooltiptext");
+           // TODO: Remove after dropping support for Firebug 1.5
+           Firebug.DiffModule.internationalizeUI(this.document);
 
            this.showToolbarButtons("fbDiffMonitorButtons", true);
            $("cmd_copy").setAttribute("disabled", true);

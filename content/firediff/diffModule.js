@@ -44,6 +44,11 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
 
         Firebug.registerStylesheet("chrome://firediff/skin/firediff.css");
     },
+    internationalizeUI: function(doc) {
+        var el = doc.querySelector("[command='cmd_clearDiffMonitor']");
+        FBL.internationalize(el, "label");
+        FBL.internationalize(el, "tooltiptext");
+    },
 
     loadedContext: function(context) {
       if (this.isAlwaysEnabled()) {
