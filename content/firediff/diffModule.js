@@ -39,6 +39,11 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
           Firebug.Editor.addListener(this);
         }
     },
+    initializeUI: function(detachArgs) {
+        Firebug.ActivableModule.initializeUI.apply(this, arguments);
+
+        Firebug.registerStylesheet("chrome://firediff/skin/firediff.css");
+    },
 
     loadedContext: function(context) {
       if (this.isAlwaysEnabled()) {

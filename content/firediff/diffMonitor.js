@@ -42,7 +42,7 @@ DiffMonitor.prototype = extend(Panel, {
       if (Firebug.DiffModule.addListener) {
         Firebug.DiffModule.addListener(this);
       }
-      
+
       this.addStyleSheet(this.document, "chrome://firediff/skin/firediff.css", "fireDiffCss");
       this.applyDisplayPrefs();
       
@@ -94,6 +94,11 @@ DiffMonitor.prototype = extend(Panel, {
     },
 
     addStyleSheet: function(doc, uri, id) {
+        // This is already taken care of if we are running under 1.6
+        if (Firebug.registerStylesheet) {
+            return;
+        }
+
         // Make sure the stylesheet isn't appended twice. 
         if ($(id, doc))   return;
 
