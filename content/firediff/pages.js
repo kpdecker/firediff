@@ -314,7 +314,6 @@ this.CSSSnapshotRep = domplate(Firebug.Rep, {
 });
 
 Firebug.registerRep(
-    this.MonitorRep,
     this.DOMSnapshotRep,
     this.CSSSnapshotRep);
 }});

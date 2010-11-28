@@ -93,4 +93,6 @@ FireDiff.reps.MonitorRep = domplate(Firebug.Rep,{
     }
 });
 
+Firebug.registerRep(FireDiff.reps.MonitorRep);
+
 }});
