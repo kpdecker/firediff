@@ -24,6 +24,7 @@
   <script src="chrome://firediff/content/domplate.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/search.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/pages.js" type="application/x-javascript"/>
+  <script src="chrome://firediff/content/pagesMonitor.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffModule.js" type="application/x-javascript"/>
   <script src="chrome://firediff/content/diffMonitor.js" type="application/x-javascript"/>
 
