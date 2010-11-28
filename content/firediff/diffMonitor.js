@@ -5,14 +5,7 @@ FBL.ns(function() { with (FBL) {
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const nsIDocumentEncoder = Ci.nsIDocumentEncoder;
-const nsIFile = Ci.nsIFile;
-const nsIFileOutputStream = Ci.nsIFileOutputStream;
-const nsIFilePicker = Ci.nsIFilePicker;
 const nsIPrefBranch2 = Ci.nsIPrefBranch2;
-const EncoderService = Cc["@mozilla.org/layout/documentEncoder;1?type=text/plain"];
-const FileOutputService = Cc["@mozilla.org/network/file-output-stream;1"];
-const PickerService = Cc["@mozilla.org/filepicker;1"];
 const PrefService = Cc["@mozilla.org/preferences-service;1"];
 const prefs = PrefService.getService(nsIPrefBranch2);
 const PromptService = Cc["@mozilla.org/embedcomp/prompt-service;1"];
@@ -189,15 +182,15 @@ DiffMonitor.prototype = extend(Panel, {
       }
     },
     saveSnapshot: function(change) {
-      var file = this.promptForFileName(i18n.getString("menu.SaveSnapshot"), change.changeType);
+      var file = FireDiff.FileIO.promptForFileName(i18n.getString("menu.SaveSnapshot"), change.changeType);
       if (file) {
         var snapshot = change.getSnapshot(this.context);
-        this.writeString(file, snapshot.getText());
+        FireDiff.FileIO.writeString(file, snapshot.getText());
       }
     },
     saveDiff: function(change) {
       try {
-        var file = this.promptForFileName(i18n.getString("menu.SaveDiff"), "diff");
+        var file = FireDiff.FileIO.promptForFileName(i18n.getString("menu.SaveDiff"), FireDiff.FileIO.DIFF_MODE);
         if (file) {
           var snapshot = change.getSnapshot(this.context),
               base = change.getBaseSnapshot(this.context),
@@ -208,46 +201,11 @@ DiffMonitor.prototype = extend(Panel, {
                   baseText, snapshotText,
                   i18n.getString("diff.baseFile"), i18n.getString("diff.snapshot"));
   
-          this.writeString(file, diff);
+          FireDiff.FileIO.writeString(file, diff);
         }
       } catch (err) {
         FBTrace.sysout(err, err);
       }
-    },
-
-
-    promptForFileName: function(caption, mode) {
-      var picker = PickerService.createInstance(nsIFilePicker);
-      picker.init(window, caption, nsIFilePicker.modeSave);
-      if (mode == "DOM") {
-        picker.appendFilters(nsIFilePicker.filterHTML);
-        picker.defaultExtension = "html";
-      } else if (mode == "CSS") {
-        picker.appendFilter(i18n.getString("prompt.cssFiles"), "*.css");
-        picker.defaultExtension = "css";
-      } else if (mode == "diff") {
-        picker.appendFilter(i18n.getString("prompt.diffFiles"), "*.diff");
-        picker.defaultExtension = "diff";
-      }
-      picker.appendFilters(nsIFilePicker.filterText);
-      picker.appendFilters(nsIFilePicker.filterAll);
-      var ret = picker.show();
-      if ((ret == nsIFilePicker.returnOK || ret == nsIFilePicker.returnReplace) && picker.file) {
-        return picker.file;
-      }
-    },
-    writeString: function(file, string) {
-      var outputStream = FileOutputService.createInstance(nsIFileOutputStream);
-      outputStream.init(file, -1, -1, 0);   // Default mode and permissions
-
-      // The Document encoder handles all of the heavy lifting here: encoding and line break conversion
-      var serializer = EncoderService.createInstance(nsIDocumentEncoder);
-      serializer.init(document, "text/plain", nsIDocumentEncoder.OutputPreformatted);
-      serializer.setCharset("UTF-8");
-      serializer.setNode(document.createTextNode(string));
-      serializer.encodeToStream(outputStream);
-
-      outputStream.close();
     },
 
     getContextMenuItems: function(object, target) {

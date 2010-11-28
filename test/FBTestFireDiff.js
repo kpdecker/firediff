@@ -8,6 +8,7 @@
   const ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService)
 
   const DiffModule = FBTest.FirebugWindow.Firebug.DiffModule,
+        FireDiff = FBTest.FirebugWindow.FireDiff,
         FBTrace = FBTest.FirebugWindow.FBTrace;
 
   FBTestFireDiff = {
@@ -160,15 +161,15 @@
 
     fileOutTest: function(execCallback, verifyPath, msg) {
       var DiffMonitor = FBTestFirebug.getPanel("firediff"),
-          originalPickFile = DiffMonitor.promptForFileName,
-          originalWriteString = DiffMonitor.writeString,
+          originalPickFile = FireDiff.FileIO.promptForFileName,
+          originalWriteString = FireDiff.FileIO.writeString,
           run = false,
           self = this;
       try {
-        DiffMonitor.promptForFileName = function() {
+        FireDiff.FileIO.promptForFileName = function() {
           return "testFile";
         };
-        DiffMonitor.writeString = function(file, text) {
+        FireDiff.FileIO.writeString = function(file, text) {
           self.verifyFile(verifyPath, text, msg + " - Output");
           run = true;
         };
@@ -176,8 +177,8 @@
 
         FBTest.ok(run, msg + " - Write string run");
       } finally {
-        DiffMonitor.promptForFileName = originalPickFile;
-        DiffMonitor.writeString = originalWriteString;
+          FireDiff.FileIO.promptForFileName = originalPickFile;
+          FireDiff.FileIO.writeString = originalWriteString;
       }
     },
     
