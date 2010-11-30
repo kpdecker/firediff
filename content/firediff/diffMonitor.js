@@ -67,6 +67,8 @@ DiffMonitor.prototype = extend(Panel, {
           this.hide();
           Firebug.DiffModule.disabledPanelPage && Firebug.DiffModule.disabledPanelPage.show(this);
       }
+
+      this.showToolbarButtons("fbStatusButtons", enabled);
     },
     enablePanel: function(module) {
       Panel.enablePanel.apply(this, arguments);
