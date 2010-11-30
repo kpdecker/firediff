@@ -353,37 +353,37 @@ function runTest() {
 
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveSnapshot(changes[changes.length-1]);
+                      diffPanel.selection.saveSnapshot(changes[changes.length-1], diffPanel.context);
                     },
                     "snapshot/domChange_-1.html",
                     "-1 Snapshot");
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveDiff(changes[changes.length-1]);
+                      diffPanel.selection.saveDiff(changes[changes.length-1], diffPanel.context);
                     },
                     "snapshot/domChange_-1.diff",
                     "-1 Diff");
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveSnapshot(changes[changes.length-4]);
+                      diffPanel.selection.saveSnapshot(changes[changes.length-4], diffPanel.context);
                     },
                     "snapshot/domChange_-4.html",
                     "-4 Snapshot");
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveDiff(changes[changes.length-4]);
+                      diffPanel.selection.saveDiff(changes[changes.length-4], diffPanel.context);
                     },
                     "snapshot/domChange_-4.diff",
                     "-4 Diff");
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveSnapshot(changes[0]);
+                      diffPanel.selection.saveSnapshot(changes[0], diffPanel.context);
                     },
                     "snapshot/domChange_0.html",
                     "0 Snapshot");
                 FBTestFireDiff.fileOutTest(
                     function() {
-                      diffPanel.saveDiff(changes[0]);
+                      diffPanel.selection.saveDiff(changes[0], diffPanel.context);
                     },
                     "snapshot/domChange_0.diff",
                     "0 Diff");
