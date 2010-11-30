@@ -209,6 +209,16 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
     return !search.noMatch;
   },
 
+  getContextMenuItems: function(panel, object, target) {
+      if (object instanceof FireDiff.events.dom.DOMRemovedEvent) {
+          return [
+             {label: "CopyHTML", command: function() { copyToClipboard(getElementHTML(object.clone || object)); }},
+             {label: "CopyInnerHTML", command: function() { copyToClipboard((object.clone || object).innerHTML); } },
+             {label: "CopyXPath", command: function() { copyToClipboard(object.displayXPath); } }
+         ]
+      }
+  },
+
   getText: function() {
     return Fireformat.Formatters.getHTMLFormatter().format(this.displayTree);
   },
