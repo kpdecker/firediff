@@ -301,7 +301,15 @@ this.CSSSnapshot.prototype = extend(Snapshot.prototype, {
     this.searchHelper = this.searchHelper || new Search.PageSearch();
     return this.searchHelper.search(text, reverse, panel);
   },
-  
+
+  getContextMenuItems: function(panel, object, target) {
+      if (object instanceof FireDiff.events.css.CSSRemoveRuleEvent) {
+          // For remove objects delegate to the clone (but only within this snapshot view)
+          var rep = Firebug.getRep(object.clone, panel.context);
+          return rep && rep.getContextMenuItems(object.clone, target, panel.context);
+      }
+  },
+
   getText: function() {
     return Fireformat.Formatters.getCSSFormatter().format(this.displayTree);
   },
