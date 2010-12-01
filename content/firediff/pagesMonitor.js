@@ -99,6 +99,12 @@ FireDiff.reps.Monitor = domplate({
     },
 
     getContextMenuItems: function(panel, object, target) {
+        // If we are passed an object that is not a change event then move to the next, if one is available
+        if (object && !object.changeType) {
+            var repNode = Firebug.getRepNode(target);
+            object = repNode && Firebug.getRepObject(repNode.parentNode);
+        }
+
         if (object) {
             var ret = [
                { label: i18n.getString("menu.ChangeSnapshot"), command: bindFixed(this.selectSnapshot, this, object, panel), nol10n: true },
