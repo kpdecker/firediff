@@ -30,9 +30,12 @@ FireDiff.reps.Monitor = domplate({
         SPAN({class: "diffSource"}, "$change|getDiffSource"),
         SPAN({class: "diffDate"}, "$change|getDate"),
         DIV({class: "diffXPath"}, "$change|getXPath"),
-        DIV({class: "logEntry"}, TAG("$change|getChangeTag", {change: "$change", object: "$change.target"}))
+        DIV({class: "logEntry"}, TAG("$change|getChangeTag", {change: "$change", object: "$change|getAssocObject"}))
     ),
 
+    getAssocObject: function(change) {
+        return change.clone || change.style || change.target || change;
+    },
     getChangeTag: function(change) {
         if (change.changeType == "CSS") {
             return DiffDomplate.CSSChanges.CSSStyleRule.tag;

@@ -534,7 +534,7 @@ var CSSChangeElement = {
 this.CSSChanges = {
   CSSList: domplate(CSSChangeElement, {
     tag: FOR("rule", "$change|getCSSRules",
-      TAG("$rule|getNodeTag", {change: "$rule"})
+      TAG("$rule|getNodeTag", {change: "$rule", object: "$rule"})
     )
   }),
   CSSImportRule: domplate(CSSChangeElement, {
@@ -557,7 +557,7 @@ this.CSSChanges = {
         DIV({class: "cssSelector"}, "@media $change|getMediaList {"),
         DIV({class: "cssMediaRuleContent"},
           FOR("rule", "$change|getCSSRules",
-              TAG("$rule|getNodeTag", {change: "$rule"}))),
+              TAG("$rule|getNodeTag", {change: "$rule", object: "$rule"}))),
         DIV("}")
     ),
     getMediaList: function(change) {
@@ -572,7 +572,7 @@ this.CSSChanges = {
   CSSStyleRule: domplate(CSSChangeElement, {
     tag: DIV({
         class: "cssRuleDiff firebugDiff",
-        _repObject: "$change",
+        _repObject: "$object",
         $removedClass: "$change|isRemoved", $addedClass: "$change|isAdded"
       },
       DIV({class: "cssHead"},
