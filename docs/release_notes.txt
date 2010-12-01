@@ -1,3 +1,14 @@
+12/01/2010 - 1.1.0
+
+Changes:
+- Update for Firebug 1.6 support
+- Copy content support
+- Resolve issues in detached mode
+- Fix no change-case for context menu
+- Adjust diff colors
+
+----
+
 3/21/2010 - 1.0.0
 
 Changes:
