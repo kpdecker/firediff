@@ -38,6 +38,29 @@ page. This model is able to combine related changes into single change as
 appropriate. Each event implemented in the model supports apply and revert
 functionality on arbitrary trees.
 
+Building From Source:
+Firediff source is available at http://fbug.googlecode.com/svn/diff/
+
+From source Firediff can be run with or without Fireformat integrated.
+Without:
+* Checkout Firediff source
+* Register the project source directory path in the Firefox profile
+
+When working in this mode no build scripts are necessary, but object to string formatting
+will not work unless Fireformat is installed as a separate extension.
+
+With:
+* Checkout Firediff source
+* Checkout Fireformat source from http://fbug.googlecode.com/svn/extensions/fireformat/
+* In the Firediff directory create local.properties with an entry named fireformat_dir whose
+  value points to the Fireformat directory
+* Run ant merge
+* Register the build/merged directory path in the Firefox profile
+
+When working in this mode all functionality will be available but `ant merge` must be run after
+any changes are made to the source of either Firediff or Fireformat. This is the mode that Firediff
+currently ships.
+
 Open Issues:
 See TODO.txt or search the Firebug Google Code project for the firediff label.
 (http://code.google.com/p/fbug/issues/list?q=label%3Afirediff)
