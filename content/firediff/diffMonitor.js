@@ -215,10 +215,11 @@ DiffMonitor.prototype = extend(Panel, {
     },
     onClearChanges: function(context) {
       if (this.context != context)    return;
-      
-      if (this.panelNode) {
-        clearNode(this.panelNode);
-      }
+
+      var panelStatus = Firebug.chrome.getPanelStatusElements();
+      panelStatus.clear(); // clear stack on status bar
+
+      this.select(undefined, true);
     },
     onNavNextChange: function(context) {
       if (this.selection.showNext) {
