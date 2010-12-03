@@ -218,6 +218,10 @@ FireDiff.Path.getElementPath = function(element, useTagNames, rootPath) {
   nameLookup[Node.TEXT_NODE] = "text()";
   nameLookup[Node.PROCESSING_INSTRUCTION_NODE] = "processing-instruction()";
 
+  if (rootPath === "/") {
+      rootPath = undefined;
+  }
+
   var paths = [];
   for (; element && element.nodeType != Node.DOCUMENT_NODE; element = element.parentNode) {
     var tagName = element.localName || nameLookup[element.nodeType];
