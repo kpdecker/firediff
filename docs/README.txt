@@ -20,7 +20,7 @@ Features:
   manual application.
 
 Dependencies:
-Firediff 1.0 requires Firebug 1.5.
+Firediff 1.1 requires Firebug 1.6 and Firefox 3.6.
 
 Method of operation:
 To track changes to the DOM, Firediff uses the DOM MutationEvents
