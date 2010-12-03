@@ -318,6 +318,7 @@ this.DOMIterator = function(node) {
    */
   this.next = function() {
     var ret = curNode;
+    if (!ret)  $break();
 
     curNode = curNode.nextSibling;
     while (curNode && Firebug.DiffModule.ignoreNode(curNode)) {
@@ -326,8 +327,8 @@ this.DOMIterator = function(node) {
 
     if (!ret)  $break();
     return ret;
-  }
-}
+  };
+};
 
 /**
  * @class Iterates over a child iterator and a set of removed events, merging
