@@ -114,7 +114,7 @@ DiffMonitor.prototype = extend(Panel, {
           nol10n: true,
           type: "checkbox",
           checked: value,
-          command: bindFixed(Firebug.setPref, this, Firebug.prefDomain, option, !value)
+          command: bindFixed(Firebug.setPref, Firebug, Firebug.prefDomain, option, !value)
       };
     },
     showFormatterOptions: function() {
