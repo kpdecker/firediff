@@ -14,6 +14,8 @@ FireDiff.FileIO = FBL.ns(function() {
     const FileOutputService = Cc["@mozilla.org/network/file-output-stream;1"];
     const PickerService = Cc["@mozilla.org/filepicker;1"];
 
+    var i18n = document.getElementById("strings_firediff");
+
     this.DOM_MODE = DOM_MODE;
     this.CSS_MODE = CSS_MODE;
     this.DIFF_MODE = DIFF_MODE;
