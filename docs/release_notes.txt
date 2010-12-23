@@ -1,3 +1,10 @@
+12/22/2010 - 1.1.1
+
+Changes:
+- Fix issue that prevented save dialog for Save Snapshot and Save Diff features.
+
+----
+
 12/01/2010 - 1.1.0
 
 Changes:

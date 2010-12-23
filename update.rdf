@@ -114,13 +114,32 @@
             </em:targetApplication>
           </RDF:Description>
         </RDF:li>
+
+        <RDF:li>
+          <RDF:Description>
+            <em:version>1.1.1</em:version>
+
+            <!-- Firefox -->
+            <em:targetApplication>
+              <RDF:Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>3.6</em:minVersion>
+                <em:maxVersion>3.6.*</em:maxVersion>
+
+                <em:updateLink>http://www.incaseofstairs.com/download/firediff/firediff1.1.1.xpi</em:updateLink>
+                <em:updateInfoURL>http://www.incaseofstairs.com/2010/12/firediff-1-1-1/</em:updateInfoURL>
+                <em:updateHash>sha1:6a81fcb272edfa79565f09580f0fe8d0412df79f</em:updateHash>
+              </RDF:Description>
+            </em:targetApplication>
+          </RDF:Description>
+        </RDF:li>
       </RDF:Seq>
     </em:updates>
 
     <em:signature>
-      MIGTMA0GCSqGSIb3DQEBDQUAA4GBAJpihQN952EVrNoWJgGpq8Oulrq26VaCpbYEYmnlMCsrGR
-      SfHlz+vjJ5OerRKRDtIQiStIGpK3ZHrqrDtU09w4PHHA0oFGxAe1OFBdm6HUiNP+sEZayD69e9
-      gChCPMFIGMB23padQ6k5xX5H+r4Pfw0ZSiFLVlQJRSmhvbiPUZ5S
+      MIGTMA0GCSqGSIb3DQEBDQUAA4GBAKWOlznzMe+nVHDk+bONytYXgZ2nRMgSie6ZgJv4dDjEpS
+      3kSimDNBez1eiMHE6r5i7ilR20pF4zq4wY7e24GcBM3sxxtiPtdmgorxJDS82yOw0zjQCOwPfe
+      Cx++ot+7SyXG+8pa6dk/OerutGlCMfY401lFmApjunb5llWNev5U
     </em:signature>
   </RDF:Description>
 </RDF:RDF>
