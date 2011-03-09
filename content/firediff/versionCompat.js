@@ -304,7 +304,18 @@ FireDiff.VersionCompat = {
      * @see Firebug.HTMLLib.isSourceElement
      * @version Firebug 1.5
      */
-    isSourceElement: HTMLLib.isSourceElement || isSourceElement
+    isSourceElement: HTMLLib.isSourceElement || isSourceElement,
+
+    /**
+     * TabWatcher converted from global to field on Firebug global object as of Firebug version 1.7
+     */
+    TabWatcher: Firebug.TabWatcher || TabWatcher,
+
+    /**
+     * InsideOutBox converted from global to field on Firebug global object as of Firebug version 1.7
+     * Firefox 4.0 exposes a similar, but not API compatible object named InsideOutBox.
+     */
+    InsideOutBox: Firebug.InsideOutBox || InsideOutBox,
 };
 
 }});

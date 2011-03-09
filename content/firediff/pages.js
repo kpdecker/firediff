@@ -166,7 +166,7 @@ this.DOMSnapshot.prototype = extend(Snapshot.prototype, {
   show: function(panel) {
     this.panel = panel;
     
-    this.ioBox = new InsideOutBox(
+    this.ioBox = new FireDiff.VersionCompat.InsideOutBox(
         new DiffDomplate.HtmlSnapshotView(this.displayTree, this.cloneXPath, panel),
         panel.panelNode);
     this.ioBox.openObject(this.displayTree);

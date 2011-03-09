@@ -64,11 +64,11 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     onObserverChange: function(observer) {
         var self = this;
         if (!this.hasObservers()) {
-            TabWatcher.iterateContexts(function(context) {
+            FireDiff.VersionCompat.TabWatcher.iterateContexts(function(context) {
                 self.onEnabled(context);
             });
         } else {
-            TabWatcher.iterateContexts(function(context) {
+            FireDiff.VersionCompat.TabWatcher.iterateContexts(function(context) {
                 self.onDisabled(context);
             });
         }
