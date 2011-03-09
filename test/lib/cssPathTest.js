@@ -119,7 +119,8 @@ function runTest() {
         for (var name in style) {
           if (name == "ownerNode" || name == "parentRule"
               || name == "parentStyleSheet" || name == "styleSheet"
-              || name == "cssRules")  continue;
+              || name == "cssRules" || name === "media" || name === "ownerRule"
+              || name === "insertRule" || name === "deleteRule")  continue;
             
           FBTest.compare(
               expectedStyle[name],
