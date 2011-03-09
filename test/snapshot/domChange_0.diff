@@ -2,7 +2,7 @@ Index: chrome://firediff-test/content/snapshot/index.htm
 ===================================================================
 --- chrome://firediff-test/content/snapshot/index.htm	(Base File)
 +++ chrome://firediff-test/content/snapshot/index.htm	(Snapshot)
-@@ -18,14 +18,12 @@
+@@ -16,14 +16,12 @@
      <div id="insertNode_innerHTML"></div>
      <div id="attrModified">
          Text Value

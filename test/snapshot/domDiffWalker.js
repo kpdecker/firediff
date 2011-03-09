@@ -38,6 +38,7 @@ function runTest() {
       { nodeValue: "\n" },
       { tagName: "TITLE" },
       { nodeValue: "Firediff Test" },
+      { nodeValue: "\n" },
       { tagName: "BODY" },
       { nodeValue: "\n  " },
       { tagName: "DIV" },
