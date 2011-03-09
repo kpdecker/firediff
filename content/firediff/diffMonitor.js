@@ -32,6 +32,13 @@ DiffMonitor.prototype = extend(Panel, {
         prefs.addObserver(Firebug.prefDomain, this, false);
       }
     },
+    destroyNode: function() {
+        Firebug.ActivablePanel.destroyNode.apply(this, arguments);
+
+        if (Firebug.DiffModule.removeListener) {
+            Firebug.DiffModule.removeListener(this);
+        }
+    },
     
     show: function(state) {
       if (Firebug.version < "1.4") {
