@@ -1,3 +1,11 @@
+03/30/2011 - 1.1.2
+
+Changes:
+- CSS Formatter Property Sorting
+- Compatibility updates for Firefox 4.0 and Firediff 1.7
+
+----
+
 12/22/2010 - 1.1.1
 
 Changes:
