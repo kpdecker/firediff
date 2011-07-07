@@ -98,7 +98,7 @@
             tests[curTest].verified = true;
             setCatchTimeout(executeTest, 0);
           } else if (tests[curTest].eventCount < changeNum) {
-            FBTest.compare(tests[curTest].eventCount, changeNum, "Unexpected number of events");
+            FBTest.compare(tests[curTest].eventCount, changeNum, "Unexpected number of events " + JSON.stringify(change));
           } else {
             timeout = setCatchTimeout(cancelTest, 5000);
           }
