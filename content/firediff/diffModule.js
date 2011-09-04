@@ -334,14 +334,14 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       var diffContext = this.getDiffContext(context);
       diffContext.changes = [];
       
-      dispatch(this.fbListeners, "onClearChanges", [context || FirebugContext]);
+      dispatch(this.fbListeners, "onClearChanges", [context || Firebug.currentContext]);
     },
     
     navNextChange: function(context) {
-      dispatch(this.fbListeners, "onNavNextChange", [context || FirebugContext]);
+      dispatch(this.fbListeners, "onNavNextChange", [context || Firebug.currentContext]);
     },
     navPrevChange: function(context) {
-      dispatch(this.fbListeners, "onNavPrevChange", [context || FirebugContext]);
+      dispatch(this.fbListeners, "onNavPrevChange", [context || Firebug.currentContext]);
     },
     
     ignoreChanges: function(worker, context) {
@@ -390,7 +390,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
       var diffContext = this.getDiffContext(context);
       diffContext.changes.push(change);
       
-      dispatch(this.fbListeners, "onDiffChange", [change, context || FirebugContext]);
+      dispatch(this.fbListeners, "onDiffChange", [change, context || Firebug.currentContext]);
     },
     
     getChanges: function(context) {
@@ -399,7 +399,7 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     },
     
     getDiffContext: function(context) {
-      context = context || FirebugContext;
+      context = context || Firebug.currentContext;
       if (!context) {
         return null;
       }

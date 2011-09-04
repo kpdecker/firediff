@@ -146,7 +146,7 @@ function runTest() {
     FBTestFireDiff.enableDiffPanel(
         function() {
           FBTestFirebug.selectPanel("html");
-          cssPanel = FW.FirebugChrome.selectSidePanel("css");
+          cssPanel = FW.Firebug.chrome.selectSidePanel("css");
           //FBTestFirebug.selectPanel("css");
           //cssPanel = FBTestFirebug.getSelectedPanel();
           FW.FBTrace.sysout("cssPanel", cssPanel);

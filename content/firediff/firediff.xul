@@ -31,9 +31,9 @@
   <script src="chrome://firediff/content/diffMonitor.js" type="application/x-javascript"/>
 
   <commandset id="mainCommandSet">
-    <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(FirebugContext)"/>
-    <command id="cmd_prevChange" oncommand="Firebug.DiffModule.navPrevChange(FirebugContext)"/>
-    <command id="cmd_nextChange" oncommand="Firebug.DiffModule.navNextChange(FirebugContext)"/>
+    <command id="cmd_clearDiffMonitor" oncommand="Firebug.DiffModule.clearChanges(Firebug.currentContext)"/>
+    <command id="cmd_prevChange" oncommand="Firebug.DiffModule.navPrevChange(Firebug.currentContext)"/>
+    <command id="cmd_nextChange" oncommand="Firebug.DiffModule.navNextChange(Firebug.currentContext)"/>
   </commandset>
 
   <toolbar id="fbToolbar" align="center">
