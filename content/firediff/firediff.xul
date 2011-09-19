@@ -39,7 +39,6 @@
   <toolbar id="fbToolbar" align="center">
     <hbox id="fbToolbarInner" insertbefore="fbDetachButton" flex="1" align="center">
       <hbox id="fbDiffMonitorButtons" insertafter="fbNetButtons" collapsed="true">
-        <toolbarseparator/>
         <toolbarbutton label="firebug.Clear" class="toolbar-text-button"
                        tooltiptext="firebug.ClearTooltip" command="cmd_clearDiffMonitor"/>
         <hbox id="fbDiffSnapshotNav" collapsed="true">
