@@ -2,12 +2,10 @@ Index: chrome://firediff-test/content/snapshot/external.css
 ===================================================================
 --- chrome://firediff-test/content/snapshot/external.css	(Base File)
 +++ chrome://firediff-test/content/snapshot/external.css	(Snapshot)
-@@ --2,10 +-2,11 @@
+@@ -1,5 +1,6 @@
  #insertNode {
 +  display: block;
    background-color: green;
  }
  
  div:after {
-   content: "test";
- }

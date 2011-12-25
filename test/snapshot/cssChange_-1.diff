@@ -2,7 +2,7 @@ Index: null
 ===================================================================
 --- null	(Base File)
 +++ null	(Snapshot)
-@@ -1,8 +1,8 @@
+@@ -1,7 +1,7 @@
 -#insertNode {
 -  background-color: green;
 -}
@@ -14,5 +14,3 @@ Index: null
 +* {
 +
 +}
- 
-\ No newline at end of file

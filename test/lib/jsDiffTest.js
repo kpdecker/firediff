@@ -476,8 +476,7 @@ function runTest(){
       "Index: testFileName\n"
       + "===================================================================\n"
       + "--- testFileName\tOld Header\n"
-      + "+++ testFileName\tNew Header\n"
-      + "\\ No newline at end of file\n";
+      + "+++ testFileName\tNew Header\n";
   diffResult = JsDiff.createPatch("testFileName", oldFile, oldFile, "Old Header", "New Header");
   FBTest.compare(
       expectedResult,

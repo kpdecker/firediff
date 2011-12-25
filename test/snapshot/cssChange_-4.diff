@@ -2,7 +2,7 @@ Index: null
 ===================================================================
 --- null	(Base File)
 +++ null	(Snapshot)
-@@ -4,5 +4,9 @@
+@@ -4,4 +4,8 @@
  
  div:after {
    content: "test";
@@ -11,5 +11,3 @@ Index: null
 +* {
 +
 +}
- 
-\ No newline at end of file
