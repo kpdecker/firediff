@@ -374,10 +374,10 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     recordChange: function(change, context) {
         if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.recordChange", change);
         var diffContext = this.getDiffContext(context);
-        
+
         // Ignore if a context does not exist, we are in ignore mode, or the context is not attached
         if (!diffContext || diffContext.ignore || !diffContext.eventLogger)   return;
-        
+
         if (!diffContext.editTarget) {
           this.dispatchChange(change, context);
         } else {
@@ -386,10 +386,32 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
     },
     dispatchChange: function(change, context) {
       if (FBTrace.DBG_FIREDIFF)   FBTrace.sysout("DiffModule.dispatchChange", change);
-      
+
       var diffContext = this.getDiffContext(context);
+
+      // Check to see if this is part of an atomic remove/replace
+      if (change.subType === 'dom_removed') {
+        var len = diffContext.changes.length,
+            parent = Path.getParentPath(change.xpath);
+        while (len--) {
+          var prev = diffContext.changes[len];
+          if (prev.subType === 'dom_removed'
+              && Array.prototype.indexOf.call(change.target.parentNode.childNodes, prev.target) >= 0) {
+            // This is an atomic update, i.e. innerHTML modification. As of Firefox ~9.0 we need to
+            // update the indexes for this case as the childNodes list is not updated until after
+            // all change events have been emitted.
+            change.xpath = Path.updateForRemove(change.xpath, prev.xpath);
+            if (Path.compareXPaths(prev.xpath, change.xpath) < 0) {
+                //change.xpath = Path.updateForRemove
+              }
+          } else {
+            break;
+          }
+        }
+      }
+
       diffContext.changes.push(change);
-      
+
       dispatch(this.fbListeners, "onDiffChange", [change, context || Firebug.currentContext]);
     },
     
