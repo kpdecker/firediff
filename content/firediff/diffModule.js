@@ -395,15 +395,14 @@ Firebug.DiffModule = extend(Firebug.ActivableModule, {
             parent = Path.getParentPath(change.xpath);
         while (len--) {
           var prev = diffContext.changes[len];
+          var parent = change.target.parentNode;
           if (prev.subType === 'dom_removed'
-              && Array.prototype.indexOf.call(change.target.parentNode.childNodes, prev.target) >= 0) {
+              && parent
+              && Array.prototype.indexOf.call(parent.childNodes, prev.target) >= 0) {
             // This is an atomic update, i.e. innerHTML modification. As of Firefox ~9.0 we need to
             // update the indexes for this case as the childNodes list is not updated until after
             // all change events have been emitted.
             change.xpath = Path.updateForRemove(change.xpath, prev.xpath);
-            if (Path.compareXPaths(prev.xpath, change.xpath) < 0) {
-                //change.xpath = Path.updateForRemove
-              }
           } else {
             break;
           }
