@@ -1,9 +1,11 @@
-Firediff:
+# Firediff
+
 Firediff is a Firebug extension that tracks changes to a pages DOM and CSS. This
 allows developers to examine the changes made in their debugging as well as those
 made by the page itself.
 
-Features:
+## Features:
+
 - Monitor:
   Displays a log of all the changes made to the page. This can be filtered by 
   Firebug and Application created changes.
@@ -19,10 +21,10 @@ Features:
   this represent the best guess match for the original source file and may require
   manual application.
 
-Dependencies:
+## Dependencies:
 Firediff 1.1 requires Firebug 1.8 and Firefox 6.
 
-Method of operation:
+## Method of operation:
 To track changes to the DOM, Firediff uses the DOM MutationEvents
 (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-eventgroupings-mutationevents)
 to record all changes made to the page by both Firebug edits and application edits.
@@ -32,17 +34,18 @@ changes made to the page's CSS. As a consequence of this, Firediff can only trac
 changes made within Firebug. Any CSS modifications performed by the application
 will not be recorded by Firediff.
 
-Data Model:
+## Data Model:
 Firediff maintains an internal model of the changes that have occurred within the
 page. This model is able to combine related changes into single change as
 appropriate. Each event implemented in the model supports apply and revert
 functionality on arbitrary trees.
 
-Building From Source:
+## Building From Source:
 Firediff source is available at http://fbug.googlecode.com/svn/diff/
 
 From source Firediff can be run with or without Fireformat integrated.
 Without:
+
 * Checkout Firediff source
 * Register the project source directory path in the Firefox profile
 
@@ -50,6 +53,7 @@ When working in this mode no build scripts are necessary, but object to string f
 will not work unless Fireformat is installed as a separate extension.
 
 With:
+
 * Checkout Firediff source
 * Checkout Fireformat source from http://fbug.googlecode.com/svn/extensions/fireformat/
 * In the Firediff directory create local.properties with an entry named fireformat_dir whose
@@ -61,6 +65,6 @@ When working in this mode all functionality will be available but `ant merge` mu
 any changes are made to the source of either Firediff or Fireformat. This is the mode that Firediff
 currently ships.
 
-Open Issues:
+## Open Issues:
 See TODO.txt or search the Firebug Google Code project for the firediff label.
 (http://code.google.com/p/fbug/issues/list?q=label%3Afirediff)
