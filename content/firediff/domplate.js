@@ -249,7 +249,7 @@ var allChanges = {
         return allChanges.ProcessingInstruction.tag;
       else if (node instanceof Comment && Firebug.showCommentNodes)
         return allChanges.CommentNode.tag;
-      else if (node instanceof Firebug.HTMLModule.SourceText || node instanceof window.SourceText)
+      else if (node instanceof Firebug.HTMLModule.SourceText || (window.SourceText && node instanceof window.SourceText))
         return FirebugReps.SourceText.tag;
       else if (node instanceof Document)
         return allChanges.Document.tag;
