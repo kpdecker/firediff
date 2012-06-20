@@ -41,7 +41,8 @@ DiffMonitor.prototype = extend(Panel, {
     },
     
     show: function(state) {
-      if (Firebug.version < "1.4") {
+      var version = Firebug.version.split('.').map(parseFloat);
+      if (version[0] < 1 || (version[0] === 1 && version[1] < 4)) {
         this.panelNode.innerHTML = i18n.getString("warning.firebugVersion");
         return;
       }
