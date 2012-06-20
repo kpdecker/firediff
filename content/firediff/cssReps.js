@@ -2,15 +2,6 @@
 
 FBL.ns(function() { with (FBL) {
 
-var Fireformat = {},
-    Formatters;
-
-try {
-  Components.utils.import("resource://fireformat/formatters.jsm", Fireformat);
-  Formatters = Fireformat.Formatters;
-} catch (err) {
-}
-
 var CSSRuleCloneRep = domplate(Firebug.Rep, {
 
     supportsObject: function(object, type) {
@@ -29,11 +20,11 @@ var CSSRuleCloneRep = domplate(Firebug.Rep, {
     },
 
     copyRuleDeclaration: function(cssSelector) {
-        copyToClipboard(Formatters.getCSSFormatter().format(cssSelector));
+        copyToClipboard(Fireformat.Formatters.getCSSFormatter().format(cssSelector));
     },
 
     getContextMenuItems: function(object, target, context) {
-        if (Formatters) {
+        if (Fireformat.Formatters) {
             return [
                  {label: "Copy Rule Declaration", command: bindFixed(this.copyRuleDeclaration, this, object) },
             ];

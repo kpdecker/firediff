@@ -11,13 +11,7 @@ const dateFormat = CCSV("@mozilla.org/intl/scriptabledateformat;1", "nsIScriptab
 
 var Events = FireDiff.events,
     DiffDomplate = FireDiff.domplate,
-    Search = FireDiff.search,
-    Fireformat = {};
-
-try {
-  Components.utils.import("resource://fireformat/formatters.jsm", Fireformat);
-} catch (err) {
-}
+    Search = FireDiff.search;
 
 var i18n = document.getElementById("strings_firediff");
 

@@ -342,8 +342,7 @@ function runTest() {
 
           FBTestFireDiff.executeModuleTests(tests, win,
               function() {
-                var Format = {};
-                Components.utils.import("resource://fireformat/formatters.jsm", Format);
+                var Format = FW.Fireformat;
 
                 FBTestFirebug.selectPanel("firediff");
                 var diffPanel = FBTestFirebug.getSelectedPanel(),

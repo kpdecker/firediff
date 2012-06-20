@@ -3,13 +3,6 @@ var FireDiff  = FireDiff || {};
 
 FireDiff.reps = FBL.ns(function() { with (FBL) {
 
-var Fireformat = {};
-
-try {
-  Components.utils.import("resource://fireformat/formatters.jsm", Fireformat);
-} catch (err) {
-}
-
 var Events = FireDiff.events,
     Path = FireDiff.Path,
     CSSModel = FireDiff.CSSModel,
