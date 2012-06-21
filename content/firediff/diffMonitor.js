@@ -14,6 +14,25 @@ var Reps = FireDiff.reps;
 var i18n = document.getElementById("strings_firediff");
 var Panel = Firebug.ActivablePanel || Firebug.Panel;
 
+FireDiff.showDialog = function(url) {
+  // See cmd_options in extensions.js
+  var features= "chrome,titlebar,toolbar,centerscreen,";
+  try {
+    var instantApply = gPref.getBoolPref("browser.preferences.instantApply");
+    features += (instantApply ? "dialog=no" : "modal");
+  } catch (e) {
+    features += "modal";
+  }
+  window.openDialog(url, "", features);
+};
+FireDiff.needsFireformat = function(callback) {
+  if (!window.Fireformat) {
+    FireDiff.showDialog('chrome://firediff/content/install-fireformat.xul');
+  } else {
+    callback();
+  }
+};
+
 function DiffMonitor() {}
 DiffMonitor.prototype = extend(Panel, {
     name: "firediff",

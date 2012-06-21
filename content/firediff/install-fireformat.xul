@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!-- See license.txt for terms of usage -->
+
+<!DOCTYPE prefwindow [
+  <!ENTITY % firediffDTD SYSTEM "chrome://firediff/locale/firediff.dtd">
+  %firediffDTD;
+]>
+
+<dialog title="&firediff.requireFireformatTitle;"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    ondialogaccept="var win = Components.classes['@mozilla.org/appshell/window-mediator;1']
+        .getService(Components.interfaces.nsIWindowMediator)
+        .getMostRecentWindow('navigator:browser');
+      win.openUILinkIn('https://addons.mozilla.org/addon/fireformat/', 'tab');">
+  &firediff.requireFireformat;
+</dialog>
