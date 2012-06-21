@@ -145,15 +145,9 @@ DiffMonitor.prototype = extend(Panel, {
       };
     },
     showFormatterOptions: function() {
-      // See cmd_options in extensions.js
-      var features= "chrome,titlebar,toolbar,centerscreen,";
-      try {
-        var instantApply = gPref.getBoolPref("browser.preferences.instantApply");
-        features += (instantApply ? "dialog=no" : "modal");
-      } catch (e) {
-        features += "modal";
-      }
-      window.openDialog("chrome://fireformat/content/options.xul", "", features);
+      FireDiff.needsFireformat(function() {
+        FireDiff.showDialog('chrome://fireformat/content/options.xul');
+      });
     },
 
     getContextMenuItems: function(object, target) {

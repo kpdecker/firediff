@@ -108,11 +108,9 @@ FireDiff.reps.Monitor = domplate({
                "-"
             ];
 
-            if (Fireformat.Formatters) {
-                ret.push({ label: i18n.getString("menu.SaveSnapshot"), command: bindFixed(this.saveSnapshot, this, object, panel.context), nol10n: true });
-                ret.push({ label: i18n.getString("menu.SaveDiff"), command: bindFixed(this.saveDiff, this, object, panel.context), nol10n: true });
-                ret.push("-");
-            }
+            ret.push({ label: i18n.getString("menu.SaveSnapshot"), command: bindFixed(this.saveSnapshot, this, object, panel.context), nol10n: true });
+            ret.push({ label: i18n.getString("menu.SaveDiff"), command: bindFixed(this.saveDiff, this, object, panel.context), nol10n: true });
+            ret.push("-");
 
             ret.push({ label: i18n.getString("menu.RevertChange"), command: bindFixed(this.revertChange, this, object, panel), nol10n: true });
             ret.push({ label: i18n.getString("menu.RevertAllChanges"), command: bindFixed(this.revertAllChanges, this, object, panel), nol10n: true });
@@ -166,13 +164,16 @@ FireDiff.reps.Monitor = domplate({
         }
     },
     saveSnapshot: function(change, context) {
+      FireDiff.needsFireformat(function() {
         var file = FireDiff.FileIO.promptForFileName(i18n.getString("menu.SaveSnapshot"), change.changeType);
         if (file) {
             var snapshot = change.getSnapshot(context);
             FireDiff.FileIO.writeString(file, snapshot.getText());
         }
+      });
     },
     saveDiff: function(change, context) {
+      FireDiff.needsFireformat(function() {
         try {
             var file = FireDiff.FileIO.promptForFileName(i18n.getString("menu.SaveDiff"), FireDiff.FileIO.DIFF_MODE);
             if (file) {
@@ -190,6 +191,7 @@ FireDiff.reps.Monitor = domplate({
         } catch (err) {
             FBTrace.sysout(err, err);
         }
+      });
     },
 });
 FireDiff.reps.MonitorRep = domplate(Firebug.Rep,{

@@ -20,15 +20,15 @@ var CSSRuleCloneRep = domplate(Firebug.Rep, {
     },
 
     copyRuleDeclaration: function(cssSelector) {
+      FireDiff.needsFireformat(function() {
         copyToClipboard(Fireformat.Formatters.getCSSFormatter().format(cssSelector));
+      });
     },
 
     getContextMenuItems: function(object, target, context) {
-        if (Fireformat.Formatters) {
-            return [
-                 {label: "Copy Rule Declaration", command: bindFixed(this.copyRuleDeclaration, this, object) },
-            ];
-        }
+        return [
+             {label: "Copy Rule Declaration", command: bindFixed(this.copyRuleDeclaration, this, object) },
+        ];
     }
 });
 
