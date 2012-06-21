@@ -3,7 +3,7 @@
   <property file="local.properties" />
   <property file="default.properties" />
 
-  <property name="version" value="1.1.5" />
+  <property name="version" value="1.2.0" />
 
   <property name="src_dir" location="${basedir}" />
   <property name="build_dir" location="${basedir}/build" />
@@ -14,33 +14,15 @@
     <delete dir="${build_dir}" />
   </target>
 
-  <target name="merge">
-    <copy todir="${merge_dir}">
-      <fileset dir="${src_dir}">
-        <exclude name="build.xml" />
-        <exclude name="update.rdf" />
-        <exclude name="**/.*/**"/>
-        <exclude name="build/**"/>
-        <exclude name="chrome.manifest" />
-      </fileset>
-      <fileset dir="${fireformat_dir}">
-        <exclude name="build.xml" />
-        <exclude name="update.rdf" />
-        <exclude name="**/.*/**"/>
-        <exclude name="build/**"/>
-        <exclude name="chrome.manifest" />
-      </fileset>
-    </copy>
-    <concat destfile="${merge_dir}/chrome.manifest">
-      <fileset file="${src_dir}/chrome.manifest" />
-      <fileset file="${fireformat_dir}/chrome.manifest" />
-    </concat>
-  </target>
-  <target name="dist" depends="clean, merge">
+  <target name="dist" depends="clean">
     <mkdir dir="${dist_dir}" />
     <zip destfile="${dist_dir}/${ant.project.name}${version}.xpi" update="true">
-      <zipfileset dir="${merge_dir}">
+      <zipfileset dir="${src_dir}">
+        <exclude name="build.xml" />
+        <exclude name="update.rdf" />
+        <exclude name="**/.*/**"/>
         <exclude name="test/**"/>
+        <exclude name="dist/**"/>
       </zipfileset>
     </zip>
 
