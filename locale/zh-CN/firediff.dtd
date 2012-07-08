@@ -1,0 +1,4 @@
+<!ENTITY firediff.NextChange "&gt;">
+<!ENTITY firediff.PrevChange "<">
+<!ENTITY firediff.requireFireformatTitle "Fireformat 必需">
+<!ENTITY firediff.requireFireformat "Fireformat 是到格式文件所必需的。请安装后重试。">

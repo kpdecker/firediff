@@ -1,0 +1,4 @@
+<!ENTITY firediff.NextChange "&gt;">
+<!ENTITY firediff.PrevChange "<">
+<!ENTITY firediff.requireFireformatTitle "Fireformat richiesto">
+<!ENTITY firediff.requireFireformat "Fireformat è necessario per formattare i documenti. Per piacere installalo e riprova.">
